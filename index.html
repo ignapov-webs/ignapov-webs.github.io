@@ -1,628 +1,390 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="Caprini VTE" />
-  <meta name="theme-color" content="#1a56a0" />
-  <title>Caprini VTE · Tromboprofilaxis</title>
-  <style>
-    :root {
-      --blue:    #1a56a0;
-      --blue-lt: #e8f0fb;
-      --green:   #1d7d4f;
-      --green-lt:#e6f4ed;
-      --yellow:  #b07d00;
-      --yel-lt:  #fdf6e3;
-      --orange:  #c05800;
-      --ora-lt:  #fef0e6;
-      --red:     #b81c1c;
-      --red-lt:  #fdeaea;
-      --grey:    #f5f6f8;
-      --border:  #d6dae3;
-      --text:    #1a1f2e;
-      --sub:     #5a6070;
-      --radius:  12px;
-      --shadow:  0 2px 8px rgba(0,0,0,.08);
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      font-size: 15px;
-      color: var(--text);
-      background: var(--grey);
-      padding-bottom: 120px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Mis Gastos</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --card: #1a1d24;
+    --card2: #232733;
+    --text: #f2f4f8;
+    --muted: #8b93a7;
+    --accent: #4f8cff;
+    --danger: #ff5d5d;
+    --warn: #ffb648;
+    --ok: #34d399;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 16px;
+    padding-bottom: 50px;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 22px; margin: 4px 0 14px; text-align: center; }
 
-    /* ── Header ── */
-    header {
-      background: var(--blue);
-      color: #fff;
-      padding: 14px 16px 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 2px 6px rgba(0,0,0,.2);
-    }
-    header h1 { font-size: 17px; font-weight: 700; letter-spacing: -.2px; }
-    header p  { font-size: 11px; opacity: .8; margin-top: 2px; }
-    #score-badge {
-      background: rgba(255,255,255,.15);
-      border: 2px solid rgba(255,255,255,.4);
-      border-radius: 50px;
-      min-width: 56px;
-      text-align: center;
-      padding: 4px 12px;
-      flex-shrink: 0;
-    }
-    #score-badge span { display: block; }
-    #score-badge .pts { font-size: 22px; font-weight: 800; line-height: 1; }
-    #score-badge .lbl { font-size: 9px; opacity: .8; letter-spacing: .5px; text-transform: uppercase; }
+  .mes-bar { display: flex; justify-content: center; margin-bottom: 12px; }
+  .mes-bar select {
+    background: var(--card2); color: var(--text); border: none;
+    border-radius: 10px; padding: 8px 14px; font-size: 15px; outline: none;
+  }
 
-    /* ── Risk banner ── */
-    #risk-banner {
-      margin: 12px 12px 4px;
-      border-radius: var(--radius);
-      padding: 14px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: background .3s, border-color .3s;
-      border: 2px solid transparent;
-    }
-    #risk-banner .risk-label  { font-size: 18px; font-weight: 700; }
-    #risk-banner .risk-score  { font-size: 12px; opacity: .75; margin-top: 2px; }
-    #risk-badge { font-size: 11px; font-weight: 700; border-radius: 20px; padding: 5px 12px; }
+  .total-general {
+    background: linear-gradient(135deg, #4f8cff, #6f5cff);
+    border-radius: 18px;
+    padding: 18px;
+    text-align: center;
+    margin-bottom: 18px;
+    box-shadow: 0 8px 24px rgba(79,140,255,.25);
+  }
+  .total-general .label { font-size: 13px; opacity: .85; }
+  .total-general .valor { font-size: 38px; font-weight: 700; margin-top: 2px; }
 
-    /* Colors by level */
-    .risk-muy-bajo  { background: var(--green-lt); border-color: var(--green) !important; }
-    .risk-muy-bajo  .risk-label { color: var(--green); }
-    .risk-muy-bajo  #risk-badge { background: var(--green); color: #fff; }
+  .form { background: var(--card); border-radius: 16px; padding: 14px; margin-bottom: 18px; }
+  .row { display: flex; gap: 10px; margin-bottom: 10px; }
+  input {
+    width: 100%; background: var(--card2); border: none; border-radius: 12px;
+    padding: 14px; color: var(--text); font-size: 17px; outline: none;
+  }
+  input::placeholder { color: var(--muted); }
+  #importe { font-size: 20px; font-weight: 600; }
 
-    .risk-bajo  { background: var(--yel-lt); border-color: var(--yellow) !important; }
-    .risk-bajo  .risk-label { color: var(--yellow); }
-    .risk-bajo  #risk-badge { background: var(--yellow); color: #fff; }
+  .cats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .cat-btn {
+    background: var(--card2); border: 2px solid transparent; border-radius: 12px;
+    padding: 12px 4px; color: var(--text); font-size: 13px; cursor: pointer;
+    text-align: center; transition: .15s;
+  }
+  .cat-btn .ico { font-size: 22px; display: block; margin-bottom: 3px; }
+  .cat-btn:active { transform: scale(.95); }
+  .hint { text-align: center; color: var(--muted); font-size: 13px; margin: 4px 0 0; }
 
-    .risk-moderado  { background: var(--ora-lt); border-color: var(--orange) !important; }
-    .risk-moderado  .risk-label { color: var(--orange); }
-    .risk-moderado  #risk-badge { background: var(--orange); color: #fff; }
+  section { margin-bottom: 18px; }
+  .sec-head { display: flex; align-items: center; justify-content: space-between; margin: 0 0 10px; }
+  .sec-head h2 { font-size: 15px; color: var(--muted); margin: 0; font-weight: 600; }
+  .sec-head .link { color: var(--accent); font-size: 13px; cursor: pointer; background: none; border: none; }
 
-    .risk-alto  { background: var(--red-lt); border-color: var(--red) !important; }
-    .risk-alto  .risk-label { color: var(--red); }
-    .risk-alto  #risk-badge { background: var(--red); color: #fff; }
+  .cat-resumen { background: var(--card); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; }
+  .cr-top { display: flex; align-items: center; }
+  .cat-resumen .ico { font-size: 22px; margin-right: 12px; }
+  .cat-resumen .nombre { flex: 1; font-size: 15px; }
+  .cat-resumen .pct { color: var(--muted); font-size: 12px; margin-right: 10px; }
+  .cat-resumen .monto { font-weight: 700; font-size: 16px; }
+  .barra { height: 7px; background: var(--card2); border-radius: 5px; margin-top: 9px; overflow: hidden; }
+  .barra > div { height: 100%; border-radius: 5px; transition: width .3s; }
+  .presu-info { font-size: 11px; color: var(--muted); margin-top: 5px; }
 
-    /* ── Sections ── */
-    section {
-      margin: 8px 12px;
-      background: #fff;
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-    }
-    .sec-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      cursor: pointer;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .sec-header:active { background: #f0f4ff; }
-    .sec-title { font-weight: 700; font-size: 14px; }
-    .sec-pts {
-      background: var(--blue);
-      color: #fff;
-      font-size: 11px;
-      font-weight: 700;
-      border-radius: 20px;
-      padding: 3px 10px;
-      white-space: nowrap;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .sec-pts .chevron { transition: transform .25s; display: inline-block; }
-    .sec-collapsed .chevron { transform: rotate(-90deg); }
-    .sec-count {
-      background: rgba(255,255,255,.25);
-      border-radius: 10px;
-      padding: 1px 6px;
-      font-size: 10px;
-    }
+  .item { display: flex; align-items: center; background: var(--card); border-radius: 12px; padding: 11px 14px; margin-bottom: 7px; }
+  .item .ico { font-size: 20px; margin-right: 12px; }
+  .item .info { flex: 1; min-width: 0; }
+  .item .concepto { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item .fecha { font-size: 11px; color: var(--muted); }
+  .item .monto { font-weight: 600; margin: 0 10px; }
+  .item .del { background: none; border: none; color: var(--danger); font-size: 20px; cursor: pointer; padding: 4px; }
+  .vacio { text-align: center; color: var(--muted); padding: 20px; font-size: 14px; }
 
-    .sec-body { border-top: 1px solid var(--border); }
-    .sec-body.hidden { display: none; }
+  /* Presupuestos */
+  #presuPanel { display: none; background: var(--card); border-radius: 16px; padding: 14px; margin-bottom: 18px; }
+  .presu-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .presu-row .ico { font-size: 20px; }
+  .presu-row .nombre { flex: 1; font-size: 14px; }
+  .presu-row input { width: 110px; padding: 10px; font-size: 15px; text-align: right; }
 
-    /* ── Checkboxes ── */
-    .item {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      transition: background .15s;
-    }
-    .item:last-child { border-bottom: none; }
-    .item:active { background: #f4f6ff; }
-    .item input[type=checkbox] {
-      width: 20px;
-      height: 20px;
-      flex-shrink: 0;
-      margin-top: 1px;
-      accent-color: var(--blue);
-      cursor: pointer;
-    }
-    .item label { font-size: 14px; line-height: 1.35; cursor: pointer; }
-    .item label small { display: block; color: var(--sub); font-size: 12px; margin-top: 2px; }
-
-    /* ── Age selector ── */
-    .age-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      padding: 12px 14px;
-    }
-    .age-btn {
-      border: 2px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 8px;
-      text-align: center;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      color: var(--text);
-      background: #fff;
-      -webkit-tap-highlight-color: transparent;
-      transition: border-color .15s, background .15s, color .15s;
-    }
-    .age-btn.selected {
-      border-color: var(--blue);
-      background: var(--blue-lt);
-      color: var(--blue);
-    }
-    .age-btn small { display: block; font-size: 10px; font-weight: 400; color: var(--sub); margin-top: 2px; }
-    .age-btn.selected small { color: var(--blue); }
-
-    /* ── Recommendation panel ── */
-    #rec-panel {
-      margin: 8px 12px;
-      background: #fff;
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-    }
-    #rec-panel h3 {
-      font-size: 13px;
-      font-weight: 700;
-      padding: 10px 16px;
-      background: var(--blue);
-      color: #fff;
-      letter-spacing: .2px;
-    }
-    .rec-block {
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-    }
-    .rec-block:last-child { border-bottom: none; }
-    .rec-block h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: var(--sub); margin-bottom: 6px; }
-    .rec-block p, .rec-block li { font-size: 14px; line-height: 1.5; }
-    .rec-block ul { padding-left: 18px; }
-    .rec-block li { margin-bottom: 4px; }
-    .tag-mec {
-      display: inline-block; background: #e8f0fb; color: var(--blue);
-      font-size: 11px; font-weight: 700; border-radius: 4px; padding: 2px 7px; margin: 2px 4px 2px 0;
-    }
-    .tag-farm {
-      display: inline-block; background: #fdeaea; color: var(--red);
-      font-size: 11px; font-weight: 700; border-radius: 4px; padding: 2px 7px; margin: 2px 4px 2px 0;
-    }
-    .drug-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      padding: 5px 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .drug-row:last-child { border-bottom: none; }
-    .drug-name { font-size: 14px; font-weight: 600; }
-    .drug-brand { font-size: 11px; color: var(--sub); }
-    .drug-dose { font-size: 13px; color: var(--text); text-align: right; }
-
-    /* ── Reset button ── */
-    #reset-btn {
-      position: fixed;
-      bottom: 20px;
-      right: 16px;
-      background: var(--blue);
-      color: #fff;
-      border: none;
-      border-radius: 50px;
-      padding: 13px 22px;
-      font-size: 14px;
-      font-weight: 700;
-      box-shadow: 0 4px 14px rgba(26,86,160,.45);
-      cursor: pointer;
-      z-index: 50;
-      -webkit-tap-highlight-color: transparent;
-    }
-    #reset-btn:active { opacity: .85; }
-
-    /* ── Disclaimer ── */
-    .disclaimer {
-      margin: 8px 12px 0;
-      font-size: 11px;
-      color: var(--sub);
-      text-align: center;
-      line-height: 1.5;
-    }
-  </style>
+  .acciones { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 22px; }
+  .acciones button {
+    background: var(--card); border: 1px solid var(--card2); color: var(--text);
+    border-radius: 10px; padding: 10px 14px; font-size: 13px; cursor: pointer;
+  }
+  .acciones .reset { color: var(--danger); }
+</style>
 </head>
 <body>
+  <h1>💰 Mis Gastos</h1>
 
-<!-- Header -->
-<header>
-  <div>
-    <h1>Escala de Caprini</h1>
-    <p>Riesgo TEV · Cirugía General</p>
+  <div class="mes-bar">
+    <select id="selMes" onchange="render()"></select>
   </div>
-  <div id="score-badge">
-    <span class="pts" id="score-pts">0</span>
-    <span class="lbl">puntos</span>
-  </div>
-</header>
 
-<!-- Risk banner -->
-<div id="risk-banner" class="risk-muy-bajo">
-  <div>
-    <div class="risk-label" id="risk-label">Riesgo MUY BAJO</div>
-    <div class="risk-score" id="risk-score">Puntuación: 0 · Caprini 2005</div>
+  <div class="total-general">
+    <div class="label" id="totalLabel">Total del mes</div>
+    <div class="valor" id="totalGeneral">0,00 €</div>
   </div>
-  <div id="risk-badge">0–1 pts</div>
-</div>
 
-<!-- ── AGE ── -->
-<section>
-  <div class="sec-header" onclick="toggleSec(this)">
-    <span class="sec-title">🎂 Edad del paciente</span>
-    <span class="sec-pts">
-      <span class="chevron">▾</span>
-      <span>Obligatorio</span>
-    </span>
-  </div>
-  <div class="sec-body" id="sec-age">
-    <div class="age-row">
-      <div class="age-btn selected" data-age="0" onclick="selectAge(this)">
-        ≤ 40 años
-        <small>0 puntos</small>
-      </div>
-      <div class="age-btn" data-age="1" onclick="selectAge(this)">
-        41 – 60 años
-        <small>+1 punto</small>
-      </div>
-      <div class="age-btn" data-age="2" onclick="selectAge(this)">
-        61 – 74 años
-        <small>+2 puntos</small>
-      </div>
-      <div class="age-btn" data-age="3" onclick="selectAge(this)">
-        ≥ 75 años
-        <small>+3 puntos</small>
-      </div>
+  <div class="form">
+    <div class="row">
+      <input id="importe" type="number" inputmode="decimal" placeholder="0,00 €" step="0.01">
     </div>
+    <div class="row">
+      <input id="concepto" type="text" placeholder="Concepto (ej. Café, Gasolina...)">
+    </div>
+    <div class="cats" id="cats"></div>
+    <p class="hint">Escribe importe y concepto, luego toca una categoría</p>
   </div>
-</section>
 
-<!-- ── 1 POINT FACTORS ── -->
-<section>
-  <div class="sec-header sec-collapsed" onclick="toggleSec(this)">
-    <span class="sec-title">Factores de riesgo</span>
-    <span class="sec-pts" style="background:#4a7fc1">
-      <span class="chevron">▾</span>
-      +1 pto c/u
-      <span class="sec-count" id="cnt-1">0</span>
-    </span>
-  </div>
-  <div class="sec-body hidden" id="sec-1pt">
-    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">Cirugía menor programada<small>Ambulatoria o &lt;45 min</small></span></label>
-    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">Cirugía mayor reciente<small>En el último mes</small></span></label>
-    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">Varices de miembros inferiores</span></label>
-    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">Edema de miembros inferiores<small>Actual</small></span></label>
-    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">Obesidad (IMC &gt; 25 kg/m²)</span></label>
-    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">Enfermedad inflamatoria intestinal<small>Crohn / Colitis ulcerosa</small></span></label>
-    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">IAM agudo<small>Infarto de miocardio</small></span></label>
-    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">Insuficiencia cardíaca congestiva<small>En el último mes</small></span></label>
-    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">Sepsis<small>En el último mes</small></span></label>
-    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">Neumopatía grave / neumonía<small>En el último mes</small></span></label>
-    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">Función pulmonar anormal (EPOC)</span></label>
-    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">Anticonceptivos orales / THS</span></label>
-    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">Embarazo o puerperio<small>Posparto en el último mes</small></span></label>
-    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">Abortos repetición / mortinatos / RCIU<small>Historia obstétrica adversa</small></span></label>
-    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">Encamamiento médico</span></label>
-  </div>
-</section>
+  <section>
+    <div class="sec-head">
+      <h2>RESUMEN POR CATEGORÍA</h2>
+      <button class="link" onclick="togglePresu()">🎯 Presupuestos</button>
+    </div>
+    <div id="presuPanel"></div>
+    <div id="resumen"></div>
+  </section>
 
-<!-- ── 2 POINT FACTORS ── -->
-<section>
-  <div class="sec-header sec-collapsed" onclick="toggleSec(this)">
-    <span class="sec-title">Factores de riesgo</span>
-    <span class="sec-pts" style="background:#e07800">
-      <span class="chevron">▾</span>
-      +2 pts c/u
-      <span class="sec-count" id="cnt-2">0</span>
-    </span>
-  </div>
-  <div class="sec-body hidden" id="sec-2pt">
-    <label class="item"><input type="checkbox" value="2" onchange="update()"><span class="label">Artroscopia</span></label>
-    <label class="item"><input type="checkbox" value="2" onchange="update()"><span class="label">Neoplasia maligna activa o previa</span></label>
-    <label class="item"><input type="checkbox" value="2" onchange="update()"><span class="label">Cirugía mayor &gt; 45 min<small>Cirugía abierta mayor</small></span></label>
-    <label class="item"><input type="checkbox" value="2" onchange="update()"><span class="label">Cirugía laparoscópica &gt; 45 min</span></label>
-    <label class="item"><input type="checkbox" value="2" onchange="update()"><span class="label">Encamamiento &gt; 72 horas</span></label>
-    <label class="item"><input type="checkbox" value="2" onchange="update()"><span class="label">Escayola inmovilizadora<small>En el último mes</small></span></label>
-    <label class="item"><input type="checkbox" value="2" onchange="update()"><span class="label">Acceso venoso central</span></label>
-  </div>
-</section>
+  <section>
+    <div class="sec-head"><h2>HISTORIAL</h2></div>
+    <div id="historial"></div>
+  </section>
 
-<!-- ── 3 POINT FACTORS ── -->
-<section>
-  <div class="sec-header sec-collapsed" onclick="toggleSec(this)">
-    <span class="sec-title">Factores de alto riesgo</span>
-    <span class="sec-pts" style="background:#b81c1c">
-      <span class="chevron">▾</span>
-      +3 pts c/u
-      <span class="sec-count" id="cnt-3">0</span>
-    </span>
+  <div class="acciones">
+    <button onclick="exportarCSV()">⬇️ Exportar CSV</button>
+    <button onclick="copiaSeguridad()">💾 Copia</button>
+    <button onclick="document.getElementById('fileRestore').click()">♻️ Restaurar</button>
+    <button class="reset" onclick="borrarTodo()">🗑️ Borrar todo</button>
+    <input type="file" id="fileRestore" accept=".json" style="display:none" onchange="restaurar(event)">
   </div>
-  <div class="sec-body hidden" id="sec-3pt">
-    <label class="item"><input type="checkbox" value="3" onchange="update()"><span class="label">Antecedentes de TEV<small>TVP o TEP previos</small></span></label>
-    <label class="item"><input type="checkbox" value="3" onchange="update()"><span class="label">Historia familiar de trombosis<small>Familiar de 1er grado</small></span></label>
-    <label class="item"><input type="checkbox" value="3" onchange="update()"><span class="label">Factor V Leiden positivo</span></label>
-    <label class="item"><input type="checkbox" value="3" onchange="update()"><span class="label">Protrombina G20210A positiva</span></label>
-    <label class="item"><input type="checkbox" value="3" onchange="update()"><span class="label">Homocisteína sérica elevada</span></label>
-    <label class="item"><input type="checkbox" value="3" onchange="update()"><span class="label">Anticoagulante lúpico positivo</span></label>
-    <label class="item"><input type="checkbox" value="3" onchange="update()"><span class="label">Anticuerpos anticardiolipina elevados</span></label>
-    <label class="item"><input type="checkbox" value="3" onchange="update()"><span class="label">TIH (Trombocitopenia inducida por heparina)</span></label>
-    <label class="item"><input type="checkbox" value="3" onchange="update()"><span class="label">Otra trombofilia congénita o adquirida</span></label>
-  </div>
-</section>
-
-<!-- ── 5 POINT FACTORS ── -->
-<section>
-  <div class="sec-header sec-collapsed" onclick="toggleSec(this)">
-    <span class="sec-title">Factores de muy alto riesgo</span>
-    <span class="sec-pts" style="background:#7b0000">
-      <span class="chevron">▾</span>
-      +5 pts c/u
-      <span class="sec-count" id="cnt-5">0</span>
-    </span>
-  </div>
-  <div class="sec-body hidden" id="sec-5pt">
-    <label class="item"><input type="checkbox" value="5" onchange="update()"><span class="label">Ictus / ACV<small>En el último mes</small></span></label>
-    <label class="item"><input type="checkbox" value="5" onchange="update()"><span class="label">Artroplastia electiva<small>Prótesis cadera o rodilla</small></span></label>
-    <label class="item"><input type="checkbox" value="5" onchange="update()"><span class="label">Fractura de cadera, pelvis o pierna<small>En el último mes</small></span></label>
-    <label class="item"><input type="checkbox" value="5" onchange="update()"><span class="label">Lesión medular aguda con parálisis<small>En el último mes</small></span></label>
-  </div>
-</section>
-
-<!-- ── RECOMMENDATION ── -->
-<div id="rec-panel">
-  <h3>💊 Recomendación de Tromboprofilaxis</h3>
-  <div id="rec-content"></div>
-</div>
-
-<p class="disclaimer">Basado en Caprini RAM 2005 · Guías ACCP/SEACV · Uso orientativo, confirmar con guía clínica local</p>
-
-<button id="reset-btn" onclick="resetAll()">↺ Reiniciar</button>
 
 <script>
-  let ageScore = 0;
-  let hasCancer = false;
+  const CATEGORIAS = [
+    { id: 'comida',     nombre: 'Comida',     ico: '🍔' },
+    { id: 'transporte', nombre: 'Transporte', ico: '🚗' },
+    { id: 'ocio',       nombre: 'Ocio',       ico: '🎉' },
+    { id: 'hogar',      nombre: 'Hogar',      ico: '🏠' },
+    { id: 'salud',      nombre: 'Salud',      ico: '💊' },
+    { id: 'otros',      nombre: 'Otros',      ico: '📦' },
+  ];
 
-  const RECS = {
-    'muy-bajo': {
-      label: 'Riesgo MUY BAJO',
-      badge: '0–1 pts',
-      cls: 'risk-muy-bajo',
-      mecanica: false,
-      farmaco: false,
-      duracion: null,
-      nota: 'Solo deambulación precoz y activa. Sin profilaxis farmacológica ni mecánica de rutina.',
-      drugs: []
-    },
-    'bajo': {
-      label: 'Riesgo BAJO',
-      badge: '2 pts',
-      cls: 'risk-bajo',
-      mecanica: true,
-      farmaco: false,
-      duracion: 'Hasta ambulación / alta',
-      nota: 'Profilaxis mecánica. Sin HBPM de rutina salvo valoración individual.',
-      drugs: []
-    },
-    'moderado': {
-      label: 'Riesgo MODERADO',
-      badge: '3–4 pts',
-      cls: 'risk-moderado',
-      mecanica: true,
-      farmaco: true,
-      duracion: '7–10 días (o hasta ambulación)',
-      nota: null,
-      drugs: [
-        { name: 'Enoxaparina', brand: 'Clexane', dose: '40 mg SC / 24 h' },
-        { name: 'Bemiparina',  brand: 'Hibor',   dose: '3.500 UI SC / 24 h' },
-        { name: 'Dalteparina', brand: 'Fragmin',  dose: '5.000 UI SC / 24 h' },
-        { name: 'Fondaparinux',brand: 'Arixtra',  dose: '2,5 mg SC / 24 h' },
-        { name: 'HNF',         brand: 'Heparina', dose: '5.000 UI SC / 8–12 h' },
-      ]
-    },
-    'alto': {
-      label: 'Riesgo ALTO',
-      badge: '≥5 pts',
-      cls: 'risk-alto',
-      mecanica: true,
-      farmaco: true,
-      duracion: '7–10 días · hasta 28–35 días en cáncer',
-      nota: null,
-      drugs: [
-        { name: 'Enoxaparina', brand: 'Clexane', dose: '40 mg SC / 24 h' },
-        { name: 'Bemiparina',  brand: 'Hibor',   dose: '3.500 UI SC / 24 h' },
-        { name: 'Dalteparina', brand: 'Fragmin',  dose: '5.000 UI SC / 24 h' },
-        { name: 'Fondaparinux',brand: 'Arixtra',  dose: '2,5 mg SC / 24 h' },
-        { name: 'HNF',         brand: 'Heparina', dose: '5.000 UI SC / 8 h' },
-      ]
-    }
+  let gastos = JSON.parse(localStorage.getItem('gastos') || '[]');
+  let presupuestos = JSON.parse(localStorage.getItem('presupuestos') || '{}');
+
+  const eur = n => n.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+  const cat = id => CATEGORIAS.find(c => c.id === id) || CATEGORIAS[5];
+  const claveMes = fechaISO => fechaISO.slice(0, 7); // "2026-06"
+  const labelMes = clave => {
+    const [a, m] = clave.split('-');
+    const d = new Date(parseInt(a), parseInt(m) - 1, 1);
+    const s = d.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+    return s.charAt(0).toUpperCase() + s.slice(1);
   };
 
-  function getLevel(score) {
-    if (score <= 1) return 'muy-bajo';
-    if (score === 2) return 'bajo';
-    if (score <= 4) return 'moderado';
-    return 'alto';
+  function guardar() {
+    localStorage.setItem('gastos', JSON.stringify(gastos));
+    localStorage.setItem('presupuestos', JSON.stringify(presupuestos));
   }
 
-  function update() {
-    // Checkboxes
-    let checkScore = 0;
-    let cancer = false;
-    document.querySelectorAll('input[type=checkbox]').forEach(cb => {
-      if (cb.checked) {
-        checkScore += parseInt(cb.value);
-        // Detect cancer checkbox (index 1 in 2pt section = neoplasia)
-        if (cb.value === '2' && cb.closest('label').querySelector('.label').textContent.includes('Neoplasia')) {
-          cancer = true;
+  function pintarCategorias() {
+    document.getElementById('cats').innerHTML = CATEGORIAS.map(c =>
+      `<button class="cat-btn" onclick="anadir('${c.id}')">
+        <span class="ico">${c.ico}</span>${c.nombre}
+      </button>`).join('');
+  }
+
+  function pintarMeses() {
+    const sel = document.getElementById('selMes');
+    const previo = sel.value;
+    const meses = [...new Set(gastos.map(g => claveMes(g.fecha)))];
+    const actual = new Date().toISOString().slice(0, 7);
+    if (!meses.includes(actual)) meses.push(actual);
+    meses.sort().reverse();
+    let html = meses.map(m => `<option value="${m}">${labelMes(m)}</option>`).join('');
+    html += `<option value="TODOS">📊 Todos los meses</option>`;
+    sel.innerHTML = html;
+    if (previo && [...sel.options].some(o => o.value === previo)) sel.value = previo;
+    else sel.value = actual;
+  }
+
+  function anadir(catId) {
+    const impInput = document.getElementById('importe');
+    const conInput = document.getElementById('concepto');
+    const importe = parseFloat(impInput.value.replace(',', '.'));
+    const concepto = conInput.value.trim();
+
+    if (!importe || importe <= 0) {
+      impInput.focus();
+      impInput.style.outline = '2px solid var(--danger)';
+      setTimeout(() => impInput.style.outline = 'none', 800);
+      return;
+    }
+
+    gastos.unshift({
+      id: Date.now(), importe,
+      concepto: concepto || cat(catId).nombre,
+      categoria: catId, fecha: new Date().toISOString()
+    });
+    guardar();
+    impInput.value = ''; conInput.value = ''; impInput.focus();
+    pintarMeses();
+    document.getElementById('selMes').value = new Date().toISOString().slice(0, 7);
+    render();
+  }
+
+  function borrar(id) {
+    gastos = gastos.filter(g => g.id !== id);
+    guardar(); pintarMeses(); render();
+  }
+
+  function borrarTodo() {
+    if (gastos.length && confirm('¿Borrar TODOS los gastos? No se puede deshacer.\n\n(Tus presupuestos se conservan)')) {
+      gastos = []; guardar(); pintarMeses(); render();
+    }
+  }
+
+  function togglePresu() {
+    const p = document.getElementById('presuPanel');
+    if (p.style.display === 'block') { p.style.display = 'none'; return; }
+    p.innerHTML = '<div class="hint" style="margin-bottom:10px">Límite mensual por categoría (deja en blanco para no usar)</div>' +
+      CATEGORIAS.map(c => `
+        <div class="presu-row">
+          <span class="ico">${c.ico}</span>
+          <span class="nombre">${c.nombre}</span>
+          <input type="number" inputmode="decimal" placeholder="—" value="${presupuestos[c.id] || ''}"
+                 onchange="setPresu('${c.id}', this.value)">
+        </div>`).join('');
+    p.style.display = 'block';
+  }
+
+  function setPresu(catId, val) {
+    const n = parseFloat(String(val).replace(',', '.'));
+    if (!n || n <= 0) delete presupuestos[catId];
+    else presupuestos[catId] = n;
+    guardar(); render();
+  }
+
+  function render() {
+    const sel = document.getElementById('selMes');
+    const mes = sel.value || new Date().toISOString().slice(0, 7);
+    const todos = mes === 'TODOS';
+    const lista = todos ? gastos : gastos.filter(g => claveMes(g.fecha) === mes);
+
+    const total = lista.reduce((s, g) => s + g.importe, 0);
+    document.getElementById('totalGeneral').textContent = eur(total);
+    document.getElementById('totalLabel').textContent = todos ? 'Total acumulado' : 'Total del mes';
+
+    // Resumen por categoría
+    const porCat = {};
+    lista.forEach(g => porCat[g.categoria] = (porCat[g.categoria] || 0) + g.importe);
+    const orden = Object.entries(porCat).sort((a, b) => b[1] - a[1]);
+
+    document.getElementById('resumen').innerHTML = orden.length
+      ? orden.map(([id, monto]) => {
+          const c = cat(id);
+          const pct = total ? Math.round(monto / total * 100) : 0;
+          const lim = (!todos && presupuestos[id]) ? presupuestos[id] : null;
+          let barra = '';
+          if (lim) {
+            const usado = Math.min(monto / lim * 100, 100);
+            const ratio = monto / lim;
+            const color = ratio > 1 ? 'var(--danger)' : ratio >= 0.8 ? 'var(--warn)' : 'var(--ok)';
+            const restante = lim - monto;
+            const txt = restante >= 0
+              ? `Quedan ${eur(restante)} de ${eur(lim)}`
+              : `⚠️ Te has pasado ${eur(-restante)} (límite ${eur(lim)})`;
+            barra = `<div class="barra"><div style="width:${usado}%;background:${color}"></div></div>
+                     <div class="presu-info" style="color:${ratio > 1 ? 'var(--danger)' : 'var(--muted)'}">${txt}</div>`;
+          }
+          return `<div class="cat-resumen">
+            <div class="cr-top">
+              <span class="ico">${c.ico}</span>
+              <span class="nombre">${c.nombre}</span>
+              <span class="pct">${pct}%</span>
+              <span class="monto">${eur(monto)}</span>
+            </div>${barra}
+          </div>`;
+        }).join('')
+      : '<div class="vacio">No hay gastos en este periodo</div>';
+
+    // Historial
+    document.getElementById('historial').innerHTML = lista.length
+      ? lista.map(g => {
+          const c = cat(g.categoria);
+          const f = new Date(g.fecha);
+          const fechaStr = f.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) +
+            ' · ' + f.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+          return `<div class="item">
+            <span class="ico">${c.ico}</span>
+            <span class="info">
+              <div class="concepto">${escapeHtml(g.concepto)}</div>
+              <div class="fecha">${fechaStr}</div>
+            </span>
+            <span class="monto">${eur(g.importe)}</span>
+            <button class="del" onclick="borrar(${g.id})">×</button>
+          </div>`;
+        }).join('')
+      : '<div class="vacio">No hay gastos en este periodo</div>';
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // ---- Exportar / Copia / Restaurar ----
+  function descargar(nombre, contenido, tipo) {
+    const blob = new Blob([contenido], { type: tipo });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = nombre;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function exportarCSV() {
+    if (!gastos.length) { alert('No hay gastos para exportar.'); return; }
+    const filas = [['Fecha', 'Categoría', 'Concepto', 'Importe']];
+    gastos.slice().reverse().forEach(g => {
+      filas.push([
+        new Date(g.fecha).toLocaleString('es-ES'),
+        cat(g.categoria).nombre,
+        g.concepto,
+        String(g.importe).replace('.', ',')
+      ]);
+    });
+    const csv = '﻿' + filas.map(f => f.map(c => `"${String(c).replace(/"/g, '""')}"`).join(';')).join('\n');
+    descargar('gastos.csv', csv, 'text/csv;charset=utf-8');
+  }
+
+  function copiaSeguridad() {
+    const datos = JSON.stringify({ gastos, presupuestos, _exportado: new Date().toISOString() }, null, 2);
+    descargar('copia-gastos.json', datos, 'application/json');
+  }
+
+  function restaurar(ev) {
+    const file = ev.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const d = JSON.parse(e.target.result);
+        if (!Array.isArray(d.gastos)) throw new Error('Formato no válido');
+        if (confirm(`¿Restaurar ${d.gastos.length} gastos desde la copia?\nEsto reemplazará los datos actuales.`)) {
+          gastos = d.gastos;
+          presupuestos = d.presupuestos || {};
+          guardar(); pintarMeses(); render();
+          alert('✅ Copia restaurada correctamente.');
         }
+      } catch (err) {
+        alert('❌ El archivo no es una copia válida.');
       }
-    });
-    hasCancer = cancer;
-
-    const total = ageScore + checkScore;
-    const level = getLevel(total);
-    const rec   = RECS[level];
-
-    // Score badge
-    document.getElementById('score-pts').textContent = total;
-
-    // Risk banner
-    const banner = document.getElementById('risk-banner');
-    banner.className = 'risk-' + level.replace('-', '-');
-    banner.className = `risk-${level}`;
-    document.getElementById('risk-label').textContent = rec.label;
-    document.getElementById('risk-score').textContent = `Puntuación: ${total} · Caprini 2005`;
-    document.getElementById('risk-badge').textContent = rec.badge;
-
-    // Section counters
-    [1, 2, 3, 5].forEach(v => {
-      const cnt = document.querySelectorAll(`input[value="${v}"]:checked`).length;
-      const el = document.getElementById(`cnt-${v}`);
-      if (el) el.textContent = cnt || '';
-    });
-
-    // Recommendation
-    renderRec(rec, total);
+      ev.target.value = '';
+    };
+    reader.readAsText(file);
   }
 
-  function renderRec(rec, total) {
-    let html = '';
+  // Enter en concepto añade a "Otros"
+  document.getElementById('concepto').addEventListener('keydown', e => {
+    if (e.key === 'Enter') anadir('otros');
+  });
 
-    // Profilaxis mecánica
-    html += `<div class="rec-block">
-      <h4>Profilaxis mecánica</h4>
-      <p>`;
-    if (rec.mecanica) {
-      html += `<span class="tag-mec">✓ Indicada</span> Medias de compresión graduada + Compresor neumático intermitente (CNI) intraoperatorio y postoperatorio.`;
-    } else {
-      html += `<span style="color:var(--sub)">No recomendada de rutina.</span> Deambulación precoz y activa.`;
-    }
-    html += `</p></div>`;
-
-    // Profilaxis farmacológica
-    html += `<div class="rec-block">
-      <h4>Profilaxis farmacológica</h4>`;
-    if (rec.farmaco) {
-      html += `<p><span class="tag-farm">✓ Indicada</span> Iniciar 2 h <em>antes</em> o 6–12 h <em>después</em> de la cirugía:</p>
-        <br>
-        <div>`;
-      rec.drugs.forEach(d => {
-        html += `<div class="drug-row">
-          <div><span class="drug-name">${d.name}</span> <span class="drug-brand">(${d.brand})</span></div>
-          <div class="drug-dose">${d.dose}</div>
-        </div>`;
-      });
-      html += `</div>`;
-    } else {
-      html += `<p><span style="color:var(--sub)">No indicada de rutina.</span></p>`;
-    }
-    html += `</div>`;
-
-    // Duración
-    if (rec.duracion) {
-      html += `<div class="rec-block">
-        <h4>Duración</h4>
-        <ul>
-          <li>${hasCancer
-            ? '<strong>Cirugía oncológica:</strong> 28–35 días (profilaxis extendida)'
-            : '7–10 días o hasta que el paciente recupere movilidad completa'}</li>
-          ${hasCancer && total >= 5 ? '<li><em>Si cancer + ≥5 pts → SIEMPRE profilaxis extendida 28-35 días</em></li>' : ''}
-          <li>Revisar riesgo hemorrágico antes de iniciar</li>
-        </ul>
-      </div>`;
-    }
-
-    // Nota especial
-    if (rec.nota) {
-      html += `<div class="rec-block">
-        <p style="color:var(--sub); font-size:13px">${rec.nota}</p>
-      </div>`;
-    }
-
-    // Advertencia TIH
-    const tihCheck = Array.from(document.querySelectorAll('input[type=checkbox]')).find(cb =>
-      cb.checked && cb.closest('label').querySelector('.label').textContent.includes('TIH')
-    );
-    if (tihCheck) {
-      html += `<div class="rec-block" style="background:#fff8e1; border-left: 4px solid #f59e0b;">
-        <h4 style="color:#b45309">⚠️ Atención — TIH</h4>
-        <p style="font-size:13px">Paciente con TIH: <strong>CONTRAINDICADAS todas las heparinas</strong>. Usar fondaparinux (Arixtra) 2,5 mg SC/24 h u otro anticoagulante no heparinoide.</p>
-      </div>`;
-    }
-
-    document.getElementById('rec-content').innerHTML = html;
-  }
-
-  function selectAge(btn) {
-    document.querySelectorAll('.age-btn').forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
-    ageScore = parseInt(btn.dataset.age);
-    update();
-  }
-
-  function toggleSec(header) {
-    const body = header.nextElementSibling;
-    const collapsed = header.classList.toggle('sec-collapsed');
-    body.classList.toggle('hidden', collapsed);
-  }
-
-  function resetAll() {
-    document.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
-    document.querySelectorAll('.age-btn').forEach(b => b.classList.remove('selected'));
-    document.querySelector('.age-btn[data-age="0"]').classList.add('selected');
-    ageScore = 0;
-    // Open all sections
-    document.querySelectorAll('.sec-header').forEach(h => {
-      h.classList.remove('sec-collapsed');
-      h.nextElementSibling.classList.remove('hidden');
-    });
-    update();
-  }
-
-  // Initial render
-  update();
+  pintarCategorias();
+  pintarMeses();
+  render();
 </script>
 </body>
 </html>
