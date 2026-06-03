@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Caprini VTE" />
+  <meta name="theme-color" content="#1a56a0" />
+  <title>Caprini VTE ¬∑ Tromboprofilaxis</title>
+  <style>
+    :root {
+      --blue:    #1a56a0;
+      --blue-lt: #e8f0fb;
+      --green:   #1d7d4f;
+      --green-lt:#e6f4ed;
+      --yellow:  #b07d00;
+      --yel-lt:  #fdf6e3;
+      --orange:  #c05800;
+      --ora-lt:  #fef0e6;
+      --red:     #b81c1c;
+      --red-lt:  #fdeaea;
+      --grey:    #f5f6f8;
+      --border:  #d6dae3;
+      --text:    #1a1f2e;
+      --sub:     #5a6070;
+      --radius:  12px;
+      --shadow:  0 2px 8px rgba(0,0,0,.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 15px;
+      color: var(--text);
+      background: var(--grey);
+      padding-bottom: 120px;
+    }
+
+    /* ‚îÄ‚îÄ Header ‚îÄ‚îÄ */
+    header {
+      background: var(--blue);
+      color: #fff;
+      padding: 14px 16px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 6px rgba(0,0,0,.2);
+    }
+    header h1 { font-size: 17px; font-weight: 700; letter-spacing: -.2px; }
+    header p  { font-size: 11px; opacity: .8; margin-top: 2px; }
+    #score-badge {
+      background: rgba(255,255,255,.15);
+      border: 2px solid rgba(255,255,255,.4);
+      border-radius: 50px;
+      min-width: 56px;
+      text-align: center;
+      padding: 4px 12px;
+      flex-shrink: 0;
+    }
+    #score-badge span { display: block; }
+    #score-badge .pts { font-size: 22px; font-weight: 800; line-height: 1; }
+    #score-badge .lbl { font-size: 9px; opacity: .8; letter-spacing: .5px; text-transform: uppercase; }
+
+    /* ‚îÄ‚îÄ Risk banner ‚îÄ‚îÄ */
+    #risk-banner {
+      margin: 12px 12px 4px;
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background .3s, border-color .3s;
+      border: 2px solid transparent;
+    }
+    #risk-banner .risk-label  { font-size: 18px; font-weight: 700; }
+    #risk-banner .risk-score  { font-size: 12px; opacity: .75; margin-top: 2px; }
+    #risk-badge { font-size: 11px; font-weight: 700; border-radius: 20px; padding: 5px 12px; }
+
+    /* Colors by level */
+    .risk-muy-bajo  { background: var(--green-lt); border-color: var(--green) !important; }
+    .risk-muy-bajo  .risk-label { color: var(--green); }
+    .risk-muy-bajo  #risk-badge { background: var(--green); color: #fff; }
+
+    .risk-bajo  { background: var(--yel-lt); border-color: var(--yellow) !important; }
+    .risk-bajo  .risk-label { color: var(--yellow); }
+    .risk-bajo  #risk-badge { background: var(--yellow); color: #fff; }
+
+    .risk-moderado  { background: var(--ora-lt); border-color: var(--orange) !important; }
+    .risk-moderado  .risk-label { color: var(--orange); }
+    .risk-moderado  #risk-badge { background: var(--orange); color: #fff; }
+
+    .risk-alto  { background: var(--red-lt); border-color: var(--red) !important; }
+    .risk-alto  .risk-label { color: var(--red); }
+    .risk-alto  #risk-badge { background: var(--red); color: #fff; }
+
+    /* ‚îÄ‚îÄ Sections ‚îÄ‚îÄ */
+    section {
+      margin: 8px 12px;
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .sec-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .sec-header:active { background: #f0f4ff; }
+    .sec-title { font-weight: 700; font-size: 14px; }
+    .sec-pts {
+      background: var(--blue);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 20px;
+      padding: 3px 10px;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .sec-pts .chevron { transition: transform .25s; display: inline-block; }
+    .sec-collapsed .chevron { transform: rotate(-90deg); }
+    .sec-count {
+      background: rgba(255,255,255,.25);
+      border-radius: 10px;
+      padding: 1px 6px;
+      font-size: 10px;
+    }
+
+    .sec-body { border-top: 1px solid var(--border); }
+    .sec-body.hidden { display: none; }
+
+    /* ‚îÄ‚îÄ Checkboxes ‚îÄ‚îÄ */
+    .item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background .15s;
+    }
+    .item:last-child { border-bottom: none; }
+    .item:active { background: #f4f6ff; }
+    .item input[type=checkbox] {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      margin-top: 1px;
+      accent-color: var(--blue);
+      cursor: pointer;
+    }
+    .item label { font-size: 14px; line-height: 1.35; cursor: pointer; }
+    .item label small { display: block; color: var(--sub); font-size: 12px; margin-top: 2px; }
+
+    /* ‚îÄ‚îÄ Age selector ‚îÄ‚îÄ */
+    .age-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 12px 14px;
+    }
+    .age-btn {
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 8px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text);
+      background: #fff;
+      -webkit-tap-highlight-color: transparent;
+      transition: border-color .15s, background .15s, color .15s;
+    }
+    .age-btn.selected {
+      border-color: var(--blue);
+      background: var(--blue-lt);
+      color: var(--blue);
+    }
+    .age-btn small { display: block; font-size: 10px; font-weight: 400; color: var(--sub); margin-top: 2px; }
+    .age-btn.selected small { color: var(--blue); }
+
+    /* ‚îÄ‚îÄ Recommendation panel ‚îÄ‚îÄ */
+    #rec-panel {
+      margin: 8px 12px;
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    #rec-panel h3 {
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 16px;
+      background: var(--blue);
+      color: #fff;
+      letter-spacing: .2px;
+    }
+    .rec-block {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .rec-block:last-child { border-bottom: none; }
+    .rec-block h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: var(--sub); margin-bottom: 6px; }
+    .rec-block p, .rec-block li { font-size: 14px; line-height: 1.5; }
+    .rec-block ul { padding-left: 18px; }
+    .rec-block li { margin-bottom: 4px; }
+    .tag-mec {
+      display: inline-block; background: #e8f0fb; color: var(--blue);
+      font-size: 11px; font-weight: 700; border-radius: 4px; padding: 2px 7px; margin: 2px 4px 2px 0;
+    }
+    .tag-farm {
+      display: inline-block; background: #fdeaea; color: var(--red);
+      font-size: 11px; font-weight: 700; border-radius: 4px; padding: 2px 7px; margin: 2px 4px 2px 0;
+    }
+    .drug-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 5px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .drug-row:last-child { border-bottom: none; }
+    .drug-name { font-size: 14px; font-weight: 600; }
+    .drug-brand { font-size: 11px; color: var(--sub); }
+    .drug-dose { font-size: 13px; color: var(--text); text-align: right; }
+
+    /* ‚îÄ‚îÄ Reset button ‚îÄ‚îÄ */
+    #reset-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 16px;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      padding: 13px 22px;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 4px 14px rgba(26,86,160,.45);
+      cursor: pointer;
+      z-index: 50;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #reset-btn:active { opacity: .85; }
+
+    /* ‚îÄ‚îÄ Disclaimer ‚îÄ‚îÄ */
+    .disclaimer {
+      margin: 8px 12px 0;
+      font-size: 11px;
+      color: var(--sub);
+      text-align: center;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div>
+    <h1>Escala de Caprini</h1>
+    <p>Riesgo TEV ¬∑ Cirug√≠a General</p>
+  </div>
+  <div id="score-badge">
+    <span class="pts" id="score-pts">0</span>
+    <span class="lbl">puntos</span>
+  </div>
+</header>
+
+<!-- Risk banner -->
+<div id="risk-banner" class="risk-muy-bajo">
+  <div>
+    <div class="risk-label" id="risk-label">Riesgo MUY BAJO</div>
+    <div class="risk-score" id="risk-score">Puntuaci√≥n: 0 ¬∑ Caprini 2005</div>
+  </div>
+  <div id="risk-badge">0‚Äì1 pts</div>
+</div>
+
+<!-- ‚îÄ‚îÄ AGE ‚îÄ‚îÄ -->
+<section>
+  <div class="sec-header" onclick="toggleSec(this)">
+    <span class="sec-title">üéÇ Edad del paciente</span>
+    <span class="sec-pts">
+      <span class="chevron">‚ñæ</span>
+      <span>Obligatorio</span>
+    </span>
+  </div>
+  <div class="sec-body" id="sec-age">
+    <div class="age-row">
+      <div class="age-btn selected" data-age="0" onclick="selectAge(this)">
+        ‚â§ 40 a√±os
+        <small>0 puntos</small>
+      </div>
+      <div class="age-btn" data-age="1" onclick="selectAge(this)">
+        41 ‚Äì 60 a√±os
+        <small>+1 punto</small>
+      </div>
+      <div class="age-btn" data-age="2" onclick="selectAge(this)">
+        61 ‚Äì 74 a√±os
+        <small>+2 puntos</small>
+      </div>
+      <div class="age-btn" data-age="3" onclick="selectAge(this)">
+        ‚â• 75 a√±os
+        <small>+3 puntos</small>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ‚îÄ‚îÄ 1 POINT FACTORS ‚îÄ‚îÄ -->
+<section>
+  <div class="sec-header sec-collapsed" onclick="toggleSec(this)">
+    <span class="sec-title">Factores de riesgo</span>
+    <span class="sec-pts" style="background:#4a7fc1">
+      <span class="chevron">‚ñæ</span>
+      +1 pto c/u
+      <span class="sec-count" id="cnt-1">0</span>
+    </span>
+  </div>
+  <div class="sec-body hidden" id="sec-1pt">
+    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">Cirug√≠a menor programada<small>Ambulatoria o &lt;45 min</small></span></label>
+    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">Cirug√≠a mayor reciente<small>En el √∫ltimo mes</small></span></label>
+    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">Varices de miembros inferiores</span></label>
+    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">Edema de miembros inferiores<small>Actual</small></span></label>
+    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">Obesidad (IMC &gt; 25 kg/m¬≤)</span></label>
+    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">Enfermedad inflamatoria intestinal<small>Crohn / Colitis ulcerosa</small></span></label>
+    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">IAM agudo<small>Infarto de miocardio</small></span></label>
+    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">Insuficiencia card√≠aca congestiva<small>En el √∫ltimo mes</small></span></label>
+    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">Sepsis<small>En el √∫ltimo mes</small></span></label>
+    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">Neumopat√≠a grave / neumon√≠a<small>En el √∫ltimo mes</small></span></label>
+    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">Funci√≥n pulmonar anormal (EPOC)</span></label>
+    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">Anticonceptivos orales / THS</span></label>
+    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">Embarazo o puerperio<small>Posparto en el √∫ltimo mes</small></span></label>
+    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">Abortos repetici√≥n / mortinatos / RCIU<small>Historia obst√©trica adversa</small></span></label>
+    <label class="item"><input type="checkbox" value="1" onchange="update()"><span class="label">Encamamiento m√©dico</span></label>
+  </div>
+</section>
+
+<!-- ‚îÄ‚îÄ 2 POINT FACTORS ‚îÄ‚îÄ -->
+<section>
+  <div class="sec-header sec-collapsed" onclick="toggleSec(this)">
+    <span class="sec-title">Factores de riesgo</span>
+    <span class="sec-pts" style="background:#e07800">
+      <span class="chevron">‚ñæ</span>
+      +2 pts c/u
+      <span class="sec-count" id="cnt-2">0</span>
+    </span>
+  </div>
+  <div class="sec-body hidden" id="sec-2pt">
+    <label class="item"><input type="checkbox" value="2" onchange="update()"><span class="label">Artroscopia</span></label>
+    <label class="item"><input type="checkbox" value="2" onchange="update()"><span class="label">Neoplasia maligna activa o previa</span></label>
+    <label class="item"><input type="checkbox" value="2" onchange="update()"><span class="label">Cirug√≠a mayor &gt; 45 min<small>Cirug√≠a abierta mayor</small></span></label>
+    <label class="item"><input type="checkbox" value="2" onchange="update()"><span class="label">Cirug√≠a laparosc√≥pica &gt; 45 min</span></label>
+    <label class="item"><input type="checkbox" value="2" onchange="update()"><span class="label">Encamamiento &gt; 72 horas</span></label>
+    <label class="item"><input type="checkbox" value="2" onchange="update()"><span class="label">Escayola inmovilizadora<small>En el √∫ltimo mes</small></span></label>
+    <label class="item"><input type="checkbox" value="2" onchange="update()"><span class="label">Acceso venoso central</span></label>
+  </div>
+</section>
+
+<!-- ‚îÄ‚îÄ 3 POINT FACTORS ‚îÄ‚îÄ -->
+<section>
+  <div class="sec-header sec-collapsed" onclick="toggleSec(this)">
+    <span class="sec-title">Factores de alto riesgo</span>
+    <span class="sec-pts" style="background:#b81c1c">
+      <span class="chevron">‚ñæ</span>
+      +3 pts c/u
+      <span class="sec-count" id="cnt-3">0</span>
+    </span>
+  </div>
+  <div class="sec-body hidden" id="sec-3pt">
+    <label class="item"><input type="checkbox" value="3" onchange="update()"><span class="label">Antecedentes de TEV<small>TVP o TEP previos</small></span></label>
+    <label class="item"><input type="checkbox" value="3" onchange="update()"><span class="label">Historia familiar de trombosis<small>Familiar de 1er grado</small></span></label>
+    <label class="item"><input type="checkbox" value="3" onchange="update()"><span class="label">Factor V Leiden positivo</span></label>
+    <label class="item"><input type="checkbox" value="3" onchange="update()"><span class="label">Protrombina G20210A positiva</span></label>
+    <label class="item"><input type="checkbox" value="3" onchange="update()"><span class="label">Homociste√≠na s√©rica elevada</span></label>
+    <label class="item"><input type="checkbox" value="3" onchange="update()"><span class="label">Anticoagulante l√∫pico positivo</span></label>
+    <label class="item"><input type="checkbox" value="3" onchange="update()"><span class="label">Anticuerpos anticardiolipina elevados</span></label>
+    <label class="item"><input type="checkbox" value="3" onchange="update()"><span class="label">TIH (Trombocitopenia inducida por heparina)</span></label>
+    <label class="item"><input type="checkbox" value="3" onchange="update()"><span class="label">Otra trombofilia cong√©nita o adquirida</span></label>
+  </div>
+</section>
+
+<!-- ‚îÄ‚îÄ 5 POINT FACTORS ‚îÄ‚îÄ -->
+<section>
+  <div class="sec-header sec-collapsed" onclick="toggleSec(this)">
+    <span class="sec-title">Factores de muy alto riesgo</span>
+    <span class="sec-pts" style="background:#7b0000">
+      <span class="chevron">‚ñæ</span>
+      +5 pts c/u
+      <span class="sec-count" id="cnt-5">0</span>
+    </span>
+  </div>
+  <div class="sec-body hidden" id="sec-5pt">
+    <label class="item"><input type="checkbox" value="5" onchange="update()"><span class="label">Ictus / ACV<small>En el √∫ltimo mes</small></span></label>
+    <label class="item"><input type="checkbox" value="5" onchange="update()"><span class="label">Artroplastia electiva<small>Pr√≥tesis cadera o rodilla</small></span></label>
+    <label class="item"><input type="checkbox" value="5" onchange="update()"><span class="label">Fractura de cadera, pelvis o pierna<small>En el √∫ltimo mes</small></span></label>
+    <label class="item"><input type="checkbox" value="5" onchange="update()"><span class="label">Lesi√≥n medular aguda con par√°lisis<small>En el √∫ltimo mes</small></span></label>
+  </div>
+</section>
+
+<!-- ‚îÄ‚îÄ RECOMMENDATION ‚îÄ‚îÄ -->
+<div id="rec-panel">
+  <h3>üíä Recomendaci√≥n de Tromboprofilaxis</h3>
+  <div id="rec-content"></div>
+</div>
+
+<p class="disclaimer">Basado en Caprini RAM 2005 ¬∑ Gu√≠as ACCP/SEACV ¬∑ Uso orientativo, confirmar con gu√≠a cl√≠nica local</p>
+
+<button id="reset-btn" onclick="resetAll()">‚Ü∫ Reiniciar</button>
+
+<script>
+  let ageScore = 0;
+  let hasCancer = false;
+
+  const RECS = {
+    'muy-bajo': {
+      label: 'Riesgo MUY BAJO',
+      badge: '0‚Äì1 pts',
+      cls: 'risk-muy-bajo',
+      mecanica: false,
+      farmaco: false,
+      duracion: null,
+      nota: 'Solo deambulaci√≥n precoz y activa. Sin profilaxis farmacol√≥gica ni mec√°nica de rutina.',
+      drugs: []
+    },
+    'bajo': {
+      label: 'Riesgo BAJO',
+      badge: '2 pts',
+      cls: 'risk-bajo',
+      mecanica: true,
+      farmaco: false,
+      duracion: 'Hasta ambulaci√≥n / alta',
+      nota: 'Profilaxis mec√°nica. Sin HBPM de rutina salvo valoraci√≥n individual.',
+      drugs: []
+    },
+    'moderado': {
+      label: 'Riesgo MODERADO',
+      badge: '3‚Äì4 pts',
+      cls: 'risk-moderado',
+      mecanica: true,
+      farmaco: true,
+      duracion: '7‚Äì10 d√≠as (o hasta ambulaci√≥n)',
+      nota: null,
+      drugs: [
+        { name: 'Enoxaparina', brand: 'Clexane', dose: '40 mg SC / 24 h' },
+        { name: 'Bemiparina',  brand: 'Hibor',   dose: '3.500 UI SC / 24 h' },
+        { name: 'Dalteparina', brand: 'Fragmin',  dose: '5.000 UI SC / 24 h' },
+        { name: 'Fondaparinux',brand: 'Arixtra',  dose: '2,5 mg SC / 24 h' },
+        { name: 'HNF',         brand: 'Heparina', dose: '5.000 UI SC / 8‚Äì12 h' },
+      ]
+    },
+    'alto': {
+      label: 'Riesgo ALTO',
+      badge: '‚â•5 pts',
+      cls: 'risk-alto',
+      mecanica: true,
+      farmaco: true,
+      duracion: '7‚Äì10 d√≠as ¬∑ hasta 28‚Äì35 d√≠as en c√°ncer',
+      nota: null,
+      drugs: [
+        { name: 'Enoxaparina', brand: 'Clexane', dose: '40 mg SC / 24 h' },
+        { name: 'Bemiparina',  brand: 'Hibor',   dose: '3.500 UI SC / 24 h' },
+        { name: 'Dalteparina', brand: 'Fragmin',  dose: '5.000 UI SC / 24 h' },
+        { name: 'Fondaparinux',brand: 'Arixtra',  dose: '2,5 mg SC / 24 h' },
+        { name: 'HNF',         brand: 'Heparina', dose: '5.000 UI SC / 8 h' },
+      ]
+    }
+  };
+
+  function getLevel(score) {
+    if (score <= 1) return 'muy-bajo';
+    if (score === 2) return 'bajo';
+    if (score <= 4) return 'moderado';
+    return 'alto';
+  }
+
+  function update() {
+    // Checkboxes
+    let checkScore = 0;
+    let cancer = false;
+    document.querySelectorAll('input[type=checkbox]').forEach(cb => {
+      if (cb.checked) {
+        checkScore += parseInt(cb.value);
+        // Detect cancer checkbox (index 1 in 2pt section = neoplasia)
+        if (cb.value === '2' && cb.closest('label').querySelector('.label').textContent.includes('Neoplasia')) {
+          cancer = true;
+        }
+      }
+    });
+    hasCancer = cancer;
+
+    const total = ageScore + checkScore;
+    const level = getLevel(total);
+    const rec   = RECS[level];
+
+    // Score badge
+    document.getElementById('score-pts').textContent = total;
+
+    // Risk banner
+    const banner = document.getElementById('risk-banner');
+    banner.className = 'risk-' + level.replace('-', '-');
+    banner.className = `risk-${level}`;
+    document.getElementById('risk-label').textContent = rec.label;
+    document.getElementById('risk-score').textContent = `Puntuaci√≥n: ${total} ¬∑ Caprini 2005`;
+    document.getElementById('risk-badge').textContent = rec.badge;
+
+    // Section counters
+    [1, 2, 3, 5].forEach(v => {
+      const cnt = document.querySelectorAll(`input[value="${v}"]:checked`).length;
+      const el = document.getElementById(`cnt-${v}`);
+      if (el) el.textContent = cnt || '';
+    });
+
+    // Recommendation
+    renderRec(rec, total);
+  }
+
+  function renderRec(rec, total) {
+    let html = '';
+
+    // Profilaxis mec√°nica
+    html += `<div class="rec-block">
+      <h4>Profilaxis mec√°nica</h4>
+      <p>`;
+    if (rec.mecanica) {
+      html += `<span class="tag-mec">‚úì Indicada</span> Medias de compresi√≥n graduada + Compresor neum√°tico intermitente (CNI) intraoperatorio y postoperatorio.`;
+    } else {
+      html += `<span style="color:var(--sub)">No recomendada de rutina.</span> Deambulaci√≥n precoz y activa.`;
+    }
+    html += `</p></div>`;
+
+    // Profilaxis farmacol√≥gica
+    html += `<div class="rec-block">
+      <h4>Profilaxis farmacol√≥gica</h4>`;
+    if (rec.farmaco) {
+      html += `<p><span class="tag-farm">‚úì Indicada</span> Iniciar 2 h <em>antes</em> o 6‚Äì12 h <em>despu√©s</em> de la cirug√≠a:</p>
+        <br>
+        <div>`;
+      rec.drugs.forEach(d => {
+        html += `<div class="drug-row">
+          <div><span class="drug-name">${d.name}</span> <span class="drug-brand">(${d.brand})</span></div>
+          <div class="drug-dose">${d.dose}</div>
+        </div>`;
+      });
+      html += `</div>`;
+    } else {
+      html += `<p><span style="color:var(--sub)">No indicada de rutina.</span></p>`;
+    }
+    html += `</div>`;
+
+    // Duraci√≥n
+    if (rec.duracion) {
+      html += `<div class="rec-block">
+        <h4>Duraci√≥n</h4>
+        <ul>
+          <li>${hasCancer
+            ? '<strong>Cirug√≠a oncol√≥gica:</strong> 28‚Äì35 d√≠as (profilaxis extendida)'
+            : '7‚Äì10 d√≠as o hasta que el paciente recupere movilidad completa'}</li>
+          ${hasCancer && total >= 5 ? '<li><em>Si cancer + ‚â•5 pts ‚Üí SIEMPRE profilaxis extendida 28-35 d√≠as</em></li>' : ''}
+          <li>Revisar riesgo hemorr√°gico antes de iniciar</li>
+        </ul>
+      </div>`;
+    }
+
+    // Nota especial
+    if (rec.nota) {
+      html += `<div class="rec-block">
+        <p style="color:var(--sub); font-size:13px">${rec.nota}</p>
+      </div>`;
+    }
+
+    // Advertencia TIH
+    const tihCheck = Array.from(document.querySelectorAll('input[type=checkbox]')).find(cb =>
+      cb.checked && cb.closest('label').querySelector('.label').textContent.includes('TIH')
+    );
+    if (tihCheck) {
+      html += `<div class="rec-block" style="background:#fff8e1; border-left: 4px solid #f59e0b;">
+        <h4 style="color:#b45309">‚ö†Ô∏è Atenci√≥n ‚Äî TIH</h4>
+        <p style="font-size:13px">Paciente con TIH: <strong>CONTRAINDICADAS todas las heparinas</strong>. Usar fondaparinux (Arixtra) 2,5 mg SC/24 h u otro anticoagulante no heparinoide.</p>
+      </div>`;
+    }
+
+    document.getElementById('rec-content').innerHTML = html;
+  }
+
+  function selectAge(btn) {
+    document.querySelectorAll('.age-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    ageScore = parseInt(btn.dataset.age);
+    update();
+  }
+
+  function toggleSec(header) {
+    const body = header.nextElementSibling;
+    const collapsed = header.classList.toggle('sec-collapsed');
+    body.classList.toggle('hidden', collapsed);
+  }
+
+  function resetAll() {
+    document.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
+    document.querySelectorAll('.age-btn').forEach(b => b.classList.remove('selected'));
+    document.querySelector('.age-btn[data-age="0"]').classList.add('selected');
+    ageScore = 0;
+    // Open all sections
+    document.querySelectorAll('.sec-header').forEach(h => {
+      h.classList.remove('sec-collapsed');
+      h.nextElementSibling.classList.remove('hidden');
+    });
+    update();
+  }
+
+  // Initial render
+  update();
+</script>
+</body>
+</html>
