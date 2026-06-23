@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f1419">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="B3 Mama">
+<title>Lesiones B3 de mama · Decisión clínica</title>
+<style>
+  :root{
+    --bg:#0f1419; --panel:#171e26; --panel2:#1e2832; --line:#2b3744;
+    --txt:#e8edf2; --muted:#9aa9b8; --accent:#4aa3ff; --accent2:#2c6fb5;
+    --green:#2faa5e; --green-bg:#143123;
+    --amber:#e0a64b; --amber-bg:#332714;
+    --red:#e0604b; --red-bg:#33170f;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:920px;margin:0 auto;padding:20px 16px 80px}
+  header.hero{padding:26px 0 10px}
+  .hero h1{font-size:1.7rem;margin:0 0 6px;letter-spacing:-.3px}
+  .hero p{color:var(--muted);margin:0;font-size:.95rem;max-width:640px}
+  .tag{display:inline-block;background:var(--accent2);color:#fff;font-size:.7rem;
+       font-weight:700;letter-spacing:.5px;padding:3px 9px;border-radius:20px;margin-bottom:10px}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+        padding:18px;margin:16px 0}
+  .card h2{font-size:1.05rem;margin:0 0 4px}
+  .card .sub{color:var(--muted);font-size:.85rem;margin:0 0 14px}
+
+  /* lesion grid */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  .lbtn{background:var(--panel2);border:1px solid var(--line);color:var(--txt);
+        border-radius:11px;padding:12px 12px;text-align:left;cursor:pointer;
+        transition:.15s;font-size:.86rem;line-height:1.3}
+  .lbtn:hover{border-color:var(--accent);transform:translateY(-1px)}
+  .lbtn.active{border-color:var(--accent);background:#16304a;box-shadow:0 0 0 1px var(--accent)}
+  .lbtn b{display:block;font-size:.92rem;margin-bottom:2px}
+  .lbtn .g{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+
+  /* refine questions */
+  .qrow{margin:14px 0}
+  .qrow .qlabel{font-size:.85rem;color:var(--muted);margin-bottom:7px;font-weight:600}
+  .seg{display:inline-flex;flex-wrap:wrap;gap:8px}
+  .seg button{background:var(--panel2);border:1px solid var(--line);color:var(--txt);
+    padding:8px 14px;border-radius:9px;cursor:pointer;font-size:.85rem;transition:.15s}
+  .seg button:hover{border-color:var(--accent)}
+  .seg button.sel{background:var(--accent);border-color:var(--accent);color:#03101e;font-weight:700}
+
+  /* recommendation panel */
+  .reco{border-radius:12px;padding:16px;margin-top:6px;border:1px solid}
+  .reco.green{background:var(--green-bg);border-color:#1f5e3a}
+  .reco.amber{background:var(--amber-bg);border-color:#6b5320}
+  .reco.red{background:var(--red-bg);border-color:#6b2a1c}
+  .reco .rt{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .pill{font-size:.72rem;font-weight:800;letter-spacing:.5px;padding:4px 10px;border-radius:20px;text-transform:uppercase}
+  .pill.green{background:var(--green);color:#03130a}
+  .pill.amber{background:var(--amber);color:#1d1405}
+  .pill.red{background:var(--red);color:#1d0703}
+  .reco h3{margin:0;font-size:1.05rem}
+  .reco p{margin:8px 0 0;font-size:.92rem}
+  .evidence{font-size:.74rem;color:var(--muted);margin-top:10px;font-style:italic}
+
+  /* detail blocks */
+  .detail{margin-top:16px;display:none}
+  .detail.show{display:block}
+  .dblock{border-top:1px solid var(--line);padding:13px 0}
+  .dblock:first-child{border-top:none}
+  .dblock .h{font-size:.74rem;text-transform:uppercase;letter-spacing:.6px;color:var(--accent);font-weight:700;margin-bottom:5px}
+  .dblock .b{font-size:.9rem}
+  .risk-bar{height:7px;border-radius:5px;background:var(--line);overflow:hidden;margin:6px 0 4px;max-width:320px}
+  .risk-bar i{display:block;height:100%}
+  .placeholder{color:var(--muted);font-size:.9rem;padding:10px 0}
+
+  details.ref{margin-top:18px}
+  details.ref summary{cursor:pointer;color:var(--muted);font-size:.85rem}
+  details.ref ol{font-size:.8rem;color:var(--muted);line-height:1.6}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.78rem;color:var(--muted);margin-top:10px}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:10px;height:10px;border-radius:50%}
+  .disclaimer{font-size:.76rem;color:var(--muted);border-top:1px solid var(--line);margin-top:30px;padding-top:14px}
+  a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <span class="tag">PATOLOGÍA MAMARIA · B3</span>
+    <h1>Lesiones B3 de la mama</h1>
+    <p>Herramienta de apoyo a la decisión: anatomía patológica, riesgo de infraestimación (upgrade) a carcinoma e indicación de cirugía, VAE/VAB o seguimiento. Basada en la guía europea <b>EUSOMA · EUSOBI · ESP · ESSO 2024</b>.</p>
+  </header>
+
+  <!-- STEP 1: lesion picker -->
+  <div class="card">
+    <h2>1 · Selecciona la lesión diagnosticada en la biopsia percutánea</h2>
+    <p class="sub">Clasificación NHSBSP: B3 = potencial maligno incierto. B3a (sin atipia) · B3b (con atipia).</p>
+    <div class="grid" id="grid"></div>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--green)"></i>Riesgo bajo</span>
+      <span><i class="dot" style="background:var(--amber)"></i>Riesgo intermedio</span>
+      <span><i class="dot" style="background:var(--red)"></i>Riesgo alto</span>
+    </div>
+  </div>
+
+  <!-- STEP 2: refine + recommendation -->
+  <div class="card">
+    <h2>2 · Refina y obtén la recomendación</h2>
+    <p class="sub" id="recoSub">Selecciona primero una lesión.</p>
+    <div id="questions"></div>
+    <div id="recoBox">
+      <div class="placeholder">La recomendación aparecerá aquí.</div>
+    </div>
+  </div>
+
+  <!-- STEP 3: clinical detail -->
+  <div class="card detail" id="detailCard">
+    <h2 id="dTitle"></h2>
+    <p class="sub" id="dGroup"></p>
+    <div class="dblock"><div class="h">Anatomía patológica</div><div class="b" id="dPath"></div></div>
+    <div class="dblock"><div class="h">Hallazgos radiológicos</div><div class="b" id="dRad"></div></div>
+    <div class="dblock"><div class="h">Riesgo de transformación / upgrade a carcinoma</div>
+      <div class="risk-bar"><i id="dBar"></i></div>
+      <div class="b" id="dUpgrade"></div></div>
+    <div class="dblock"><div class="h">Manejo · matices</div><div class="b" id="dMgmt"></div></div>
+  </div>
+
+  <details class="ref">
+    <summary>Fuentes y nivel de evidencia</summary>
+    <ol>
+      <li>Rubio IT, Wyld L, Marotti L, et al. <i>European guidelines for the diagnosis, treatment and follow-up of breast lesions with uncertain malignant potential (B3 lesions)</i> — EUSOMA, EUSOBI, ESP (BWG), ESSO. <i>Eur J Surg Oncol</i> 2024;50:107292.</li>
+      <li>Castro Andrés B, Aguilar Jiménez J. <i>Análisis del manejo de lesiones B3 de la mama en nuestro centro.</i> Rev Senol Patol Mamar 2023;36:100513.</li>
+      <li>Santos Blasco M, et al. <i>Lesiones mamarias B3: diagnóstico, clasificación y estrategias de manejo.</i> Hospital La Fe, Valencia.</li>
+    </ol>
+    <p style="font-size:.76rem">Grados de evidencia EUSOMA (GRADE): I/A = alta; II/B = moderada; III/B = baja-moderada. VAB = biopsia asistida por vacío (diagnóstica); VAE = escisión asistida por vacío (terapéutica); CNB/BAG = biopsia con aguja gruesa.</p>
+  </details>
+
+  <p class="disclaimer">⚠️ Herramienta de apoyo educativo/clínico. No sustituye el juicio del comité multidisciplinar (CMD) ni la correlación radio-patológica individualizada. Toda lesión B3 debe discutirse en CMD evaluando concordancia y lesión residual.</p>
+
+</div>
+
+<script>
+// ---- Datos clínicos (EUSOMA 2024) ----
+const L = {
+  adh: {
+    nombre:"Hiperplasia ductal atípica (HDA/ADH)", grupo:"B3b · con atipia", risk:"red",
+    path:"Proliferación de células epiteliales monomorfas con arquitectura tipo CDIS de bajo grado, pero de extensión limitada (&lt;2 mm o afectando ≤2 conductos). Comparte criterios citológicos con el CDIS de bajo grado; la distinción es cuantitativa.",
+    rad:"Típicamente microcalcificaciones agrupadas en mamografía (BI-RADS 4). Puede asociarse a otras lesiones B3.",
+    upgradePct:22, upgrade:"Upgrade combinado a malignidad ≈ <b>22%</b> (hasta ~30%). En cohortes con VAB y escisión completa puede bajar a ~7,5%. El riesgo justifica casi siempre intervención.",
+    mgmt:"Escisión quirúrgica es la opción preferida (I/A). VAE guiada por imagen puede plantearse con intención de escisión si la lesión es &lt;15 mm (III/B). Extirpar &gt;90% de la diana reduce el upgrade.",
+    questions:["size"]
+  },
+  lcis: {
+    nombre:"Neoplasia lobulillar: CLIS clásico / HLA", grupo:"B3b · con atipia", risk:"amber",
+    path:"Proliferación de células lobulillares pequeñas, no cohesivas, con pérdida de E-cadherina. HLA (atipia lobulillar) ocupa &lt;50% de los acinos; CLIS clásico ≥50%. Excluir variante pleomórfica/florida (mayor riesgo).",
+    rad:"Suele ser hallazgo incidental; sin traducción radiológica específica. Puede asociarse a microcalcificaciones de otra lesión.",
+    upgradePct:22, upgrade:"Upgrade: HLA ≈ <b>12%</b>, CLIS clásico ≈ <b>22%</b> (mayor si masa asociada, 13–18%). <b>CLIS pleomórfico/florido &gt;40%</b> (rango 0–60%) → manejar como CDIS.",
+    mgmt:"CLIS clásico visible en imagen → VAB/VAE. Si hay concordancia radio-patológica y no queda lesión residual, no se requiere cirugía y el seguimiento es justificado (II/B). Si hay discordancia → escisión/VAE (III/B). La mastectomía ya NO se recomienda salvo alto riesgo (historia familiar significativa o mutación patogénica). Considerar quimioprevención.",
+    questions:["lcistype","concordancia"]
+  },
+  fea: {
+    nombre:"Atipia epitelial plana (AEP/FEA)", grupo:"B3b · con atipia", risk:"amber",
+    path:"Sustitución del epitelio de las unidades ducto-lobulillares terminales por 1–varias capas de células cúbico-cilíndricas con atipia citológica de bajo grado, sin complejidad arquitectural (sin puentes ni patrones cribiformes). Frecuente atipia plana + microcalcificaciones.",
+    rad:"Microcalcificaciones amorfas/puntiformes agrupadas (BI-RADS 4). Reproducibilidad inter-observador limitada.",
+    upgradePct:10, upgrade:"AEP aislada (sin HDA) concordante: upgrade muy bajo, ≈ <b>1%</b> a CDIS. <b>AEP con HDA asociada: 2–28%</b>, riesgo claramente mayor.",
+    mgmt:"AEP por CNB/VAB sin HDA y concordante con imagen → seguimiento (vigilancia) (II/B). AEP con HDA concomitante → mayor riesgo de upgrade, se recomienda intervención (escisión o VAE) (II/B). Si por VAB no se extirparon todas las calcificaciones o no hay concordancia → valorar escisión/VAE (III/B).",
+    questions:["adhassoc"]
+  },
+  rs: {
+    nombre:"Cicatriz radial / lesión esclerosante compleja (RS/CSL)", grupo:"B3a · sin atipia (puede tener atipia)", risk:"amber",
+    path:"Lesión con núcleo fibroelastótico central y conductos/lóbulos radiados atrapados. ≥1 cm se denomina lesión esclerosante compleja. Puede albergar AEP, HDA o carcinoma en la periferia.",
+    rad:"Distorsión arquitectural espiculada con centro radiolúcido; puede simular carcinoma. A menudo BI-RADS 4. Útil RM/CEM como problem-solving.",
+    upgradePct:9, upgrade:"RS sin atipia: upgrade ≈ <b>8–9%</b>. RS con atipia (HDA asociada): riesgo claramente mayor.",
+    mgmt:"RS sin atipia (sin HDA) diagnosticada por CNB → mejor manejo con VAE (III/B). RS con atipia (con HDA) → aumenta el riesgo; si se diagnosticó por VAB se recomienda escisión quirúrgica, aunque la VAE podría considerarse (II/B).",
+    questions:["adhassoc"]
+  },
+  pap: {
+    nombre:"Lesión papilar / papiloma intraductal (IDP)", grupo:"B3a · sin atipia (puede tener atipia)", risk:"amber",
+    path:"Proliferación papilar con ejes fibrovasculares revestidos de epitelio, con capa mioepitelial conservada (papiloma). El papiloma puede contener focos de HDA/CDIS. Diferenciar de carcinoma papilar (sin mioepitelio).",
+    rad:"Nódulo retroareolar, dilatación ductal o secreción serosanguinolenta; puede dar microcalcificaciones. Eco/galactografía útiles.",
+    upgradePct:31, upgrade:"Upgrade del papiloma según factores predictivos: <b>7,3–31,1%</b>. Sin HDA el riesgo es bajo; con HDA concomitante el riesgo es alto.",
+    mgmt:"IDP sin HDA concomitante → manejo seguro con VAB y, si se extirpa por completo, basta el seguimiento por imagen (II/B). IDP con HDA concomitante → se recomienda escisión quirúrgica (II/B).",
+    questions:["adhassoc"]
+  },
+  muco: {
+    nombre:"Lesión mucocele-like", grupo:"B3a · sin atipia", risk:"green",
+    path:"Lagos de mucina libre en el estroma, sin células epiteliales en su interior, a menudo junto a conductos rotos. Diagnóstico diferencial principal: carcinoma mucinoso (excluir con morfología e inmunohistoquímica/citoqueratinas).",
+    rad:"Microcalcificaciones, a veces de aspecto sospechoso. BI-RADS 4.",
+    upgradePct:2, upgrade:"Sin células epiteliales en los lagos de mucina, el upgrade es <b>muy bajo (&lt;2%)</b>.",
+    mgmt:"Si los hallazgos de imagen y patología son concordantes y se ha excluido carcinoma mucinoso por inmunohistoquímica → puede evitarse tanto la escisión abierta como la VAB terapéutica (seguimiento). Si hay atipia/discordancia → escisión.",
+    questions:["concordancia"]
+  },
+  fel: {
+    nombre:"Lesión fibroepitelial / tumor filodes (FEL/PT)", grupo:"B3a", risk:"amber",
+    path:"Componente epitelial + estromal. Incluye el fibroadenoma común y el tumor filodes (PT). En CNB es difícil distinguirlos por solapamiento histológico (celularidad estromal, mitosis, sobrecrecimiento estromal orientan a PT).",
+    rad:"Nódulo bien delimitado, ovalado; crecimiento rápido orienta a PT. Eco para seguimiento de tamaño.",
+    upgradePct:15, upgrade:"El riesgo principal es que una lesión etiquetada como fibroadenoma sea en realidad un tumor filodes. La tasa de crecimiento es criterio útil de escisión.",
+    mgmt:"Escisión apropiada cuando NO puede excluirse tumor filodes, independientemente del tamaño (alta probabilidad de PT). Algunas guías recomiendan escindir FEL &gt;3 cm; otras priorizan la tasa de crecimiento. Puede plantearse muestreo adicional (CNB de mayor calibre o VAB) para diferenciar.",
+    questions:["felexcl"]
+  }
+};
+
+// Orden de presentación
+const ORDER = ["adh","lcis","fea","rs","pap","muco","fel"];
+
+// ---- Preguntas de refinamiento ----
+const Q = {
+  size:{label:"Tamaño de la lesión en imagen",
+    opts:[{k:"lt15",t:"< 15 mm"},{k:"ge15",t:"≥ 15 mm"}]},
+  lcistype:{label:"Tipo de neoplasia lobulillar",
+    opts:[{k:"clasico",t:"CLIS clásico / HLA"},{k:"pleo",t:"Pleomórfico / florido"}]},
+  concordancia:{label:"Correlación radio-patológica y lesión residual",
+    opts:[{k:"conc",t:"Concordante, sin residual"},{k:"disc",t:"Discordante / residual"}]},
+  adhassoc:{label:"¿HDA (atipia ductal) asociada en la biopsia?",
+    opts:[{k:"no",t:"Sin HDA"},{k:"si",t:"Con HDA asociada"}]},
+  felexcl:{label:"¿Puede excluirse tumor filodes?",
+    opts:[{k:"si",t:"Sí, fibroadenoma claro"},{k:"no",t:"No / crecimiento rápido"}]}
+};
+
+// ---- Estado ----
+let current=null;
+const answers={};
+
+// ---- Lógica de recomendación ----
+function recommend(id,a){
+  // Devuelve {level:'green|amber|red', titulo, texto, evidencia}
+  if(id==="adh"){
+    if(a.size==="lt15") return {level:"red",titulo:"Intervención: escisión quirúrgica o VAE",
+      texto:"Escisión quirúrgica es la opción preferida. Al ser &lt;15 mm, puede plantearse VAE guiada por imagen con intención de escisión completa.",ev:"I/A (cirugía) · III/B (VAE)"};
+    return {level:"red",titulo:"Intervención: escisión quirúrgica",
+      texto:"Lesión ≥15 mm: se recomienda escisión quirúrgica. La VAE puede considerarse en casos seleccionados.",ev:"I/A · III/B (VAE)"};
+  }
+  if(id==="lcis"){
+    if(a.lcistype==="pleo") return {level:"red",titulo:"Intervención: tratar como CDIS",
+      texto:"CLIS pleomórfico/florido: upgrade &gt;40%. Manejo como CDIS → escisión con valoración de márgenes.",ev:"III/B"};
+    if(a.concordancia==="conc") return {level:"green",titulo:"Seguimiento (tras VAB/VAE)",
+      texto:"CLIS clásico/HLA con concordancia radio-patológica y sin lesión residual: no se requiere cirugía, seguimiento justificado. Valorar quimioprevención. Mastectomía solo si alto riesgo (familiar/genético).",ev:"II/B"};
+    return {level:"amber",titulo:"Escisión / VAE",
+      texto:"Discordancia radio-patológica o lesión residual: se recomienda más muestreo de tejido por escisión quirúrgica o VAE.",ev:"III/B"};
+  }
+  if(id==="fea"){
+    if(a.adhassoc==="si") return {level:"amber",titulo:"Intervención: escisión o VAE",
+      texto:"AEP con HDA asociada: mayor riesgo de upgrade → escisión quirúrgica o VAE. Si no se extirparon todas las calcificaciones por VAB o falta concordancia, reforzar la indicación.",ev:"II/B · III/B"};
+    return {level:"green",titulo:"Seguimiento (vigilancia)",
+      texto:"AEP aislada sin HDA y concordante con imagen: puede manejarse con seguimiento por imagen.",ev:"II/B"};
+  }
+  if(id==="rs"){
+    if(a.adhassoc==="si") return {level:"amber",titulo:"Intervención: escisión quirúrgica",
+      texto:"Cicatriz radial CON atipia (HDA): aumenta el riesgo de upgrade. Si se diagnosticó por VAB se recomienda escisión quirúrgica; la VAE puede considerarse.",ev:"II/B"};
+    return {level:"amber",titulo:"VAE (escisión asistida por vacío)",
+      texto:"Cicatriz radial SIN atipia diagnosticada por CNB: el mejor manejo es la VAE.",ev:"III/B"};
+  }
+  if(id==="pap"){
+    if(a.adhassoc==="si") return {level:"red",titulo:"Intervención: escisión quirúrgica",
+      texto:"Papiloma con HDA concomitante: riesgo elevado de upgrade → escisión quirúrgica.",ev:"II/B"};
+    return {level:"green",titulo:"VAB y seguimiento si escisión completa",
+      texto:"Papiloma sin HDA: manejo seguro con VAB; si se extirpa por completo, basta el seguimiento por imagen.",ev:"II/B"};
+  }
+  if(id==="muco"){
+    if(a.concordancia==="disc") return {level:"amber",titulo:"Escisión",
+      texto:"Discordancia o atipia/duda de carcinoma mucinoso: se recomienda escisión.",ev:"III/B"};
+    return {level:"green",titulo:"Seguimiento",
+      texto:"Concordancia radio-patológica y carcinoma mucinoso excluido por inmunohistoquímica: puede evitarse la escisión y la VAB terapéutica.",ev:"III/B"};
+  }
+  if(id==="fel"){
+    if(a.felexcl==="no") return {level:"amber",titulo:"Escisión",
+      texto:"No puede excluirse tumor filodes (o crecimiento rápido): escisión apropiada con independencia del tamaño. Considerar muestreo adicional (CNB de mayor calibre / VAB) si se busca diferenciar.",ev:"III/B"};
+    return {level:"green",titulo:"Valorar seguimiento vs escisión por tamaño/crecimiento",
+      texto:"Fibroadenoma claro: seguimiento razonable. Algunas guías escinden si &gt;3 cm; priorizar la tasa de crecimiento como criterio.",ev:"III/B"};
+  }
+  return null;
+}
+
+// ---- Render ----
+const riskColor={green:"var(--green)",amber:"var(--amber)",red:"var(--red)"};
+
+function buildGrid(){
+  const g=document.getElementById("grid");
+  ORDER.forEach(id=>{
+    const o=L[id];
+    const b=document.createElement("button");
+    b.className="lbtn"; b.dataset.id=id;
+    b.innerHTML=`<b>${o.nombre.split("(")[0].trim()}</b><span class="g" style="color:${riskColor[o.risk]}">${o.grupo.split("·")[0].trim()}</span>`;
+    b.onclick=()=>selectLesion(id);
+    g.appendChild(b);
+  });
+}
+
+function selectLesion(id){
+  current=id;
+  for(const k in answers) delete answers[k];
+  document.querySelectorAll(".lbtn").forEach(x=>x.classList.toggle("active",x.dataset.id===id));
+  renderQuestions();
+  renderDetail();
+  renderReco();
+}
+
+function renderQuestions(){
+  const c=document.getElementById("questions");
+  c.innerHTML="";
+  const o=L[current];
+  document.getElementById("recoSub").innerHTML=`<b>${o.nombre}</b> — ${o.grupo}`;
+  o.questions.forEach(qk=>{
+    const q=Q[qk];
+    const row=document.createElement("div"); row.className="qrow";
+    row.innerHTML=`<div class="qlabel">${q.label}</div>`;
+    const seg=document.createElement("div"); seg.className="seg";
+    q.opts.forEach(op=>{
+      const btn=document.createElement("button");
+      btn.textContent=op.t;
+      btn.onclick=()=>{answers[qk]=op.k; renderQuestions(); renderReco();};
+      if(answers[qk]===op.k) btn.classList.add("sel");
+      seg.appendChild(btn);
+    });
+    row.appendChild(seg);
+    c.appendChild(row);
+  });
+}
+
+function renderReco(){
+  const box=document.getElementById("recoBox");
+  const o=L[current];
+  const need=o.questions.filter(q=>!answers[q]);
+  if(need.length){
+    box.innerHTML=`<div class="placeholder">Responde: ${need.map(q=>Q[q].label.toLowerCase()).join(" · ")}</div>`;
+    return;
+  }
+  const r=recommend(current,answers);
+  box.innerHTML=`<div class="reco ${r.level}">
+      <div class="rt"><span class="pill ${r.level}">${r.level==="green"?"Seguimiento":r.level==="amber"?"Valorar intervención":"Intervención"}</span>
+      <h3>${r.titulo}</h3></div>
+      <p>${r.texto}</p>
+      <div class="evidence">Nivel de evidencia EUSOMA: ${r.ev}</div>
+    </div>`;
+}
+
+function renderDetail(){
+  const o=L[current];
+  document.getElementById("detailCard").classList.add("show");
+  document.getElementById("dTitle").textContent=o.nombre;
+  document.getElementById("dGroup").textContent=o.grupo;
+  document.getElementById("dPath").innerHTML=o.path;
+  document.getElementById("dRad").innerHTML=o.rad;
+  document.getElementById("dUpgrade").innerHTML=o.upgrade;
+  document.getElementById("dMgmt").innerHTML=o.mgmt;
+  const bar=document.getElementById("dBar");
+  bar.style.width=Math.min(o.upgradePct,60)/60*100+"%";
+  bar.style.background=riskColor[o.risk];
+}
+
+buildGrid();
+</script>
+</body>
+</html>
