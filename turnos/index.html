@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Turnos">
+<title>Plan de turnos</title>
+<style>
+  :root {
+    --bg: #f4f6fa;
+    --header: #1a56a0;
+    --card: #ffffff;
+    --line: #d7dee8;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --zebra: #f7f9fc;
+    --hl: #fff3b0;
+    --finde: #fde8e8;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); }
+  header { background: var(--header); color: #fff; padding: 14px 18px; position: sticky; top: 0; z-index: 20; box-shadow: 0 2px 8px rgba(0,0,0,.12); }
+  header h1 { margin: 0; font-size: 18px; }
+  header .sub { font-size: 12px; opacity: .85; margin-top: 2px; }
+
+  .toolbar { max-width: 1400px; margin: 12px auto 0; padding: 0 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  #buscador { flex: 1; min-width: 160px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 13px; font-size: 16px; outline: none; background: #fff; }
+  #buscador:focus { border-color: var(--header); }
+  .btn { border: 1px solid var(--line); background: #fff; color: var(--text); border-radius: 10px; padding: 10px 13px; font-size: 14px; cursor: pointer; }
+  .btn:active { transform: scale(.97); }
+
+  .wrap { max-width: 1400px; margin: 12px auto 36px; padding: 0 12px; }
+  .estado { padding: 36px 14px; text-align: center; color: var(--muted); font-size: 15px; }
+  .estado.error { color: #b91c1c; }
+  .actualizado { text-align: center; color: var(--muted); font-size: 12px; margin-top: 10px; }
+
+  .tabla-cont { background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: auto; -webkit-overflow-scrolling: touch; max-height: 80vh; }
+  table { border-collapse: collapse; font-size: 13px; white-space: nowrap; }
+  td, th { border: 1px solid var(--line); padding: 5px 9px; text-align: center; min-width: 34px; }
+  /* La primera fila (cabeceras) pegada arriba */
+  tr:first-child td, tr:first-child th { position: sticky; top: 0; background: #e8eef7; font-weight: 700; z-index: 6; }
+  tr:nth-child(2) td, tr:nth-child(2) th { position: sticky; top: 28px; background: #eef2f8; font-weight: 600; z-index: 6; }
+  /* Primera columna (fecha) pegada a la izquierda */
+  td:first-child, th:first-child { position: sticky; left: 0; background: var(--card); font-weight: 600; text-align: left; z-index: 5; box-shadow: 1px 0 0 var(--line); min-width: 92px; }
+  tr:first-child td:first-child, tr:nth-child(2) td:first-child { z-index: 8; background: #e8eef7; }
+  tbody tr:nth-child(even) td { background: var(--zebra); }
+  /* Fin de semana: mismo color uniforme en toda la fila (sábado y domingo igual) */
+  tr.finde td, tr.finde th { background: var(--finde) !important; }
+  .hit { background: var(--hl) !important; outline: 2px solid #eab308; }
+  td:empty { background: inherit; }
+  mark { background: var(--hl); padding: 0; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>📅 Plan de turnos — Cirugía General</h1>
+    <div class="sub">Consulta de solo lectura · se actualiza al recargar</div>
+  </header>
+
+  <div class="toolbar">
+    <input id="buscador" type="search" placeholder="🔎 Busca una fecha, código o turno..." oninput="filtrar()">
+    <button class="btn" onclick="cargar()">↻ Actualizar</button>
+  </div>
+
+  <div class="wrap">
+    <div class="estado" id="estado">Cargando el plan…</div>
+    <div class="tabla-cont" id="cont" style="display:none"></div>
+    <div class="actualizado" id="actualizado"></div>
+  </div>
+
+<script src="xlsx.full.min.js"></script>
+<script>
+  const ARCHIVO = 'plan.xls';   // sube aquí tu Excel con este nombre exacto
+  const HOJA = 'General';        // hoja a mostrar
+
+  function cargar() {
+    const estado = document.getElementById('estado');
+    const cont = document.getElementById('cont');
+    estado.style.display = 'block'; estado.className = 'estado'; estado.textContent = 'Cargando el plan…';
+    cont.style.display = 'none';
+
+    fetch(ARCHIVO + '?t=' + Date.now())
+      .then(r => {
+        if (!r.ok) throw new Error('No se encontró el archivo del plan (' + r.status + '). ¿Has subido plan.xls?');
+        const lm = r.headers.get('last-modified');
+        if (lm) {
+          const f = new Date(lm);
+          document.getElementById('actualizado').textContent =
+            'Última actualización: ' + f.toLocaleDateString('es-ES', {day:'2-digit', month:'long', year:'numeric'}) +
+            ', ' + f.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'});
+        }
+        return r.arrayBuffer();
+      })
+      .then(buf => {
+        const wb = XLSX.read(buf, { type: 'array' });
+        const hoja = wb.Sheets[HOJA] || wb.Sheets[wb.SheetNames[0]];
+        if (!hoja) throw new Error('No se encontró la hoja "' + HOJA + '".');
+        reconstruirFechas2026(hoja);
+        // Genera tabla HTML respetando celdas combinadas
+        let html = XLSX.utils.sheet_to_html(hoja, { editable: false });
+        cont.innerHTML = html;
+        colorearFinde(cont);
+        estado.style.display = 'none';
+        cont.style.display = 'block';
+        filtrar();
+      })
+      .catch(e => { estado.className = 'estado error'; estado.textContent = '⚠️ ' + e.message; });
+  }
+
+  // Reconstruye las fechas reales de 2026 a partir de la columna de día (consecutiva, empieza jueves 1-ene-2026)
+  function reconstruirFechas2026(hoja) {
+    const validos = new Set(['L','M','X','J','V','S','D']);
+    const nom = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']; // por getUTCDay()
+    const ancla = Date.UTC(2026, 0, 1); // 1 de enero de 2026 (jueves)
+    let cont = 0;
+    const range = XLSX.utils.decode_range(hoja['!ref']);
+    for (let R = range.s.r; R <= range.e.r; R++) {
+      const cD = hoja[XLSX.utils.encode_cell({ r: R, c: 1 })];
+      const letra = cD ? String(cD.v).trim() : '';
+      if (validos.has(letra)) {
+        const d = new Date(ancla + cont * 86400000);
+        const dd = String(d.getUTCDate()).padStart(2, '0');
+        const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+        const txt = `${dd}/${mm}/${d.getUTCFullYear()} ${nom[d.getUTCDay()]}`;
+        const a0 = XLSX.utils.encode_cell({ r: R, c: 0 });
+        hoja[a0] = { t: 's', v: txt, w: txt };
+        cont++;
+      }
+    }
+  }
+
+  // Resalta sábados y domingos según TU columna de día de semana (2ª columna: S = sábado, D = domingo)
+  function colorearFinde(cont) {
+    cont.querySelectorAll('table tr').forEach((tr, idx) => {
+      if (idx < 2) return; // cabeceras
+      const dia = (tr.cells[1] && tr.cells[1].textContent.trim()) || '';
+      if (dia === 'S' || dia === 'D') tr.classList.add('finde');
+    });
+  }
+
+  function filtrar() {
+    const q = document.getElementById('buscador').value.trim().toLowerCase();
+    const filas = document.querySelectorAll('#cont table tr');
+    filas.forEach((tr, idx) => {
+      if (idx < 2) { tr.style.display = ''; return; }   // mantener cabeceras
+      let hay = false;
+      [...tr.cells].forEach(td => {
+        td.classList.remove('hit');
+        if (q && td.textContent.toLowerCase().includes(q)) { td.classList.add('hit'); hay = true; }
+      });
+      tr.style.display = (q && !hay) ? 'none' : '';
+    });
+  }
+
+  cargar();
+</script>
+</body>
+</html>
