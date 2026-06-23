@@ -88,6 +88,26 @@
   .dot{width:10px;height:10px;border-radius:50%}
   .disclaimer{font-size:.76rem;color:var(--muted);border-top:1px solid var(--line);margin-top:30px;padding-top:14px}
   a{color:var(--accent)}
+
+  /* chemoprevention */
+  .qp-hint{margin-top:12px;background:#1a2433;border:1px dashed var(--accent2);border-radius:10px;
+    padding:11px 13px;font-size:.86rem;color:var(--txt)}
+  .qp-hint b{color:var(--accent)}
+  .drug{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:13px 14px;margin-top:10px}
+  .drug .dname{font-size:.95rem;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .drug .dclass{font-size:.66rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+    background:var(--accent2);color:#fff;padding:2px 8px;border-radius:20px}
+  .drug .dmeta{font-size:.82rem;color:var(--muted);margin-bottom:7px}
+  .drug .dmeta b{color:var(--txt)}
+  .drug .dnotes{font-size:.85rem}
+  .reclist{margin:14px 0 0;padding-left:0;list-style:none;counter-reset:r}
+  .reclist li{position:relative;padding:9px 0 9px 34px;border-top:1px solid var(--line);font-size:.88rem}
+  .reclist li:before{counter-increment:r;content:counter(r);position:absolute;left:0;top:9px;
+    width:22px;height:22px;border-radius:50%;background:var(--accent2);color:#fff;
+    font-size:.74rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .reclist .ev{color:var(--muted);font-style:italic;font-size:.78rem}
+  .keystat{background:var(--green-bg);border:1px solid #1f5e3a;border-radius:10px;padding:12px 14px;font-size:.88rem;margin:4px 0 6px}
+  .keystat b{color:var(--green)}
 </style>
 </head>
 <body>
@@ -131,6 +151,40 @@
       <div class="risk-bar"><i id="dBar"></i></div>
       <div class="b" id="dUpgrade"></div></div>
     <div class="dblock"><div class="h">Manejo · matices</div><div class="b" id="dMgmt"></div></div>
+  </div>
+
+  <!-- STEP 4: chemoprevention -->
+  <div class="card">
+    <h2>3 · Quimioprevención (prevención primaria)</h2>
+    <p class="sub">Especialmente relevante en lesiones B3 <b>con atipia</b> (HDA/ADH, HLA/ALH y CLIS), que suelen expresar receptores de estrógeno. Reduce ~a la mitad el riesgo de cáncer de mama ER+ tras 5 años de tratamiento.</p>
+
+    <div class="keystat">En mujeres con atipia o CLIS, la prevención primaria reduce el riesgo de cáncer de mama a 10 años del <b>21% al 7,5%</b> (estudio SEER). Solo previene cánceres <b>ER-positivos</b>; sin beneficio demostrado en supervivencia (previene tumores de buen pronóstico).</div>
+
+    <div class="drug">
+      <div class="dname">Tamoxifeno <span class="dclass">SERM</span></div>
+      <div class="dmeta"><b>Población:</b> pre y posmenopáusica · <b>Pauta:</b> 20 mg/día × 5 años, o <b>5 mg/día</b> (baja dosis)</div>
+      <div class="dnotes">↓ riesgo ~49% global; en hiperplasia atípica hasta <b>86%</b> (RR 0,14). La baja dosis tiene eficacia similar con menos efectos adversos. Riesgo de TEV y de cáncer de endometrio.</div>
+    </div>
+    <div class="drug">
+      <div class="dname">Raloxifeno <span class="dclass">SERM</span></div>
+      <div class="dmeta"><b>Población:</b> solo posmenopáusica · <b>Pauta:</b> 5 años</div>
+      <div class="dnotes">↓ riesgo ~1/3. Igual de eficaz que tamoxifeno (estudio STAR) con mejor perfil de seguridad: menos TEV y cáncer de endometrio. Algo menos eficaz frente a CDIS.</div>
+    </div>
+    <div class="drug">
+      <div class="dname">Anastrozol / Exemestano <span class="dclass">Inh. aromatasa</span></div>
+      <div class="dmeta"><b>Población:</b> solo posmenopáusica · <b>Pauta:</b> 5 años</div>
+      <div class="dnotes">Reducción significativa de CDIS e invasor (IBIS-II, MAP.3), también en el subgrupo de atipia/CLIS. <b>No</b> aumenta TEV ni cáncer de endometrio. Vigilar densidad ósea (bifosfonatos si precisa).</div>
+    </div>
+
+    <ol class="reclist">
+      <li>Ofrecer prevención primaria a toda mujer con riesgo aumentado de cáncer de mama. <span class="ev">(I/A)</span></li>
+      <li>Antes de decidir: historia detallada y estimación de riesgo con modelos (Gail, CanRisk, IBIS-II / Tyrer-Cuzick). <span class="ev">(I/A)</span></li>
+      <li>Toda lesión B3 con riesgo significativamente aumentado debe ser asesorada por un clínico experto en manejo del riesgo. <span class="ev">(III/B)</span></li>
+      <li>Premenopáusica: puede ofrecerse <b>tamoxifeno 5 mg/día oral</b> hasta 5 años, si no hay factores de riesgo tromboembólico ni de cáncer de endometrio. <span class="ev">(I/A)</span></li>
+      <li>Posmenopáusica: puede ofrecerse <b>anastrozol o exemestano</b> durante 5 años, con monitorización de densidad ósea. <span class="ev">(I/A)</span></li>
+    </ol>
+
+    <p class="sub" style="margin-top:14px">⚠️ La adherencia real es baja (captación ~4%). Consultas dedicadas, educación y ayudas a la decisión la mejoran. La evidencia es más sólida para atipia/CLIS; en otras lesiones B3 es biológicamente plausible y se valora según el riesgo relativo de cada lesión.</p>
   </div>
 
   <details class="ref">
@@ -340,6 +394,16 @@ function renderReco(){
       <p>${r.texto}</p>
       <div class="evidence">Nivel de evidencia EUSOMA: ${r.ev}</div>
     </div>`;
+  if(hasAtypia(current,answers)){
+    box.innerHTML+=`<div class="qp-hint">💊 <b>Candidata a valorar quimioprevención</b> — lesión con atipia/CLIS. Estimar riesgo (Gail/IBIS-II) y ofrecer prevención primaria. Ver sección 3.</div>`;
+  }
+}
+
+// ¿La lesión seleccionada implica atipia (candidata a prevención primaria)?
+function hasAtypia(id,a){
+  if(id==="adh"||id==="lcis") return true;
+  if(["fea","rs","pap"].includes(id)) return a.adhassoc==="si";
+  return false;
 }
 
 function renderDetail(){
