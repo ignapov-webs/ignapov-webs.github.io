@@ -46,8 +46,6 @@
   td:first-child, th:first-child { position: sticky; left: 0; background: var(--card); font-weight: 600; text-align: left; z-index: 5; box-shadow: 1px 0 0 var(--line); min-width: 92px; }
   tr:first-child td:first-child, tr:nth-child(2) td:first-child { z-index: 8; background: #e8eef7; }
   tbody tr:nth-child(even) td { background: var(--zebra); }
-  /* Fin de semana: mismo color uniforme en toda la fila (sábado y domingo igual) */
-  tr.finde td, tr.finde th { background: var(--finde) !important; }
   .hit { background: var(--hl) !important; outline: 2px solid #eab308; }
   td:empty { background: inherit; }
   mark { background: var(--hl); padding: 0; }
@@ -94,14 +92,14 @@
         return r.arrayBuffer();
       })
       .then(buf => {
-        const wb = XLSX.read(buf, { type: 'array' });
+        const wb = XLSX.read(buf, { type: 'array', cellStyles: true });
         const hoja = wb.Sheets[HOJA] || wb.Sheets[wb.SheetNames[0]];
         if (!hoja) throw new Error('No se encontró la hoja "' + HOJA + '".');
         reconstruirFechas2026(hoja);
         // Genera tabla HTML respetando celdas combinadas
         let html = XLSX.utils.sheet_to_html(hoja, { editable: false });
         cont.innerHTML = html;
-        colorearFinde(cont);
+        pintarColores(cont, hoja);
         estado.style.display = 'none';
         cont.style.display = 'block';
         filtrar();
@@ -112,7 +110,8 @@
   // Reconstruye las fechas reales de 2026 a partir de la columna de día (consecutiva, empieza jueves 1-ene-2026)
   function reconstruirFechas2026(hoja) {
     const validos = new Set(['L','M','X','J','V','S','D']);
-    const nom = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']; // por getUTCDay()
+    const nom = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']; // día de semana, por getUTCDay()
+    const mes = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
     const ancla = Date.UTC(2026, 0, 1); // 1 de enero de 2026 (jueves)
     let cont = 0;
     const range = XLSX.utils.decode_range(hoja['!ref']);
@@ -121,9 +120,7 @@
       const letra = cD ? String(cD.v).trim() : '';
       if (validos.has(letra)) {
         const d = new Date(ancla + cont * 86400000);
-        const dd = String(d.getUTCDate()).padStart(2, '0');
-        const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
-        const txt = `${dd}/${mm}/${d.getUTCFullYear()} ${nom[d.getUTCDay()]}`;
+        const txt = `${d.getUTCDate()} ${mes[d.getUTCMonth()]} ${nom[d.getUTCDay()]}`;
         const a0 = XLSX.utils.encode_cell({ r: R, c: 0 });
         hoja[a0] = { t: 's', v: txt, w: txt };
         cont++;
@@ -131,13 +128,35 @@
     }
   }
 
-  // Resalta sábados y domingos según TU columna de día de semana (2ª columna: S = sábado, D = domingo)
-  function colorearFinde(cont) {
-    cont.querySelectorAll('table tr').forEach((tr, idx) => {
-      if (idx < 2) return; // cabeceras
-      const dia = (tr.cells[1] && tr.cells[1].textContent.trim()) || '';
-      if (dia === 'S' || dia === 'D') tr.classList.add('finde');
+  // Aplica a cada celda su color real del Excel (avisos). Donde no hay color, pinta rosa los findes.
+  function pintarColores(cont, hoja) {
+    const range = XLSX.utils.decode_range(hoja['!ref']);
+    // filas de fin de semana según TU columna de día (col B: S = sábado, D = domingo)
+    const finde = {};
+    for (let R = range.s.r; R <= range.e.r; R++) {
+      const cD = hoja[XLSX.utils.encode_cell({ r: R, c: 1 })];
+      const l = cD ? String(cD.v).trim() : '';
+      if (l === 'S' || l === 'D') finde[R] = true;
+    }
+    cont.querySelectorAll('table td, table th').forEach(td => {
+      if (!td.id || td.id.indexOf('sjs-') !== 0) return;
+      const ref = td.id.slice(4);
+      const pos = XLSX.utils.decode_cell(ref);
+      const cell = hoja[ref];
+      let rgb = cell && cell.s && cell.s.fgColor && cell.s.fgColor.rgb;
+      if (rgb && rgb.length === 8) rgb = rgb.slice(2);   // ARGB -> RGB
+      if (rgb && rgb.toUpperCase() !== 'FFFFFF') {
+        td.style.background = '#' + rgb;
+        if (luminancia(rgb) < 140) td.style.color = '#fff';   // texto blanco sobre fondo oscuro
+      } else if (finde[pos.r]) {
+        td.style.background = 'var(--finde)';
+      }
     });
+  }
+
+  function luminancia(hex) {
+    const r = parseInt(hex.slice(0,2),16), g = parseInt(hex.slice(2,4),16), b = parseInt(hex.slice(4,6),16);
+    return 0.299*r + 0.587*g + 0.114*b;
   }
 
   function filtrar() {
