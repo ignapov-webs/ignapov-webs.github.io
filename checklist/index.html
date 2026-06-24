@@ -4,26 +4,26 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Checklist">
-<meta name="theme-color" content="#0f172a">
+<meta name="theme-color" content="#f3e7ee">
 <title>Checklist diario — Rutinas de trabajo</title>
 <style>
   :root {
-    --bg: #0f172a;
-    --card: #1e293b;
-    --card-soft: #273449;
-    --accent: #38bdf8;
-    --accent-2: #22c55e;
-    --amber: #f59e0b;
-    --text: #e2e8f0;
-    --muted: #94a3b8;
-    --border: #334155;
+    --bg: #e9ebee;
+    --card: #f5f6f8;
+    --card-soft: #dde0e5;
+    --accent: #e3aecb;     /* rosa claro (progreso) */
+    --accent-2: #cf6f9e;   /* rosa (completado) */
+    --soft-pink: #f4d4e2;  /* rosa muy claro (a medias) */
+    --text: #2e323a;
+    --muted: #6f7682;
+    --border: #d3d7dd;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: radial-gradient(1200px 600px at 50% -10%, #1e293b 0%, var(--bg) 55%);
+    background: radial-gradient(1200px 600px at 50% -10%, #f6e7ef 0%, var(--bg) 55%);
     color: var(--text);
     min-height: 100vh;
     display: flex;
@@ -42,10 +42,11 @@
     border-radius: 16px;
     padding: 18px 20px;
     margin-bottom: 18px;
+    box-shadow: 0 1px 2px rgba(45,49,58,0.04);
   }
   .progress-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
   .progress-top span { font-size: 14px; color: var(--muted); }
-  .progress-top strong { font-size: 22px; }
+  .progress-top strong { font-size: 22px; color: var(--accent-2); }
   .bar { height: 10px; background: var(--card-soft); border-radius: 999px; overflow: hidden; }
   .bar > div {
     height: 100%; width: 0%;
@@ -61,9 +62,10 @@
     padding: 14px 16px;
     display: flex; align-items: center; gap: 12px;
     transition: background 0.15s, border-color 0.15s;
+    box-shadow: 0 1px 2px rgba(45,49,58,0.04);
   }
-  li:hover { border-color: var(--accent); background: var(--card-soft); }
-  li.done { opacity: 0.55; }
+  li:hover { border-color: var(--accent-2); background: #fdf3f8; }
+  li.done { opacity: 0.6; }
   li.done .txt { text-decoration: line-through; }
 
   .main-click { display: flex; align-items: center; gap: 12px; flex: 1; cursor: pointer; user-select: none; }
@@ -86,16 +88,16 @@
     width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
     transition: all 0.15s;
   }
-  .link-btn:hover { color: var(--accent); border-color: var(--accent); background: var(--card-soft); }
+  .link-btn:hover { color: var(--accent-2); border-color: var(--accent-2); background: #fdf3f8; }
   .link-btn svg { width: 16px; height: 16px; }
 
   .section-title { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
   textarea {
     width: 100%; min-height: 80px; resize: vertical;
-    background: var(--card-soft); border: 1px solid var(--border); border-radius: 10px;
+    background: #fff; border: 1px solid var(--border); border-radius: 10px;
     color: var(--text); padding: 12px; font-family: inherit; font-size: 14px; line-height: 1.5;
   }
-  textarea:focus { outline: none; border-color: var(--accent); }
+  textarea:focus { outline: none; border-color: var(--accent-2); }
 
   /* Histórico */
   .hist-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
@@ -107,35 +109,35 @@
     display: flex; align-items: center; justify-content: center;
     font-size: 11px; color: var(--muted); position: relative;
   }
-  .cal-cell.full { background: var(--accent-2); color: #052e16; font-weight: 700; }
-  .cal-cell.partial { background: var(--amber); color: #451a03; font-weight: 700; }
-  .cal-cell.today { box-shadow: 0 0 0 2px var(--accent); }
+  .cal-cell.full { background: var(--accent-2); color: #fff; font-weight: 700; }
+  .cal-cell.partial { background: var(--soft-pink); color: #8a2f5d; font-weight: 700; }
+  .cal-cell.today { box-shadow: 0 0 0 2px var(--accent-2); }
   .cal-legend { display: flex; gap: 16px; margin-top: 12px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
   .cal-legend span { display: flex; align-items: center; gap: 6px; }
   .dot { width: 12px; height: 12px; border-radius: 3px; }
 
   .done-banner {
     margin-top: 4px; text-align: center; padding: 16px; border-radius: 14px;
-    background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.4);
-    color: #86efac; font-weight: 600; display: none;
+    background: rgba(207,111,158,0.12); border: 1px solid rgba(207,111,158,0.4);
+    color: #a83a72; font-weight: 600; display: none;
   }
   .done-banner.show { display: block; }
 
   footer { margin-top: 22px; text-align: center; }
   .actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
   button.reset, a.home {
-    background: transparent; border: 1px solid var(--border); color: var(--muted);
+    background: var(--card); border: 1px solid var(--border); color: var(--muted);
     padding: 8px 16px; border-radius: 10px; font-size: 13px; cursor: pointer; transition: all 0.15s;
     text-decoration: none; display: inline-block;
   }
-  button.reset:hover, a.home:hover { color: var(--text); border-color: var(--accent); }
+  button.reset:hover, a.home:hover { color: var(--accent-2); border-color: var(--accent-2); }
   .hint { color: var(--muted); font-size: 12px; margin-top: 12px; line-height: 1.5; }
 </style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <h1>✅ Rutinas diarias de trabajo</h1>
+      <h1>🎀 Rutinas diarias de trabajo</h1>
       <div class="fecha" id="fecha"></div>
     </header>
 
@@ -164,7 +166,7 @@
       <div class="cal" id="cal"></div>
       <div class="cal-legend">
         <span><i class="dot" style="background:var(--accent-2)"></i> Todo</span>
-        <span><i class="dot" style="background:var(--amber)"></i> A medias</span>
+        <span><i class="dot" style="background:var(--soft-pink)"></i> A medias</span>
         <span><i class="dot" style="background:var(--card-soft)"></i> Nada / sin datos</span>
       </div>
     </div>
@@ -185,7 +187,7 @@
   // Deja "url": "" si no quieres enlace.
   const RUTINAS = [
     { texto: "Revisar la bandeja del correo corporativo", url: "" },
-    { texto: "Mirar el cuaderno: nuevas ayudancias", url: "" },
+    { texto: "Revisión de cuaderno postneoadyuvancia", url: "" },
     { texto: "Revisar interconsultas", url: "" },
     { texto: "Revisar tareas de Notion", url: "https://www.notion.so" },
     { texto: "Revisar pacientes nuevas en lista de espera quirúrgica", url: "" }
