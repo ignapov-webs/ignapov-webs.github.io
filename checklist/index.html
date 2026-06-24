@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Checklist">
+<meta name="theme-color" content="#0f172a">
+<title>Checklist diario — Rutinas de trabajo</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --card-soft: #273449;
+    --accent: #38bdf8;
+    --accent-2: #22c55e;
+    --amber: #f59e0b;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --border: #334155;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: radial-gradient(1200px 600px at 50% -10%, #1e293b 0%, var(--bg) 55%);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 32px 16px;
+  }
+  .wrap { width: 100%; max-width: 580px; }
+
+  header { text-align: center; margin-bottom: 22px; }
+  header h1 { font-size: 23px; font-weight: 700; letter-spacing: -0.02em; }
+  header .fecha { color: var(--muted); margin-top: 6px; font-size: 14px; text-transform: capitalize; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px 20px;
+    margin-bottom: 18px;
+  }
+  .progress-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+  .progress-top span { font-size: 14px; color: var(--muted); }
+  .progress-top strong { font-size: 22px; }
+  .bar { height: 10px; background: var(--card-soft); border-radius: 999px; overflow: hidden; }
+  .bar > div {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    border-radius: 999px; transition: width 0.35s ease;
+  }
+
+  ul { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-bottom: 18px; }
+  li {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  li:hover { border-color: var(--accent); background: var(--card-soft); }
+  li.done { opacity: 0.55; }
+  li.done .txt { text-decoration: line-through; }
+
+  .main-click { display: flex; align-items: center; gap: 12px; flex: 1; cursor: pointer; user-select: none; }
+
+  .check {
+    width: 26px; height: 26px; border-radius: 8px;
+    border: 2px solid var(--border); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+  }
+  li.done .check { background: var(--accent-2); border-color: var(--accent-2); }
+  .check svg { width: 16px; height: 16px; opacity: 0; transition: opacity 0.15s; }
+  li.done .check svg { opacity: 1; }
+
+  .num { color: var(--muted); font-weight: 700; font-size: 13px; width: 16px; flex-shrink: 0; }
+  .txt { font-size: 15.5px; line-height: 1.35; }
+
+  .link-btn {
+    flex-shrink: 0; text-decoration: none; color: var(--muted);
+    border: 1px solid var(--border); border-radius: 8px;
+    width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .link-btn:hover { color: var(--accent); border-color: var(--accent); background: var(--card-soft); }
+  .link-btn svg { width: 16px; height: 16px; }
+
+  .section-title { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+  textarea {
+    width: 100%; min-height: 80px; resize: vertical;
+    background: var(--card-soft); border: 1px solid var(--border); border-radius: 10px;
+    color: var(--text); padding: 12px; font-family: inherit; font-size: 14px; line-height: 1.5;
+  }
+  textarea:focus { outline: none; border-color: var(--accent); }
+
+  /* Histórico */
+  .hist-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .streak { font-size: 13px; color: var(--muted); }
+  .streak b { color: var(--accent-2); font-size: 16px; }
+  .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .cal-cell {
+    aspect-ratio: 1; border-radius: 6px; background: var(--card-soft);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: var(--muted); position: relative;
+  }
+  .cal-cell.full { background: var(--accent-2); color: #052e16; font-weight: 700; }
+  .cal-cell.partial { background: var(--amber); color: #451a03; font-weight: 700; }
+  .cal-cell.today { box-shadow: 0 0 0 2px var(--accent); }
+  .cal-legend { display: flex; gap: 16px; margin-top: 12px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+  .cal-legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 3px; }
+
+  .done-banner {
+    margin-top: 4px; text-align: center; padding: 16px; border-radius: 14px;
+    background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.4);
+    color: #86efac; font-weight: 600; display: none;
+  }
+  .done-banner.show { display: block; }
+
+  footer { margin-top: 22px; text-align: center; }
+  .actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  button.reset, a.home {
+    background: transparent; border: 1px solid var(--border); color: var(--muted);
+    padding: 8px 16px; border-radius: 10px; font-size: 13px; cursor: pointer; transition: all 0.15s;
+    text-decoration: none; display: inline-block;
+  }
+  button.reset:hover, a.home:hover { color: var(--text); border-color: var(--accent); }
+  .hint { color: var(--muted); font-size: 12px; margin-top: 12px; line-height: 1.5; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>✅ Rutinas diarias de trabajo</h1>
+      <div class="fecha" id="fecha"></div>
+    </header>
+
+    <div class="card">
+      <div class="progress-top">
+        <span id="progress-label">0 de 5 completadas</span>
+        <strong id="progress-pct">0%</strong>
+      </div>
+      <div class="bar"><div id="bar-fill"></div></div>
+    </div>
+
+    <ul id="lista"></ul>
+
+    <div class="done-banner" id="banner">🎉 ¡Todas las rutinas completadas por hoy! Buen trabajo.</div>
+
+    <div class="card">
+      <div class="section-title">📝 Notas de hoy</div>
+      <textarea id="nota" placeholder="Apunta aquí lo que surja: incidencias, recordatorios, pendientes…"></textarea>
+    </div>
+
+    <div class="card">
+      <div class="hist-head">
+        <div class="section-title" style="margin:0;">📅 Histórico (últimos 30 días)</div>
+        <div class="streak">Racha: <b id="racha">0</b> días</div>
+      </div>
+      <div class="cal" id="cal"></div>
+      <div class="cal-legend">
+        <span><i class="dot" style="background:var(--accent-2)"></i> Todo</span>
+        <span><i class="dot" style="background:var(--amber)"></i> A medias</span>
+        <span><i class="dot" style="background:var(--card-soft)"></i> Nada / sin datos</span>
+      </div>
+    </div>
+
+    <footer>
+      <div class="actions">
+        <button class="reset" id="reset">↺ Reiniciar el día</button>
+        <a class="home" href="../">🏠 Mis Apps</a>
+      </div>
+      <div class="hint">Tus marcas, notas e histórico se guardan en este equipo y las rutinas se reinician solas cada día.</div>
+    </footer>
+  </div>
+
+<script>
+  // ── EDITA AQUÍ tus rutinas ──────────────────────────────
+  // Cada rutina: { texto: "...", url: "" }
+  // Pon un enlace en "url" para que aparezca el botón ↗ que lo abre.
+  // Deja "url": "" si no quieres enlace.
+  const RUTINAS = [
+    { texto: "Revisar la bandeja del correo corporativo", url: "" },
+    { texto: "Mirar el cuaderno: nuevas ayudancias", url: "" },
+    { texto: "Revisar interconsultas", url: "" },
+    { texto: "Revisar tareas de Notion", url: "https://www.notion.so" },
+    { texto: "Revisar pacientes nuevas en lista de espera quirúrgica", url: "" }
+  ];
+  // ────────────────────────────────────────────────────────
+
+  const STORAGE_KEY = "checklist_diario_v2";
+
+  function ymd(d) {
+    return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  }
+  const HOY = ymd(new Date());
+  const lista = document.getElementById("lista");
+
+  function fechaBonita() {
+    return new Date().toLocaleDateString("es-ES", { weekday:"long", day:"numeric", month:"long", year:"numeric" });
+  }
+
+  function cargar() {
+    let data = null;
+    try { data = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch(e) {}
+    if (!data || typeof data !== "object") data = { dias: {} };
+    if (!data.dias) data.dias = {};
+    if (!data.dias[HOY] || !Array.isArray(data.dias[HOY].estado) || data.dias[HOY].estado.length !== RUTINAS.length) {
+      data.dias[HOY] = { estado: RUTINAS.map(() => false), nota: (data.dias[HOY] && data.dias[HOY].nota) || "" };
+    }
+    return data;
+  }
+  function guardar() { localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA)); }
+
+  let DATA = cargar();
+  const hoy = () => DATA.dias[HOY];
+
+  const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  const EXT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
+
+  function render() {
+    document.getElementById("fecha").textContent = fechaBonita();
+    lista.innerHTML = "";
+    RUTINAS.forEach((r, i) => {
+      const done = hoy().estado[i];
+      const li = document.createElement("li");
+      li.className = done ? "done" : "";
+      const link = r.url ? '<a class="link-btn" href="'+r.url+'" target="_blank" rel="noopener" title="Abrir">'+EXT+'</a>' : '';
+      li.innerHTML =
+        '<div class="main-click">' +
+          '<div class="check">' + CHECK + '</div>' +
+          '<span class="num">' + (i+1) + '</span>' +
+          '<span class="txt">' + r.texto + '</span>' +
+        '</div>' + link;
+      li.querySelector(".main-click").addEventListener("click", () => {
+        hoy().estado[i] = !hoy().estado[i];
+        guardar(); render();
+      });
+      lista.appendChild(li);
+    });
+    progreso();
+    calendario();
+  }
+
+  function progreso() {
+    const hechas = hoy().estado.filter(Boolean).length;
+    const total = RUTINAS.length;
+    const pct = Math.round((hechas/total)*100);
+    document.getElementById("progress-label").textContent = hechas + " de " + total + " completadas";
+    document.getElementById("progress-pct").textContent = pct + "%";
+    document.getElementById("bar-fill").style.width = pct + "%";
+    document.getElementById("banner").classList.toggle("show", hechas === total);
+  }
+
+  function estadoDia(key) {
+    const d = DATA.dias[key];
+    if (!d || !Array.isArray(d.estado)) return "none";
+    const n = d.estado.filter(Boolean).length;
+    if (n === 0) return "none";
+    if (n === d.estado.length) return "full";
+    return "partial";
+  }
+
+  function calendario() {
+    const cal = document.getElementById("cal");
+    cal.innerHTML = "";
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const key = ymd(d);
+      const cell = document.createElement("div");
+      const st = estadoDia(key);
+      cell.className = "cal-cell " + (st === "full" ? "full" : st === "partial" ? "partial" : "") + (key === HOY ? " today" : "");
+      cell.textContent = d.getDate();
+      cell.title = d.toLocaleDateString("es-ES", { weekday:"long", day:"numeric", month:"long" });
+      cal.appendChild(cell);
+    }
+    let racha = 0;
+    for (let i = 0; i < 90; i++) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      if (estadoDia(ymd(d)) === "full") racha++;
+      else break;
+    }
+    document.getElementById("racha").textContent = racha;
+  }
+
+  const nota = document.getElementById("nota");
+  nota.value = hoy().nota || "";
+  nota.addEventListener("input", () => { hoy().nota = nota.value; guardar(); });
+
+  document.getElementById("reset").addEventListener("click", () => {
+    if (confirm("¿Desmarcar todas las rutinas de hoy? (Las notas y el histórico se conservan)")) {
+      hoy().estado = RUTINAS.map(() => false);
+      guardar(); render();
+    }
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && ymd(new Date()) !== HOY) location.reload();
+  });
+
+  render();
+</script>
+</body>
+</html>
