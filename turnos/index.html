@@ -70,8 +70,14 @@
 
 <script src="xlsx.full.min.js"></script>
 <script>
-  const ARCHIVO = 'plan.xls';   // sube aquí tu Excel con este nombre exacto
-  const HOJA = 'General';        // hoja a mostrar
+  const ARCHIVOS = ['plan.xlsx', 'plan.xls'];   // acepta cualquiera de los dos (sube el que prefieras)
+  const HOJA = 'General';                        // hoja a mostrar
+
+  // Prueba los nombres candidatos y devuelve la primera respuesta válida
+  function buscarArchivo(i) {
+    if (i >= ARCHIVOS.length) throw new Error('No se encontró el archivo del plan. Sube plan.xlsx o plan.xls a la carpeta turnos.');
+    return fetch(ARCHIVOS[i] + '?t=' + Date.now()).then(r => r.ok ? r : buscarArchivo(i + 1));
+  }
 
   function cargar() {
     const estado = document.getElementById('estado');
@@ -79,9 +85,8 @@
     estado.style.display = 'block'; estado.className = 'estado'; estado.textContent = 'Cargando el plan…';
     cont.style.display = 'none';
 
-    fetch(ARCHIVO + '?t=' + Date.now())
+    buscarArchivo(0)
       .then(r => {
-        if (!r.ok) throw new Error('No se encontró el archivo del plan (' + r.status + '). ¿Has subido plan.xls?');
         const lm = r.headers.get('last-modified');
         if (lm) {
           const f = new Date(lm);
