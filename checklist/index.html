@@ -169,6 +169,27 @@
         <span><i class="dot" style="background:var(--soft-pink)"></i> A medias</span>
         <span><i class="dot" style="background:var(--card-soft)"></i> Nada / sin datos</span>
       </div>
+      <div class="hint" style="margin-top:10px;">👆 Toca un día para ver sus notas y lo que completaste.</div>
+    </div>
+
+    <div class="card" id="detail-card" style="display:none;">
+      <div class="hist-head">
+        <div class="section-title" id="detail-title" style="margin:0;"></div>
+        <button class="reset" id="detail-close" style="padding:4px 10px;">✕</button>
+      </div>
+      <div id="detail-routines" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;"></div>
+      <div class="section-title">Notas de ese día</div>
+      <div id="detail-nota" style="white-space:pre-wrap;background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px;font-size:14px;min-height:42px;color:var(--text);"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">💾 Copia de seguridad</div>
+      <div class="hint" style="margin-top:0;margin-bottom:12px;">Tus datos viven solo en este navegador. Guarda una copia de vez en cuando (sobre todo si el equipo borra datos al cerrarse) y restáurala si se pierden o para pasarla a otro dispositivo.</div>
+      <div class="actions">
+        <button class="reset" id="exportar">⬇️ Guardar copia</button>
+        <button class="reset" id="importar">⬆️ Restaurar copia</button>
+        <input type="file" id="fileinput" accept="application/json,.json" style="display:none;">
+      </div>
     </div>
 
     <footer>
@@ -176,7 +197,7 @@
         <button class="reset" id="reset">↺ Reiniciar el día</button>
         <a class="home" href="../">🏠 Mis Apps</a>
       </div>
-      <div class="hint">Tus marcas, notas e histórico se guardan en este equipo y las rutinas se reinician solas cada día.</div>
+      <div class="hint">Las rutinas se reinician solas cada día; tus notas e histórico se conservan.</div>
     </footer>
   </div>
 
@@ -278,6 +299,8 @@
       cell.className = "cal-cell " + (st === "full" ? "full" : st === "partial" ? "partial" : "") + (key === HOY ? " today" : "");
       cell.textContent = d.getDate();
       cell.title = d.toLocaleDateString("es-ES", { weekday:"long", day:"numeric", month:"long" });
+      cell.style.cursor = "pointer";
+      cell.addEventListener("click", () => verDia(key));
       cal.appendChild(cell);
     }
     let racha = 0;
@@ -288,6 +311,67 @@
     }
     document.getElementById("racha").textContent = racha;
   }
+
+  // Ver el detalle de un día del calendario
+  function verDia(key) {
+    const d = DATA.dias[key];
+    const card = document.getElementById("detail-card");
+    const fecha = new Date(key + "T00:00:00");
+    document.getElementById("detail-title").textContent =
+      "📋 " + fecha.toLocaleDateString("es-ES", { weekday:"long", day:"numeric", month:"long" });
+    const rdiv = document.getElementById("detail-routines");
+    rdiv.innerHTML = "";
+    RUTINAS.forEach((r, i) => {
+      const done = d && Array.isArray(d.estado) && d.estado[i];
+      const row = document.createElement("div");
+      row.style.fontSize = "14px";
+      row.style.color = done ? "var(--accent-2)" : "var(--muted)";
+      row.textContent = (done ? "✓ " : "○ ") + r.texto;
+      rdiv.appendChild(row);
+    });
+    document.getElementById("detail-nota").textContent = (d && d.nota) ? d.nota : "— sin notas —";
+    card.style.display = "block";
+    card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+  document.getElementById("detail-close").addEventListener("click", () => {
+    document.getElementById("detail-card").style.display = "none";
+  });
+
+  // Copia de seguridad: exportar / restaurar
+  document.getElementById("exportar").addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify(DATA, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "checklist-backup-" + HOY + ".json";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+  const fileinput = document.getElementById("fileinput");
+  document.getElementById("importar").addEventListener("click", () => fileinput.click());
+  fileinput.addEventListener("change", () => {
+    const file = fileinput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const p = JSON.parse(reader.result);
+        if (!p || typeof p !== "object" || !p.dias) throw new Error("formato");
+        DATA = p;
+        if (!DATA.dias) DATA.dias = {};
+        if (!DATA.dias[HOY] || !Array.isArray(DATA.dias[HOY].estado) || DATA.dias[HOY].estado.length !== RUTINAS.length) {
+          DATA.dias[HOY] = { estado: RUTINAS.map(() => false), nota: (DATA.dias[HOY] && DATA.dias[HOY].nota) || "" };
+        }
+        guardar();
+        nota.value = hoy().nota || "";
+        render();
+        alert("✅ Copia restaurada correctamente.");
+      } catch (e) {
+        alert("⚠️ No se pudo leer el archivo. Asegúrate de elegir un archivo de copia (checklist-backup-….json).");
+      }
+      fileinput.value = "";
+    };
+    reader.readAsText(file);
+  });
 
   const nota = document.getElementById("nota");
   nota.value = hoy().nota || "";
