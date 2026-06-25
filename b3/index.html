@@ -2,112 +2,125 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0f1419">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#f4f7fb">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="B3 Mama">
 <title>Lesiones B3 de mama · Decisión clínica</title>
 <style>
   :root{
-    --bg:#0f1419; --panel:#171e26; --panel2:#1e2832; --line:#2b3744;
-    --txt:#e8edf2; --muted:#9aa9b8; --accent:#4aa3ff; --accent2:#2c6fb5;
-    --green:#2faa5e; --green-bg:#143123;
-    --amber:#e0a64b; --amber-bg:#332714;
-    --red:#e0604b; --red-bg:#33170f;
-    --radius:14px;
+    --bg:#f4f7fb; --panel:#ffffff; --panel2:#eef3f9; --line:#dde6f0;
+    --txt:#2b3a4a; --muted:#6b7c8d; --accent:#5b8def; --accent2:#8aa9e6; --accent-soft:#e7f0ff;
+    --green:#4fae73; --green-bg:#e6f6ec; --green-line:#bfe6cd;
+    --amber:#d99a3a; --amber-bg:#fbf1dd; --amber-line:#ecd6a6;
+    --red:#dd6b58; --red-bg:#fcebe7; --red-line:#f3cabf;
+    --radius:16px; --shadow:0 1px 3px rgba(43,58,74,.06),0 6px 20px rgba(43,58,74,.05);
   }
-  *{box-sizing:border-box}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0}
   body{
     background:var(--bg); color:var(--txt);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    line-height:1.5; -webkit-font-smoothing:antialiased;
+    line-height:1.5; -webkit-font-smoothing:antialiased; font-size:16px;
   }
-  .wrap{max-width:920px;margin:0 auto;padding:20px 16px 80px}
-  header.hero{padding:26px 0 10px}
-  .hero h1{font-size:1.7rem;margin:0 0 6px;letter-spacing:-.3px}
-  .hero p{color:var(--muted);margin:0;font-size:.95rem;max-width:640px}
-  .tag{display:inline-block;background:var(--accent2);color:#fff;font-size:.7rem;
-       font-weight:700;letter-spacing:.5px;padding:3px 9px;border-radius:20px;margin-bottom:10px}
+  .wrap{max-width:880px;margin:0 auto;padding:16px 14px calc(60px + env(safe-area-inset-bottom))}
+  header.hero{padding:18px 4px 6px}
+  .hero h1{font-size:1.55rem;margin:0 0 6px;letter-spacing:-.3px}
+  .hero p{color:var(--muted);margin:0;font-size:.92rem;max-width:640px}
+  .tag{display:inline-block;background:var(--accent-soft);color:var(--accent);font-size:.7rem;
+       font-weight:800;letter-spacing:.5px;padding:4px 11px;border-radius:20px;margin-bottom:10px}
 
   .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
-        padding:18px;margin:16px 0}
-  .card h2{font-size:1.05rem;margin:0 0 4px}
+        padding:16px;margin:14px 0;box-shadow:var(--shadow)}
+  .card h2{font-size:1.02rem;margin:0 0 4px}
   .card .sub{color:var(--muted);font-size:.85rem;margin:0 0 14px}
 
   /* lesion grid */
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
-  .lbtn{background:var(--panel2);border:1px solid var(--line);color:var(--txt);
-        border-radius:11px;padding:12px 12px;text-align:left;cursor:pointer;
+  .lbtn{background:var(--panel);border:1.5px solid var(--line);color:var(--txt);
+        border-radius:13px;padding:13px;text-align:left;cursor:pointer;min-height:64px;
         transition:.15s;font-size:.86rem;line-height:1.3}
-  .lbtn:hover{border-color:var(--accent);transform:translateY(-1px)}
-  .lbtn.active{border-color:var(--accent);background:#16304a;box-shadow:0 0 0 1px var(--accent)}
-  .lbtn b{display:block;font-size:.92rem;margin-bottom:2px}
-  .lbtn .g{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .lbtn:active{transform:scale(.98)}
+  .lbtn.active{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 1px var(--accent)}
+  .lbtn b{display:block;font-size:.92rem;margin-bottom:3px}
+  .lbtn .g{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
 
   /* refine questions */
   .qrow{margin:14px 0}
-  .qrow .qlabel{font-size:.85rem;color:var(--muted);margin-bottom:7px;font-weight:600}
-  .seg{display:inline-flex;flex-wrap:wrap;gap:8px}
-  .seg button{background:var(--panel2);border:1px solid var(--line);color:var(--txt);
-    padding:8px 14px;border-radius:9px;cursor:pointer;font-size:.85rem;transition:.15s}
-  .seg button:hover{border-color:var(--accent)}
-  .seg button.sel{background:var(--accent);border-color:var(--accent);color:#03101e;font-weight:700}
+  .qrow .qlabel{font-size:.85rem;color:var(--muted);margin-bottom:8px;font-weight:600}
+  .seg{display:flex;flex-wrap:wrap;gap:8px}
+  .seg button{background:var(--panel2);border:1.5px solid var(--line);color:var(--txt);
+    padding:11px 16px;border-radius:11px;cursor:pointer;font-size:.88rem;transition:.15s;min-height:44px}
+  .seg button:active{transform:scale(.97)}
+  .seg button.sel{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
 
   /* recommendation panel */
-  .reco{border-radius:12px;padding:16px;margin-top:6px;border:1px solid}
-  .reco.green{background:var(--green-bg);border-color:#1f5e3a}
-  .reco.amber{background:var(--amber-bg);border-color:#6b5320}
-  .reco.red{background:var(--red-bg);border-color:#6b2a1c}
-  .reco .rt{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-  .pill{font-size:.72rem;font-weight:800;letter-spacing:.5px;padding:4px 10px;border-radius:20px;text-transform:uppercase}
-  .pill.green{background:var(--green);color:#03130a}
-  .pill.amber{background:var(--amber);color:#1d1405}
-  .pill.red{background:var(--red);color:#1d0703}
-  .reco h3{margin:0;font-size:1.05rem}
+  .reco{border-radius:13px;padding:15px;margin-top:6px;border:1.5px solid}
+  .reco.green{background:var(--green-bg);border-color:var(--green-line)}
+  .reco.amber{background:var(--amber-bg);border-color:var(--amber-line)}
+  .reco.red{background:var(--red-bg);border-color:var(--red-line)}
+  .reco .rt{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+  .pill{font-size:.7rem;font-weight:800;letter-spacing:.5px;padding:5px 11px;border-radius:20px;text-transform:uppercase;color:#fff}
+  .pill.green{background:var(--green)} .pill.amber{background:var(--amber)} .pill.red{background:var(--red)}
+  .reco h3{margin:0;font-size:1.02rem}
   .reco p{margin:8px 0 0;font-size:.92rem}
-  .evidence{font-size:.74rem;color:var(--muted);margin-top:10px;font-style:italic}
+  .evidence{font-size:.76rem;color:var(--muted);margin-top:10px;font-style:italic}
 
   /* detail blocks */
-  .detail{margin-top:16px;display:none}
+  .detail{margin-top:14px;display:none}
   .detail.show{display:block}
   .dblock{border-top:1px solid var(--line);padding:13px 0}
-  .dblock:first-child{border-top:none}
-  .dblock .h{font-size:.74rem;text-transform:uppercase;letter-spacing:.6px;color:var(--accent);font-weight:700;margin-bottom:5px}
+  .dblock:first-of-type{border-top:none}
+  .dblock .h{font-size:.74rem;text-transform:uppercase;letter-spacing:.6px;color:var(--accent);font-weight:800;margin-bottom:5px}
   .dblock .b{font-size:.9rem}
-  .risk-bar{height:7px;border-radius:5px;background:var(--line);overflow:hidden;margin:6px 0 4px;max-width:320px}
+  .risk-bar{height:8px;border-radius:5px;background:var(--panel2);overflow:hidden;margin:6px 0 4px;max-width:320px}
   .risk-bar i{display:block;height:100%}
   .placeholder{color:var(--muted);font-size:.9rem;padding:10px 0}
 
-  details.ref{margin-top:18px}
-  details.ref summary{cursor:pointer;color:var(--muted);font-size:.85rem}
-  details.ref ol{font-size:.8rem;color:var(--muted);line-height:1.6}
-  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.78rem;color:var(--muted);margin-top:10px}
-  .legend span{display:inline-flex;align-items:center;gap:6px}
-  .dot{width:10px;height:10px;border-radius:50%}
-  .disclaimer{font-size:.76rem;color:var(--muted);border-top:1px solid var(--line);margin-top:30px;padding-top:14px}
-  a{color:var(--accent)}
+  /* collapsible (details) */
+  details.card{padding:0}
+  details.card>summary{list-style:none;cursor:pointer;padding:16px;font-size:1.02rem;font-weight:700;
+    display:flex;align-items:center;justify-content:space-between;gap:10px}
+  details.card>summary::-webkit-details-marker{display:none}
+  details.card>summary .chev{color:var(--accent);font-size:1.3rem;transition:.2s;flex-shrink:0}
+  details.card[open]>summary .chev{transform:rotate(90deg)}
+  details.card>summary .stitle{display:flex;flex-direction:column;gap:2px}
+  details.card>summary .ssub{font-size:.78rem;font-weight:400;color:var(--muted)}
+  .collapse-body{padding:0 16px 16px}
 
-  /* chemoprevention */
-  .qp-hint{margin-top:12px;background:#1a2433;border:1px dashed var(--accent2);border-radius:10px;
-    padding:11px 13px;font-size:.86rem;color:var(--txt)}
-  .qp-hint b{color:var(--accent)}
-  .drug{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:13px 14px;margin-top:10px}
+  /* chemoprevention drug cards */
+  .keystat{background:var(--green-bg);border:1px solid var(--green-line);border-radius:11px;padding:12px 14px;font-size:.88rem;margin:0 0 10px}
+  .keystat b{color:var(--green)}
+  .drug{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-top:10px}
   .drug .dname{font-size:.95rem;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .drug .dclass{font-size:.66rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
-    background:var(--accent2);color:#fff;padding:2px 8px;border-radius:20px}
+  .drug .dclass{font-size:.64rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
+    background:var(--accent-soft);color:var(--accent);padding:3px 9px;border-radius:20px}
   .drug .dmeta{font-size:.82rem;color:var(--muted);margin-bottom:7px}
   .drug .dmeta b{color:var(--txt)}
   .drug .dnotes{font-size:.85rem}
   .reclist{margin:14px 0 0;padding-left:0;list-style:none;counter-reset:r}
-  .reclist li{position:relative;padding:9px 0 9px 34px;border-top:1px solid var(--line);font-size:.88rem}
-  .reclist li:before{counter-increment:r;content:counter(r);position:absolute;left:0;top:9px;
-    width:22px;height:22px;border-radius:50%;background:var(--accent2);color:#fff;
+  .reclist li{position:relative;padding:10px 0 10px 34px;border-top:1px solid var(--line);font-size:.88rem}
+  .reclist li:before{counter-increment:r;content:counter(r);position:absolute;left:0;top:10px;
+    width:23px;height:23px;border-radius:50%;background:var(--accent);color:#fff;
     font-size:.74rem;font-weight:700;display:flex;align-items:center;justify-content:center}
   .reclist .ev{color:var(--muted);font-style:italic;font-size:.78rem}
-  .keystat{background:var(--green-bg);border:1px solid #1f5e3a;border-radius:10px;padding:12px 14px;font-size:.88rem;margin:4px 0 6px}
-  .keystat b{color:var(--green)}
+
+  /* glossary */
+  .gloss{display:grid;grid-template-columns:1fr;gap:0}
+  .gloss .row{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--line);font-size:.86rem}
+  .gloss .row:first-child{border-top:none}
+  .gloss .ab{flex:0 0 92px;font-weight:800;color:var(--accent)}
+  .gloss .df{flex:1}
+
+  details.ref{margin-top:14px}
+  details.ref summary{cursor:pointer;color:var(--muted);font-size:.85rem}
+  details.ref ol{font-size:.8rem;color:var(--muted);line-height:1.6}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.78rem;color:var(--muted);margin-top:12px}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:11px;height:11px;border-radius:50%}
+  .disclaimer{font-size:.77rem;color:var(--muted);border-top:1px solid var(--line);margin-top:24px;padding-top:14px}
+  a{color:var(--accent)}
 </style>
 </head>
 <body>
@@ -116,12 +129,12 @@
   <header class="hero">
     <span class="tag">PATOLOGÍA MAMARIA · B3</span>
     <h1>Lesiones B3 de la mama</h1>
-    <p>Herramienta de apoyo a la decisión: anatomía patológica, riesgo de infraestimación (upgrade) a carcinoma e indicación de cirugía, VAE/VAB o seguimiento. Basada en la guía europea <b>EUSOMA · EUSOBI · ESP · ESSO 2024</b>.</p>
+    <p>Apoyo a la decisión: anatomía patológica, riesgo de infraestimación (<i>upgrade</i>) a carcinoma e indicación de cirugía, VAE/VAB o seguimiento. Guía europea <b>EUSOMA · EUSOBI · ESP · ESSO 2024</b>.</p>
   </header>
 
   <!-- STEP 1: lesion picker -->
   <div class="card">
-    <h2>1 · Selecciona la lesión diagnosticada en la biopsia percutánea</h2>
+    <h2>1 · Lesión diagnosticada en la biopsia</h2>
     <p class="sub">Clasificación NHSBSP: B3 = potencial maligno incierto. B3a (sin atipia) · B3b (con atipia).</p>
     <div class="grid" id="grid"></div>
     <div class="legend">
@@ -153,39 +166,57 @@
     <div class="dblock"><div class="h">Manejo · matices</div><div class="b" id="dMgmt"></div></div>
   </div>
 
-  <!-- STEP 4: chemoprevention -->
-  <div class="card">
-    <h2>3 · Quimioprevención (prevención primaria)</h2>
-    <p class="sub">Especialmente relevante en lesiones B3 <b>con atipia</b> (HDA/ADH, HLA/ALH y CLIS), que suelen expresar receptores de estrógeno. Reduce ~a la mitad el riesgo de cáncer de mama ER+ tras 5 años de tratamiento.</p>
+  <!-- Chemoprevention (collapsible / optional) -->
+  <details class="card">
+    <summary>
+      <span class="stitle">💊 Quimioprevención (prevención primaria)
+        <span class="ssub">Opcional · toca para desplegar</span></span>
+      <span class="chev">›</span>
+    </summary>
+    <div class="collapse-body">
+      <p class="sub" style="margin-top:0">Especialmente relevante en lesiones B3 <b>con atipia</b> (HDA, HLA y CLIS), que suelen expresar receptores de estrógeno. Reduce ~a la mitad el riesgo de cáncer de mama ER+ tras 5 años.</p>
 
-    <div class="keystat">En mujeres con atipia o CLIS, la prevención primaria reduce el riesgo de cáncer de mama a 10 años del <b>21% al 7,5%</b> (estudio SEER). Solo previene cánceres <b>ER-positivos</b>; sin beneficio demostrado en supervivencia (previene tumores de buen pronóstico).</div>
+      <div class="keystat">En mujeres con atipia o CLIS, la prevención primaria reduce el riesgo de cáncer de mama a 10 años del <b>21% al 7,5%</b> (estudio SEER). Solo previene cánceres <b>ER-positivos</b>; sin beneficio demostrado en supervivencia.</div>
 
-    <div class="drug">
-      <div class="dname">Tamoxifeno <span class="dclass">SERM</span></div>
-      <div class="dmeta"><b>Población:</b> pre y posmenopáusica · <b>Pauta:</b> 20 mg/día × 5 años, o <b>5 mg/día</b> (baja dosis)</div>
-      <div class="dnotes">↓ riesgo ~49% global; en hiperplasia atípica hasta <b>86%</b> (RR 0,14). La baja dosis tiene eficacia similar con menos efectos adversos. Riesgo de TEV y de cáncer de endometrio.</div>
+      <div class="drug">
+        <div class="dname">Tamoxifeno <span class="dclass">SERM</span></div>
+        <div class="dmeta"><b>Población:</b> pre y posmenopáusica · <b>Pauta:</b> 20 mg/día × 5 años, o <b>5 mg/día</b> (baja dosis)</div>
+        <div class="dnotes">↓ riesgo ~49% global; en hiperplasia atípica hasta <b>86%</b> (RR 0,14). La baja dosis tiene eficacia similar con menos efectos adversos. Riesgo de TEV y de cáncer de endometrio.</div>
+      </div>
+      <div class="drug">
+        <div class="dname">Raloxifeno <span class="dclass">SERM</span></div>
+        <div class="dmeta"><b>Población:</b> solo posmenopáusica · <b>Pauta:</b> 5 años</div>
+        <div class="dnotes">↓ riesgo ~1/3. Igual de eficaz que tamoxifeno (estudio STAR) con mejor perfil de seguridad: menos TEV y cáncer de endometrio. Algo menos eficaz frente a CDIS.</div>
+      </div>
+      <div class="drug">
+        <div class="dname">Anastrozol / Exemestano <span class="dclass">Inh. aromatasa</span></div>
+        <div class="dmeta"><b>Población:</b> solo posmenopáusica · <b>Pauta:</b> 5 años</div>
+        <div class="dnotes">Reducción significativa de CDIS e invasor (IBIS-II, MAP.3), también en el subgrupo de atipia/CLIS. <b>No</b> aumenta TEV ni cáncer de endometrio. Vigilar densidad ósea (bifosfonatos si precisa).</div>
+      </div>
+
+      <ol class="reclist">
+        <li>Ofrecer prevención primaria a toda mujer con riesgo aumentado de cáncer de mama. <span class="ev">(I/A)</span></li>
+        <li>Antes de decidir: historia detallada y estimación de riesgo con modelos (Gail, CanRisk, IBIS-II / Tyrer-Cuzick). <span class="ev">(I/A)</span></li>
+        <li>Toda lesión B3 con riesgo significativamente aumentado debe ser asesorada por un clínico experto en manejo del riesgo. <span class="ev">(III/B)</span></li>
+        <li>Premenopáusica: puede ofrecerse <b>tamoxifeno 5 mg/día</b> hasta 5 años, si no hay factores de riesgo tromboembólico ni de cáncer de endometrio. <span class="ev">(I/A)</span></li>
+        <li>Posmenopáusica: puede ofrecerse <b>anastrozol o exemestano</b> durante 5 años, con monitorización de densidad ósea. <span class="ev">(I/A)</span></li>
+      </ol>
+
+      <p class="sub" style="margin:14px 0 0">⚠️ La adherencia real es baja (captación ~4%). La evidencia es más sólida para atipia/CLIS; en otras lesiones B3 es biológicamente plausible y se valora según el riesgo relativo de cada lesión.</p>
     </div>
-    <div class="drug">
-      <div class="dname">Raloxifeno <span class="dclass">SERM</span></div>
-      <div class="dmeta"><b>Población:</b> solo posmenopáusica · <b>Pauta:</b> 5 años</div>
-      <div class="dnotes">↓ riesgo ~1/3. Igual de eficaz que tamoxifeno (estudio STAR) con mejor perfil de seguridad: menos TEV y cáncer de endometrio. Algo menos eficaz frente a CDIS.</div>
-    </div>
-    <div class="drug">
-      <div class="dname">Anastrozol / Exemestano <span class="dclass">Inh. aromatasa</span></div>
-      <div class="dmeta"><b>Población:</b> solo posmenopáusica · <b>Pauta:</b> 5 años</div>
-      <div class="dnotes">Reducción significativa de CDIS e invasor (IBIS-II, MAP.3), también en el subgrupo de atipia/CLIS. <b>No</b> aumenta TEV ni cáncer de endometrio. Vigilar densidad ósea (bifosfonatos si precisa).</div>
-    </div>
+  </details>
 
-    <ol class="reclist">
-      <li>Ofrecer prevención primaria a toda mujer con riesgo aumentado de cáncer de mama. <span class="ev">(I/A)</span></li>
-      <li>Antes de decidir: historia detallada y estimación de riesgo con modelos (Gail, CanRisk, IBIS-II / Tyrer-Cuzick). <span class="ev">(I/A)</span></li>
-      <li>Toda lesión B3 con riesgo significativamente aumentado debe ser asesorada por un clínico experto en manejo del riesgo. <span class="ev">(III/B)</span></li>
-      <li>Premenopáusica: puede ofrecerse <b>tamoxifeno 5 mg/día oral</b> hasta 5 años, si no hay factores de riesgo tromboembólico ni de cáncer de endometrio. <span class="ev">(I/A)</span></li>
-      <li>Posmenopáusica: puede ofrecerse <b>anastrozol o exemestano</b> durante 5 años, con monitorización de densidad ósea. <span class="ev">(I/A)</span></li>
-    </ol>
-
-    <p class="sub" style="margin-top:14px">⚠️ La adherencia real es baja (captación ~4%). Consultas dedicadas, educación y ayudas a la decisión la mejoran. La evidencia es más sólida para atipia/CLIS; en otras lesiones B3 es biológicamente plausible y se valora según el riesgo relativo de cada lesión.</p>
-  </div>
+  <!-- Glossary (collapsible) -->
+  <details class="card">
+    <summary>
+      <span class="stitle">📖 Glosario de siglas
+        <span class="ssub">Tratamiento y patología · toca para desplegar</span></span>
+      <span class="chev">›</span>
+    </summary>
+    <div class="collapse-body">
+      <div class="gloss" id="gloss"></div>
+    </div>
+  </details>
 
   <details class="ref">
     <summary>Fuentes y nivel de evidencia</summary>
@@ -194,7 +225,7 @@
       <li>Castro Andrés B, Aguilar Jiménez J. <i>Análisis del manejo de lesiones B3 de la mama en nuestro centro.</i> Rev Senol Patol Mamar 2023;36:100513.</li>
       <li>Santos Blasco M, et al. <i>Lesiones mamarias B3: diagnóstico, clasificación y estrategias de manejo.</i> Hospital La Fe, Valencia.</li>
     </ol>
-    <p style="font-size:.76rem">Grados de evidencia EUSOMA (GRADE): I/A = alta; II/B = moderada; III/B = baja-moderada. VAB = biopsia asistida por vacío (diagnóstica); VAE = escisión asistida por vacío (terapéutica); CNB/BAG = biopsia con aguja gruesa.</p>
+    <p style="font-size:.76rem">Grados de evidencia EUSOMA (GRADE): I/A = alta; II/B = moderada; III/B = baja-moderada.</p>
   </details>
 
   <p class="disclaimer">⚠️ Herramienta de apoyo educativo/clínico. No sustituye el juicio del comité multidisciplinar (CMD) ni la correlación radio-patológica individualizada. Toda lesión B3 debe discutirse en CMD evaluando concordancia y lesión residual.</p>
@@ -222,10 +253,10 @@ const L = {
   },
   fea: {
     nombre:"Atipia epitelial plana (AEP/FEA)", grupo:"B3b · con atipia", risk:"amber",
-    path:"Sustitución del epitelio de las unidades ducto-lobulillares terminales por 1–varias capas de células cúbico-cilíndricas con atipia citológica de bajo grado, sin complejidad arquitectural (sin puentes ni patrones cribiformes). Frecuente atipia plana + microcalcificaciones.",
+    path:"Sustitución del epitelio de las unidades ducto-lobulillares terminales por 1–varias capas de células cúbico-cilíndricas con atipia citológica de bajo grado, sin complejidad arquitectural (sin puentes ni patrones cribiformes).",
     rad:"Microcalcificaciones amorfas/puntiformes agrupadas (BI-RADS 4). Reproducibilidad inter-observador limitada.",
     upgradePct:10, upgrade:"AEP aislada (sin HDA) concordante: upgrade muy bajo, ≈ <b>1%</b> a CDIS. <b>AEP con HDA asociada: 2–28%</b>, riesgo claramente mayor.",
-    mgmt:"AEP por CNB/VAB sin HDA y concordante con imagen → seguimiento (vigilancia) (II/B). AEP con HDA concomitante → mayor riesgo de upgrade, se recomienda intervención (escisión o VAE) (II/B). Si por VAB no se extirparon todas las calcificaciones o no hay concordancia → valorar escisión/VAE (III/B).",
+    mgmt:"AEP por CNB/VAB sin HDA y concordante con imagen → seguimiento (II/B). AEP con HDA concomitante → mayor riesgo de upgrade, se recomienda intervención (escisión o VAE) (II/B). Si por VAB no se extirparon todas las calcificaciones o no hay concordancia → valorar escisión/VAE (III/B).",
     questions:["adhassoc"]
   },
   rs: {
@@ -257,13 +288,34 @@ const L = {
     path:"Componente epitelial + estromal. Incluye el fibroadenoma común y el tumor filodes (PT). En CNB es difícil distinguirlos por solapamiento histológico (celularidad estromal, mitosis, sobrecrecimiento estromal orientan a PT).",
     rad:"Nódulo bien delimitado, ovalado; crecimiento rápido orienta a PT. Eco para seguimiento de tamaño.",
     upgradePct:15, upgrade:"El riesgo principal es que una lesión etiquetada como fibroadenoma sea en realidad un tumor filodes. La tasa de crecimiento es criterio útil de escisión.",
-    mgmt:"Escisión apropiada cuando NO puede excluirse tumor filodes, independientemente del tamaño (alta probabilidad de PT). Algunas guías recomiendan escindir FEL &gt;3 cm; otras priorizan la tasa de crecimiento. Puede plantearse muestreo adicional (CNB de mayor calibre o VAB) para diferenciar.",
+    mgmt:"Escisión apropiada cuando NO puede excluirse tumor filodes, independientemente del tamaño. Algunas guías recomiendan escindir FEL &gt;3 cm; otras priorizan la tasa de crecimiento. Puede plantearse muestreo adicional (CNB de mayor calibre o VAB) para diferenciar.",
     questions:["felexcl"]
   }
 };
-
-// Orden de presentación
 const ORDER = ["adh","lcis","fea","rs","pap","muco","fel"];
+
+// ---- Glosario ----
+const GLOSARIO=[
+  ["BAG / CNB","Biopsia con aguja gruesa (<i>core needle biopsy</i>): toma cilindros de tejido. Diagnóstica."],
+  ["VAB","Biopsia asistida por vacío: aguja de vacío que obtiene más muestra que la BAG. Diagnóstica (puede ser terapéutica)."],
+  ["VAE","Escisión asistida por vacío: extirpa la lesión completa por vacío, guiada por imagen. Terapéutica."],
+  ["Upgrade","Infraestimación: hallazgo de malignidad en la pieza tras un diagnóstico B3 en la biopsia."],
+  ["HDA / ADH","Hiperplasia ductal atípica."],
+  ["HLA / ALH","Hiperplasia lobulillar atípica."],
+  ["CLIS / LCIS","Carcinoma lobulillar in situ."],
+  ["AEP / FEA","Atipia epitelial plana."],
+  ["RS / CSL","Cicatriz radial / lesión esclerosante compleja."],
+  ["IDP","Papiloma intraductal."],
+  ["CDIS / DCIS","Carcinoma ductal in situ."],
+  ["CI","Carcinoma invasor (infiltrante)."],
+  ["PT","Tumor filodes."],
+  ["CMD","Comité multidisciplinar."],
+  ["SERM","Modulador selectivo del receptor de estrógeno (tamoxifeno, raloxifeno)."],
+  ["IA","Inhibidor de aromatasa (anastrozol, exemestano)."],
+  ["TEV","Tromboembolismo venoso."],
+  ["ER / RE","Receptor de estrógeno."],
+  ["BI-RADS","Sistema de categorización del riesgo radiológico (0–6)."]
+];
 
 // ---- Preguntas de refinamiento ----
 const Q = {
@@ -279,13 +331,11 @@ const Q = {
     opts:[{k:"si",t:"Sí, fibroadenoma claro"},{k:"no",t:"No / crecimiento rápido"}]}
 };
 
-// ---- Estado ----
 let current=null;
 const answers={};
 
 // ---- Lógica de recomendación ----
 function recommend(id,a){
-  // Devuelve {level:'green|amber|red', titulo, texto, evidencia}
   if(id==="adh"){
     if(a.size==="lt15") return {level:"red",titulo:"Intervención: escisión quirúrgica o VAE",
       texto:"Escisión quirúrgica es la opción preferida. Al ser &lt;15 mm, puede plantearse VAE guiada por imagen con intención de escisión completa.",ev:"I/A (cirugía) · III/B (VAE)"};
@@ -333,7 +383,6 @@ function recommend(id,a){
   return null;
 }
 
-// ---- Render ----
 const riskColor={green:"var(--green)",amber:"var(--amber)",red:"var(--red)"};
 
 function buildGrid(){
@@ -348,13 +397,17 @@ function buildGrid(){
   });
 }
 
+function buildGlossary(){
+  const c=document.getElementById("gloss");
+  c.innerHTML=GLOSARIO.map(([a,d])=>`<div class="row"><div class="ab">${a}</div><div class="df">${d}</div></div>`).join("");
+}
+
 function selectLesion(id){
   current=id;
   for(const k in answers) delete answers[k];
   document.querySelectorAll(".lbtn").forEach(x=>x.classList.toggle("active",x.dataset.id===id));
-  renderQuestions();
-  renderDetail();
-  renderReco();
+  renderQuestions(); renderDetail(); renderReco();
+  document.getElementById("recoSub").scrollIntoView({behavior:"smooth",block:"start"});
 }
 
 function renderQuestions(){
@@ -395,11 +448,10 @@ function renderReco(){
       <div class="evidence">Nivel de evidencia EUSOMA: ${r.ev}</div>
     </div>`;
   if(hasAtypia(current,answers)){
-    box.innerHTML+=`<div class="qp-hint">💊 <b>Candidata a valorar quimioprevención</b> — lesión con atipia/CLIS. Estimar riesgo (Gail/IBIS-II) y ofrecer prevención primaria. Ver sección 3.</div>`;
+    box.innerHTML+=`<div class="keystat" style="margin-top:12px">💊 <b>Candidata a valorar quimioprevención</b> — lesión con atipia/CLIS. Estimar riesgo (Gail/IBIS-II) y ofrecer prevención primaria. Ver desplegable de quimioprevención.</div>`;
   }
 }
 
-// ¿La lesión seleccionada implica atipia (candidata a prevención primaria)?
 function hasAtypia(id,a){
   if(id==="adh"||id==="lcis") return true;
   if(["fea","rs","pap"].includes(id)) return a.adhassoc==="si";
@@ -421,6 +473,7 @@ function renderDetail(){
 }
 
 buildGrid();
+buildGlossary();
 </script>
 </body>
 </html>
