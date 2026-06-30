@@ -49,11 +49,19 @@
   .hit { background: var(--hl) !important; outline: 2px solid #eab308; }
   td:empty { background: inherit; }
   mark { background: var(--hl); padding: 0; }
+
+  /* Año del plan, en la cabecera junto al título */
+  .anio-cab {
+    display: inline-block; margin-left: 8px; padding: 3px 12px;
+    background: #fbbf24; color: #1f2937; border-radius: 999px;
+    font-size: 15px; font-weight: 800; vertical-align: middle;
+    box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  }
 </style>
 </head>
 <body>
   <header>
-    <h1>📅 Plan de turnos — Cirugía General</h1>
+    <h1>📅 Plan de turnos — Cirugía General <span id="anioCab" class="anio-cab" style="display:none"></span></h1>
     <div class="sub">Consulta de solo lectura · se actualiza al recargar</div>
   </header>
 
@@ -72,6 +80,7 @@
 <script>
   const ARCHIVOS = ['plan.xlsx', 'plan.xls'];   // acepta cualquiera de los dos (sube el que prefieras)
   const HOJA = 'General';                        // hoja a mostrar
+  let anioPlan = new Date().getFullYear();       // año del plan (se detecta del propio archivo al cargar)
 
   // Prueba los nombres candidatos y devuelve la primera respuesta válida
   function buscarArchivo(i) {
@@ -100,7 +109,10 @@
         const wb = XLSX.read(buf, { type: 'array', cellStyles: true });
         const hoja = wb.Sheets[HOJA] || wb.Sheets[wb.SheetNames[0]];
         if (!hoja) throw new Error('No se encontró la hoja "' + HOJA + '".');
-        reconstruirFechas2026(hoja);
+        reconstruirFechas(hoja);
+        const badge = document.getElementById('anioCab');
+        badge.textContent = anioPlan;
+        badge.style.display = 'inline-block';
         // Genera tabla HTML respetando celdas combinadas
         let html = XLSX.utils.sheet_to_html(hoja, { editable: false });
         cont.innerHTML = html;
@@ -108,22 +120,48 @@
         estado.style.display = 'none';
         cont.style.display = 'block';
         filtrar();
+        irAlMesActual(cont);
       })
       .catch(e => { estado.className = 'estado error'; estado.textContent = '⚠️ ' + e.message; });
   }
 
-  // Reconstruye las fechas reales de 2026 a partir de la columna de día (consecutiva, empieza jueves 1-ene-2026)
-  function reconstruirFechas2026(hoja) {
-    const validos = new Set(['L','M','X','J','V','S','D']);
+  // Letra de la columna de día -> día de la semana de JS (getUTCDay: Dom=0 … Sáb=6)
+  const LETRA_A_DIA = { D: 0, L: 1, M: 2, X: 3, J: 4, V: 5, S: 6 };
+
+  // Deduce el año del plan: la primera letra de día indica en qué día de la
+  // semana cae el 1 de enero, y se busca el año cercano cuyo 1-ene coincide.
+  // Así 2026 (jue), 2027 (vie), etc. se detectan solos sin tocar el código.
+  function detectarAnio(hoja) {
+    const range = XLSX.utils.decode_range(hoja['!ref']);
+    let diaSemana = null;
+    for (let R = range.s.r; R <= range.e.r; R++) {
+      const cD = hoja[XLSX.utils.encode_cell({ r: R, c: 1 })];
+      const letra = cD ? String(cD.v).trim().toUpperCase() : '';
+      if (letra in LETRA_A_DIA) { diaSemana = LETRA_A_DIA[letra]; break; }
+    }
+    const anioActual = new Date().getFullYear();
+    if (diaSemana === null) return anioActual;
+    // prueba el año actual y los más cercanos (prioriza el actual y el futuro)
+    for (let off = 0; off <= 3; off++) {
+      for (const a of [anioActual + off, anioActual - off]) {
+        if (new Date(Date.UTC(a, 0, 1)).getUTCDay() === diaSemana) return a;
+      }
+    }
+    return anioActual;
+  }
+
+  // Reconstruye las fechas reales a partir de la columna de día (consecutiva, empieza el 1-ene del año detectado)
+  function reconstruirFechas(hoja) {
     const nom = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']; // día de semana, por getUTCDay()
     const mes = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-    const ancla = Date.UTC(2026, 0, 1); // 1 de enero de 2026 (jueves)
+    anioPlan = detectarAnio(hoja);
+    const ancla = Date.UTC(anioPlan, 0, 1); // 1 de enero del año del plan
     let cont = 0;
     const range = XLSX.utils.decode_range(hoja['!ref']);
     for (let R = range.s.r; R <= range.e.r; R++) {
       const cD = hoja[XLSX.utils.encode_cell({ r: R, c: 1 })];
-      const letra = cD ? String(cD.v).trim() : '';
-      if (validos.has(letra)) {
+      const letra = cD ? String(cD.v).trim().toUpperCase() : '';
+      if (letra in LETRA_A_DIA) {
         const d = new Date(ancla + cont * 86400000);
         const txt = `${d.getUTCDate()} ${mes[d.getUTCMonth()]} ${nom[d.getUTCDay()]}`;
         const a0 = XLSX.utils.encode_cell({ r: R, c: 0 });
@@ -157,6 +195,26 @@
         td.style.background = 'var(--finde)';
       }
     });
+  }
+
+  // Desplaza la tabla hasta la primera fila del mes actual (en lugar de quedarse en enero).
+  // Solo se aplica si el plan es del año en curso; para un plan de otro año (p. ej. el 2027
+  // consultado en 2026) se deja al principio, porque "el mes actual" no existe en ese plan.
+  function irAlMesActual(cont) {
+    const hoy = new Date();
+    if (hoy.getFullYear() !== anioPlan) return;
+    const mes = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    const token = ' ' + mes[hoy.getMonth()] + ' ';   // p. ej. " jun "
+    const filas = cont.querySelectorAll('table tr');
+    for (const tr of filas) {
+      const celda = tr.cells && tr.cells[0];
+      if (celda && (' ' + celda.textContent + ' ').toLowerCase().includes(token)) {
+        // resta el alto de las cabeceras pegadas (~56px) para que la fila quede visible
+        const offset = tr.getBoundingClientRect().top - cont.getBoundingClientRect().top + cont.scrollTop - 56;
+        cont.scrollTop = Math.max(0, offset);
+        return;
+      }
+    }
   }
 
   function luminancia(hex) {
