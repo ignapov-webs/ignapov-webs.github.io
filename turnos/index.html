@@ -50,21 +50,17 @@
   td:empty { background: inherit; }
   mark { background: var(--hl); padding: 0; }
 
-  /* Distintivo del año, fijo en el lateral: siempre visible aunque se haga scroll */
-  .anio-badge {
-    position: fixed; left: 0; top: 50%; transform: translateY(-50%);
-    background: var(--header); color: #fff;
-    writing-mode: vertical-rl; text-orientation: mixed;
-    padding: 14px 6px; font-size: 15px; font-weight: 700; letter-spacing: 1px;
-    border-radius: 0 10px 10px 0; box-shadow: 2px 0 8px rgba(0,0,0,.18);
-    z-index: 30; user-select: none; pointer-events: none;
+  /* Año del plan, en la cabecera junto al título */
+  .anio-cab {
+    display: inline-block; margin-left: 8px; padding: 2px 10px;
+    background: rgba(255,255,255,.18); border-radius: 999px;
+    font-size: 14px; font-weight: 700; vertical-align: middle;
   }
-  @media (max-width: 480px) { .anio-badge { font-size: 13px; padding: 11px 5px; } }
 </style>
 </head>
 <body>
   <header>
-    <h1>📅 Plan de turnos — Cirugía General</h1>
+    <h1>📅 Plan de turnos — Cirugía General <span id="anioCab" class="anio-cab" style="display:none"></span></h1>
     <div class="sub">Consulta de solo lectura · se actualiza al recargar</div>
   </header>
 
@@ -78,8 +74,6 @@
     <div class="tabla-cont" id="cont" style="display:none"></div>
     <div class="actualizado" id="actualizado"></div>
   </div>
-
-  <div class="anio-badge" id="anioBadge" style="display:none"></div>
 
 <script src="xlsx.full.min.js"></script>
 <script>
@@ -115,9 +109,9 @@
         const hoja = wb.Sheets[HOJA] || wb.Sheets[wb.SheetNames[0]];
         if (!hoja) throw new Error('No se encontró la hoja "' + HOJA + '".');
         reconstruirFechas(hoja);
-        const badge = document.getElementById('anioBadge');
-        badge.textContent = 'Plan ' + anioPlan;
-        badge.style.display = 'block';
+        const badge = document.getElementById('anioCab');
+        badge.textContent = anioPlan;
+        badge.style.display = 'inline-block';
         // Genera tabla HTML respetando celdas combinadas
         let html = XLSX.utils.sheet_to_html(hoja, { editable: false });
         cont.innerHTML = html;
