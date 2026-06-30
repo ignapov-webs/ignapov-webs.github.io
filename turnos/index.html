@@ -49,6 +49,17 @@
   .hit { background: var(--hl) !important; outline: 2px solid #eab308; }
   td:empty { background: inherit; }
   mark { background: var(--hl); padding: 0; }
+
+  /* Distintivo del año, fijo en el lateral: siempre visible aunque se haga scroll */
+  .anio-badge {
+    position: fixed; right: 0; top: 50%; transform: translateY(-50%);
+    background: var(--header); color: #fff;
+    writing-mode: vertical-rl; text-orientation: mixed;
+    padding: 14px 6px; font-size: 15px; font-weight: 700; letter-spacing: 1px;
+    border-radius: 10px 0 0 10px; box-shadow: -2px 0 8px rgba(0,0,0,.18);
+    z-index: 30; user-select: none; pointer-events: none;
+  }
+  @media (max-width: 480px) { .anio-badge { font-size: 13px; padding: 11px 5px; } }
 </style>
 </head>
 <body>
@@ -67,6 +78,8 @@
     <div class="tabla-cont" id="cont" style="display:none"></div>
     <div class="actualizado" id="actualizado"></div>
   </div>
+
+  <div class="anio-badge" id="anioBadge" style="display:none"></div>
 
 <script src="xlsx.full.min.js"></script>
 <script>
@@ -102,6 +115,9 @@
         const hoja = wb.Sheets[HOJA] || wb.Sheets[wb.SheetNames[0]];
         if (!hoja) throw new Error('No se encontró la hoja "' + HOJA + '".');
         reconstruirFechas(hoja);
+        const badge = document.getElementById('anioBadge');
+        badge.textContent = 'Plan ' + anioPlan;
+        badge.style.display = 'block';
         // Genera tabla HTML respetando celdas combinadas
         let html = XLSX.utils.sheet_to_html(hoja, { editable: false });
         cont.innerHTML = html;
