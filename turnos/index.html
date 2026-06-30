@@ -108,6 +108,7 @@
         estado.style.display = 'none';
         cont.style.display = 'block';
         filtrar();
+        irAlMesActual(cont);
       })
       .catch(e => { estado.className = 'estado error'; estado.textContent = '⚠️ ' + e.message; });
   }
@@ -157,6 +158,23 @@
         td.style.background = 'var(--finde)';
       }
     });
+  }
+
+  // Desplaza la tabla hasta la primera fila del mes actual (en lugar de quedarse en enero)
+  function irAlMesActual(cont) {
+    const mes = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    const hoy = new Date();
+    const token = ' ' + mes[hoy.getMonth()] + ' ';   // p. ej. " jun "
+    const filas = cont.querySelectorAll('table tr');
+    for (const tr of filas) {
+      const celda = tr.cells && tr.cells[0];
+      if (celda && (' ' + celda.textContent + ' ').toLowerCase().includes(token)) {
+        // resta el alto de las cabeceras pegadas (~56px) para que la fila quede visible
+        const offset = tr.getBoundingClientRect().top - cont.getBoundingClientRect().top + cont.scrollTop - 56;
+        cont.scrollTop = Math.max(0, offset);
+        return;
+      }
+    }
   }
 
   function luminancia(hex) {
