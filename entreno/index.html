@@ -89,11 +89,11 @@
     flex: 1;
     background: none;
     color: var(--muted);
-    font-size: 11px;
+    font-size: 10px;
     padding: 9px 0 10px;
     display: flex; flex-direction: column; align-items: center; gap: 3px;
   }
-  nav.tabs button .tico { font-size: 22px; }
+  nav.tabs button .tico { font-size: 21px; }
   nav.tabs button.active { color: var(--accent); }
 
   .tab { display: none; }
@@ -240,6 +240,53 @@
   }
 
   .volver { background: none; color: var(--accent); font-size: 15px; font-weight: 600; padding: 4px 0 12px; }
+
+  /* ---- "cómo se hace" (desplegable dentro de cada ejercicio) ---- */
+  .ej-info-btn {
+    background: var(--card2);
+    color: var(--accent);
+    font-size: 13px; font-weight: 600;
+    padding: 9px 13px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .ej-info-btn:active { background: #2a2f3c; }
+  .ej-info {
+    display: none;
+    background: var(--card2);
+    border-radius: 12px;
+    padding: 12px 14px 4px;
+    margin-bottom: 12px;
+  }
+  .ej-info.open { display: block; }
+  .ej-info .meta {
+    display: flex; gap: 8px 18px; flex-wrap: wrap;
+    font-size: 12px; color: var(--muted);
+    padding-bottom: 10px; margin-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  .ej-info .meta b { color: var(--text); font-weight: 600; }
+  .ej-info ol { margin: 10px 0 0; padding-left: 20px; }
+  .ej-info li { color: var(--muted); font-size: 13px; line-height: 1.5; margin-bottom: 8px; }
+
+  /* ---- barra de cumplimiento ---- */
+  .progbar { height: 12px; background: var(--card2); border-radius: 999px; overflow: hidden; }
+  .progbar > span { display: block; height: 100%; width: 0; background: var(--ok); border-radius: 999px; transition: width .4s ease; }
+
+  /* ---- progresión por ejercicio ---- */
+  .prog-ej {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 13px 2px;
+    border-bottom: 1px solid var(--border);
+  }
+  .prog-ej:last-child { border-bottom: none; }
+  .prog-ej .pe-nombre { font-size: 14px; font-weight: 600; }
+  .prog-ej .pe-sub { font-size: 12px; color: var(--muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .prog-ej svg { display: block; }
+  .prog-ej .pe-delta { font-size: 13px; font-weight: 700; margin-top: 3px; text-align: right; font-variant-numeric: tabular-nums; }
+  .pe-delta.up { color: var(--ok); }
+  .pe-delta.flat { color: var(--muted); }
 </style>
 </head>
 <body>
@@ -308,6 +355,25 @@
   </div>
 </section>
 
+<!-- ============ PESTAÑA: STATS ============ -->
+<section class="tab" id="tab-stats">
+  <div class="card">
+    <h2>Resumen de entrenamiento</h2>
+    <div class="tiles" id="tiles-stats"></div>
+  </div>
+
+  <div class="card">
+    <h2>Cumplimiento de series</h2>
+    <div class="progbar"><span id="prog-cumpl"></span></div>
+    <p class="hint" id="cumpl-txt" style="margin-top:10px"></p>
+  </div>
+
+  <div class="card">
+    <h2>Progreso de peso levantado</h2>
+    <div id="prog-ejercicios"><p class="hint">Registra sesiones anotando el peso para ver tu progresión por ejercicio.</p></div>
+  </div>
+</section>
+
 <!-- ============ PESTAÑA: DATOS ============ -->
 <section class="tab" id="tab-datos">
   <div class="card">
@@ -328,6 +394,7 @@
   <button data-tab="tab-entrenar" class="active"><span class="tico">🏋️</span>Entrenar</button>
   <button data-tab="tab-peso"><span class="tico">⚖️</span>Peso</button>
   <button data-tab="tab-progreso"><span class="tico">📈</span>Progreso</button>
+  <button data-tab="tab-stats"><span class="tico">📊</span>Stats</button>
   <button data-tab="tab-datos"><span class="tico">💾</span>Datos</button>
 </nav>
 
@@ -339,23 +406,79 @@ const ALTURA_M     = 1.70;   // altura fija (m)
 const PESO_INICIAL = 77;     // peso de partida (kg)
 const IMC_OBJETIVO = 22;     // objetivo de IMC
 
+/* Cada ejercicio lleva:
+   - reps: cómo se hace (series×repeticiones o tiempo)
+   - recomendado: peso/carga orientativa para empezar
+   - inicio: número sugerido que aparece en el campo si aún no hay dato previo
+   - descanso: pausa entre series
+   - como: pasos de técnica (se muestran en el desplegable "Cómo se hace")
+   Los pesos recomendados son orientativos para empezar; sube poco a poco. */
+const EJ = {
+  sentadilla: {
+    id: "sentadilla", nombre: "Sentadilla con barra", tipo: "peso", series: 3,
+    reps: "3 series × 8 repeticiones", recomendado: "40–50 kg (orientativo)", inicio: 40,
+    descanso: "90 s entre series",
+    como: [
+      "Coloca la barra sobre la parte alta de la espalda (los trapecios), nunca sobre el cuello.",
+      "Pies a la anchura de los hombros, con las puntas ligeramente hacia fuera.",
+      "Baja como si te sentaras en una silla, llevando el culo atrás y manteniendo la espalda recta.",
+      "Baja hasta que los muslos queden paralelos al suelo; las rodillas siguen la línea de las puntas de los pies.",
+      "Sube empujando con los talones hasta ponerte de pie. Coge aire abajo y suéltalo al subir.",
+    ],
+  },
+  press: {
+    id: "press", nombre: "Press militar de pie", tipo: "peso", series: 3,
+    reps: "3 series × 8 repeticiones", recomendado: "20–30 kg (orientativo)", inicio: 25,
+    descanso: "90 s entre series",
+    como: [
+      "De pie, barra apoyada a la altura de las clavículas, manos algo más anchas que los hombros.",
+      "Aprieta glúteos y abdomen para no arquear la zona baja de la espalda.",
+      "Empuja la barra recta hacia arriba, apartando un poco la cara, hasta estirar del todo los brazos.",
+      "Arriba, la barra queda sobre la cabeza, no por delante.",
+      "Baja con control hasta las clavículas antes de la siguiente repetición.",
+    ],
+  },
+  pesomuerto: {
+    id: "pesomuerto", nombre: "Peso muerto rumano", tipo: "peso", series: 3,
+    reps: "3 series × 8 repeticiones", recomendado: "40–50 kg (orientativo)", inicio: 40,
+    descanso: "90 s entre series",
+    como: [
+      "De pie con la barra pegada a los muslos, pies a la anchura de las caderas.",
+      "Con las rodillas ligeramente flexionadas (casi fijas), lleva el culo hacia atrás.",
+      "Baja la barra deslizándola por las piernas, manteniendo la espalda recta en todo momento.",
+      "Baja hasta media espinilla o hasta donde llegues sin curvar la espalda; notarás el estiramiento detrás del muslo.",
+      "Sube apretando los glúteos hasta ponerte recto. No redondees la espalda.",
+    ],
+  },
+  remo: {
+    id: "remo", nombre: "Remo con barra", tipo: "peso", series: 3,
+    reps: "3 series × 10 repeticiones", recomendado: "25–35 kg (orientativo)", inicio: 30,
+    descanso: "90 s entre series",
+    como: [
+      "Inclina el tronco hacia delante unos 45°, espalda recta y rodillas algo flexionadas.",
+      "Deja la barra colgando con los brazos estirados, a la altura de las rodillas.",
+      "Tira de la barra hacia el ombligo llevando los codos hacia atrás y juntando los omóplatos.",
+      "Baja la barra con control hasta estirar los brazos.",
+      "No des tirones ni te balancees con la espalda: el movimiento lo hace la espalda, no la cadera.",
+    ],
+  },
+  plancha: {
+    id: "plancha", nombre: "Plancha", tipo: "tiempo", series: 3,
+    reps: "3 series × 30–45 segundos", recomendado: "peso corporal", inicio: 35,
+    descanso: "45–60 s entre series",
+    como: [
+      "Apóyate sobre los antebrazos y las puntas de los pies, codos bajo los hombros.",
+      "El cuerpo forma una línea recta desde la cabeza hasta los talones.",
+      "No subas el culo ni dejes caer la cadera; aprieta abdomen y glúteos.",
+      "Respira con normalidad y aguanta el tiempo marcado sin perder la postura.",
+      "Anota en el campo los segundos que has aguantado en cada serie.",
+    ],
+  },
+};
+
 const RUTINAS = {
-  A: {
-    nombre: "Rutina A",
-    ejercicios: [
-      { id: "sentadilla", nombre: "Sentadilla con barra", series: 3, detalle: "3×8",      tipo: "peso"   },
-      { id: "press",      nombre: "Press militar de pie", series: 3, detalle: "3×8",      tipo: "peso"   },
-      { id: "plancha",    nombre: "Plancha",              series: 3, detalle: "3×30-45s", tipo: "tiempo" },
-    ],
-  },
-  B: {
-    nombre: "Rutina B",
-    ejercicios: [
-      { id: "pesomuerto", nombre: "Peso muerto rumano",   series: 3, detalle: "3×8",      tipo: "peso"   },
-      { id: "remo",       nombre: "Remo con barra",       series: 3, detalle: "3×10",     tipo: "peso"   },
-      { id: "plancha",    nombre: "Plancha",              series: 3, detalle: "3×30-45s", tipo: "tiempo" },
-    ],
-  },
+  A: { nombre: "Rutina A", ejercicios: [EJ.sentadilla, EJ.press, EJ.plancha] },
+  B: { nombre: "Rutina B", ejercicios: [EJ.pesomuerto, EJ.remo, EJ.plancha] },
 };
 
 /* =====================================================================
@@ -448,7 +571,7 @@ function renderElegirRutina() {
     btn.innerHTML =
       '<div class="rname">' + r.nombre +
       (clave === sugerida ? ' <span class="badge">te toca</span>' : "") + "</div>" +
-      '<div class="rlist">' + r.ejercicios.map(e => e.nombre + " " + e.detalle).join(" · ") + "</div>";
+      '<div class="rlist">' + r.ejercicios.map(e => e.nombre).join(" · ") + "</div>";
     btn.addEventListener("click", () => empezarSesion(clave));
     cont.appendChild(btn);
   }
@@ -482,9 +605,17 @@ function renderSesion() {
     const card = document.createElement("div");
     card.className = "ej-card";
     const unidad = ej.tipo === "tiempo" ? "seg" : "kg";
+    const pasos = (ej.como || []).map(p => "<li>" + p + "</li>").join("");
     card.innerHTML =
       '<div class="ej-nombre">' + ej.nombre + "</div>" +
-      '<div class="ej-detalle">' + ej.detalle + "</div>" +
+      '<div class="ej-detalle">' + ej.reps + " · " + ej.recomendado + "</div>" +
+      '<button class="ej-info-btn" data-info="' + i + '">ⓘ Cómo se hace</button>' +
+      '<div class="ej-info" id="ej-info-' + i + '">' +
+        '<div class="meta">' +
+          '<span><b>Peso recomendado:</b> ' + ej.recomendado + "</span>" +
+          '<span><b>Descanso:</b> ' + ej.descanso + "</span></div>" +
+        "<ol>" + pasos + "</ol>" +
+      "</div>" +
       '<div class="series-row">' +
       ej.hechas.map((h, s) =>
         '<button class="serie-btn' + (h ? " done" : "") + '" data-ej="' + i + '" data-serie="' + s + '">' +
@@ -492,11 +623,16 @@ function renderSesion() {
       "</div>" +
       '<div class="valor-row"><label>' + (ej.tipo === "tiempo" ? "Tiempo" : "Peso") + "</label>" +
       '<input type="number" inputmode="decimal" step="' + (ej.tipo === "tiempo" ? "5" : "0.5") + '" min="0" ' +
-      'value="' + ej.valor + '" data-valor="' + i + '" placeholder="0">' +
+      'value="' + ej.valor + '" data-valor="' + i + '" placeholder="' + (ej.inicio || 0) + '">' +
       '<span class="unidad">' + unidad + "</span></div>";
     cont.appendChild(card);
   });
 
+  cont.querySelectorAll(".ej-info-btn").forEach(b => {
+    b.addEventListener("click", () => {
+      document.getElementById("ej-info-" + b.dataset.info).classList.toggle("open");
+    });
+  });
   cont.querySelectorAll(".serie-btn").forEach(b => {
     b.addEventListener("click", () => {
       const ej = sesionActiva.ejercicios[+b.dataset.ej];
@@ -873,6 +1009,82 @@ function renderDatos() {
 }
 
 /* =====================================================================
+   FUNCIÓN 5 — STATS / TRACKING
+   ===================================================================== */
+function sparkline(vals) {
+  const w = 84, h = 26;
+  if (vals.length < 2) return "";
+  const min = Math.min(...vals), max = Math.max(...vals), r = (max - min) || 1;
+  const pts = vals.map((v, i) => {
+    const x = (i / (vals.length - 1)) * (w - 4) + 2;
+    const y = h - 3 - ((v - min) / r) * (h - 6);
+    return x.toFixed(1) + "," + y.toFixed(1);
+  }).join(" ");
+  return '<svg width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + " " + h + '" aria-hidden="true">' +
+    '<polyline points="' + pts + '" fill="none" stroke="var(--series)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>';
+}
+
+function renderStats() {
+  let seriesHechas = 0, seriesTotal = 0;
+  const porRutina = { A: 0, B: 0 };
+  datos.sesiones.forEach(s => {
+    if (porRutina[s.rutina] != null) porRutina[s.rutina]++;
+    s.ejercicios.forEach(e => { seriesHechas += e.seriesHechas; seriesTotal += e.seriesTotal; });
+  });
+  const cumpl = seriesTotal ? Math.round(100 * seriesHechas / seriesTotal) : 0;
+
+  // media de sesiones por semana desde la primera sesión registrada
+  let mediaSem = 0;
+  if (datos.sesiones.length) {
+    const primera = desdeISO(datos.sesiones[0].fecha).getTime();
+    const semanas = Math.max(1, Math.ceil((Date.now() - primera) / (7 * 86400000)));
+    mediaSem = datos.sesiones.length / semanas;
+  }
+
+  document.getElementById("tiles-stats").innerHTML =
+    tile(datos.sesiones.length, "sesiones en total") +
+    tile(seriesHechas, "series realizadas") +
+    tile(num(mediaSem, 1), "sesiones/semana de media") +
+    tile(porRutina.A + " / " + porRutina.B, "rutinas A / B");
+
+  document.getElementById("prog-cumpl").style.width = cumpl + "%";
+  document.getElementById("cumpl-txt").textContent = seriesTotal
+    ? "Has completado " + seriesHechas + " de " + seriesTotal + " series planificadas (" + cumpl + "%)."
+    : "Aún no hay series registradas.";
+
+  // progresión del peso levantado, por ejercicio de fuerza
+  const defs = [];
+  const vistos = new Set();
+  for (const clave of Object.keys(RUTINAS)) {
+    for (const ej of RUTINAS[clave].ejercicios) {
+      if (ej.tipo === "peso" && !vistos.has(ej.id)) { vistos.add(ej.id); defs.push(ej); }
+    }
+  }
+  const cont = document.getElementById("prog-ejercicios");
+  let html = "";
+  for (const def of defs) {
+    const serie = [];
+    datos.sesiones.forEach(s => {
+      const e = s.ejercicios.find(x => x.id === def.id);
+      if (e && e.valor != null) serie.push(e.valor);
+    });
+    if (!serie.length) continue;
+    const prim = serie[0], ult = serie[serie.length - 1], delta = ult - prim;
+    const cls = delta > 0 ? "up" : "flat";
+    const etiquetaDelta = delta === 0 ? "=" : (delta > 0 ? "+" : "") + num(delta, delta % 1 ? 1 : 0) + " kg";
+    html +=
+      '<div class="prog-ej">' +
+        '<div><div class="pe-nombre">' + def.nombre + "</div>" +
+        '<div class="pe-sub">' + num(prim, prim % 1 ? 1 : 0) + " → " + num(ult, ult % 1 ? 1 : 0) +
+          " kg · " + serie.length + " " + (serie.length === 1 ? "sesión" : "sesiones") + "</div></div>" +
+        '<div>' + sparkline(serie) +
+          '<div class="pe-delta ' + cls + '">' + etiquetaDelta + "</div></div>" +
+      "</div>";
+  }
+  cont.innerHTML = html || '<p class="hint">Registra sesiones anotando el peso para ver tu progresión por ejercicio.</p>';
+}
+
+/* =====================================================================
    RENDER GLOBAL
    ===================================================================== */
 function renderTodo() {
@@ -880,6 +1092,7 @@ function renderTodo() {
   renderHistSesiones();
   renderPeso();
   renderProgreso();
+  renderStats();
   renderDatos();
 }
 window.addEventListener("resize", renderGrafica);
