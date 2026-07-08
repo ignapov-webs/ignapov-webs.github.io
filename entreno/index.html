@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Entreno">
+<meta name="theme-color" content="#0f1115">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Entreno — Entrenamiento y peso</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --card: #1a1d24;
+    --card2: #232733;
+    --text: #f2f4f8;
+    --muted: #8b93a7;
+    --accent: #4f8cff;
+    --accent-dark: #2f6be0;
+    --ok: #34c77b;
+    --warn: #f0a832;
+    --danger: #e05656;
+    --series: #3987e5;      /* línea de la gráfica (validado sobre --card) */
+    --grid: #2c3039;        /* rejilla de la gráfica */
+    --border: #2a2e39;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    max-width: 560px;
+    margin: 0 auto;
+    padding: calc(14px + env(safe-area-inset-top)) 14px calc(84px + env(safe-area-inset-bottom));
+    min-height: 100vh;
+  }
+  h1 { font-size: 22px; margin: 6px 0 2px; }
+  .sub { color: var(--muted); font-size: 13px; margin: 0 0 16px; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  .card h2 { font-size: 16px; margin: 0 0 10px; }
+  .card .hint { color: var(--muted); font-size: 13px; line-height: 1.4; }
+
+  button {
+    font-family: inherit;
+    border: none;
+    cursor: pointer;
+  }
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    font-size: 17px;
+    font-weight: 600;
+    border-radius: 14px;
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn:active { background: var(--accent-dark); }
+  .btn.secondary { background: var(--card2); color: var(--text); }
+  .btn.danger-ghost { background: none; color: var(--danger); font-size: 14px; padding: 8px; }
+
+  /* ---- pestañas inferiores ---- */
+  nav.tabs {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    max-width: 560px;
+    margin: 0 auto;
+    display: flex;
+    background: rgba(20, 23, 30, .96);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border);
+    padding-bottom: env(safe-area-inset-bottom);
+    z-index: 10;
+  }
+  nav.tabs button {
+    flex: 1;
+    background: none;
+    color: var(--muted);
+    font-size: 11px;
+    padding: 9px 0 10px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+  }
+  nav.tabs button .tico { font-size: 22px; }
+  nav.tabs button.active { color: var(--accent); }
+
+  .tab { display: none; }
+  .tab.active { display: block; }
+
+  /* ---- elección de rutina ---- */
+  .rutina-btn {
+    width: 100%;
+    text-align: left;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+    color: var(--text);
+  }
+  .rutina-btn:active { border-color: var(--accent); }
+  .rutina-btn .rname { font-size: 18px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .rutina-btn .rlist { color: var(--muted); font-size: 13px; line-height: 1.5; }
+  .badge {
+    font-size: 11px; font-weight: 700;
+    background: var(--accent); color: #fff;
+    border-radius: 999px; padding: 3px 9px;
+  }
+
+  /* ---- sesión activa ---- */
+  .ej-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+  .ej-card .ej-nombre { font-size: 16px; font-weight: 600; }
+  .ej-card .ej-detalle { color: var(--muted); font-size: 13px; margin: 2px 0 12px; }
+  .series-row { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
+  .serie-btn {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background: var(--card2);
+    color: var(--muted);
+    font-size: 16px; font-weight: 700;
+    border: 2px solid var(--border);
+  }
+  .serie-btn.done { background: var(--ok); border-color: var(--ok); color: #08240f; }
+  .valor-row { display: flex; align-items: center; gap: 10px; }
+  .valor-row label { color: var(--muted); font-size: 14px; }
+  .valor-row input {
+    flex: 1;
+    font-family: inherit;
+    font-size: 18px;
+    padding: 11px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--card2);
+    color: var(--text);
+    width: 100%;
+    min-width: 0;
+  }
+  .valor-row .unidad { color: var(--muted); font-size: 15px; }
+
+  /* ---- peso ---- */
+  .peso-input-row { display: flex; gap: 10px; margin-bottom: 6px; }
+  .peso-input-row input {
+    flex: 1;
+    font-family: inherit;
+    font-size: 24px;
+    font-weight: 600;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--card2);
+    color: var(--text);
+    min-width: 0;
+    text-align: center;
+  }
+  .peso-input-row .btn { width: auto; padding: 12px 22px; }
+
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .tiles.tres { grid-template-columns: 1fr 1fr 1fr; }
+  .tile {
+    background: var(--card2);
+    border-radius: 14px;
+    padding: 12px 10px;
+    text-align: center;
+  }
+  .tile .tv { font-size: 22px; font-weight: 700; }
+  .tile .tl { font-size: 11px; color: var(--muted); margin-top: 3px; line-height: 1.3; }
+  .tile .tv.ok { color: var(--ok); }
+  .tile .tv.accent { color: var(--accent); }
+
+  /* ---- listas de historial ---- */
+  .hist-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 2px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .hist-item:last-child { border-bottom: none; }
+  .hist-item .hi-main { flex: 1; min-width: 0; }
+  .hist-item .hi-fecha { color: var(--muted); font-size: 12px; }
+  .hist-item .hi-del { background: none; color: var(--muted); font-size: 17px; padding: 6px 8px; }
+
+  /* ---- gráfica ---- */
+  .chart-wrap { position: relative; }
+  .chart-wrap svg { display: block; width: 100%; height: auto; touch-action: pan-y; }
+  .chart-tip {
+    position: absolute;
+    pointer-events: none;
+    background: #262b36;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 7px 10px;
+    font-size: 12px;
+    line-height: 1.45;
+    display: none;
+    white-space: nowrap;
+    box-shadow: 0 4px 14px rgba(0,0,0,.4);
+    z-index: 5;
+  }
+  .chart-tip b { font-size: 13px; }
+  .axis-txt { fill: var(--muted); font-size: 10px; font-family: inherit; font-variant-numeric: tabular-nums; }
+
+  .feedback {
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-size: 15px;
+    line-height: 1.45;
+    background: var(--card2);
+    border-left: 4px solid var(--accent);
+  }
+  .feedback.f-ok { border-left-color: var(--ok); }
+  .feedback.f-warn { border-left-color: var(--warn); }
+
+  .msg-ok {
+    background: rgba(52, 199, 123, .12);
+    color: var(--ok);
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: none;
+  }
+
+  .volver { background: none; color: var(--accent); font-size: 15px; font-weight: 600; padding: 4px 0 12px; }
+</style>
+</head>
+<body>
+
+<h1 id="titulo">🏋️ Entreno</h1>
+<p class="sub" id="subtitulo">Entrenamiento de fuerza y peso corporal</p>
+
+<!-- ============ PESTAÑA: ENTRENAR ============ -->
+<section class="tab active" id="tab-entrenar">
+  <div id="vista-elegir">
+    <div class="msg-ok" id="msg-sesion-guardada">✓ Sesión guardada</div>
+    <div id="rutinas-lista"></div>
+    <div class="card">
+      <h2>Últimas sesiones</h2>
+      <div id="hist-sesiones"><p class="hint">Todavía no hay sesiones. ¡Hoy es un buen día para empezar!</p></div>
+    </div>
+  </div>
+
+  <div id="vista-sesion" style="display:none">
+    <button class="volver" id="btn-cancelar-sesion">‹ Cancelar</button>
+    <div id="sesion-ejercicios"></div>
+    <button class="btn" id="btn-guardar-sesion">Guardar sesión ✓</button>
+  </div>
+</section>
+
+<!-- ============ PESTAÑA: PESO ============ -->
+<section class="tab" id="tab-peso">
+  <div class="card">
+    <h2>Peso de hoy</h2>
+    <div class="peso-input-row">
+      <input type="number" inputmode="decimal" step="0.1" min="30" max="250" id="input-peso" placeholder="kg">
+      <button class="btn" id="btn-guardar-peso">Guardar</button>
+    </div>
+    <p class="hint" id="peso-hoy-hint"></p>
+  </div>
+
+  <div class="card">
+    <h2>Situación actual</h2>
+    <div class="tiles" id="tiles-imc"></div>
+  </div>
+
+  <div class="card">
+    <h2>Últimos registros</h2>
+    <div id="hist-pesos"><p class="hint">Aún no has registrado ningún peso.</p></div>
+  </div>
+</section>
+
+<!-- ============ PESTAÑA: PROGRESO ============ -->
+<section class="tab" id="tab-progreso">
+  <div class="card">
+    <h2>Esta semana</h2>
+    <div id="feedback-semanal" class="feedback"></div>
+  </div>
+
+  <div class="card">
+    <h2>Constancia</h2>
+    <div class="tiles tres" id="tiles-constancia"></div>
+  </div>
+
+  <div class="card">
+    <h2>Evolución del peso (kg)</h2>
+    <div class="chart-wrap" id="chart-wrap">
+      <div id="chart"></div>
+      <div class="chart-tip" id="chart-tip"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PESTAÑA: DATOS ============ -->
+<section class="tab" id="tab-datos">
+  <div class="card">
+    <h2>Copia de seguridad</h2>
+    <p class="hint" style="margin-bottom:14px">
+      Los datos se guardan solo en este dispositivo. Exporta un archivo de respaldo
+      de vez en cuando para no perder tu historial.
+    </p>
+    <button class="btn" id="btn-exportar" style="margin-bottom:10px">⬇️ Exportar datos</button>
+    <button class="btn secondary" id="btn-importar">⬆️ Importar datos</button>
+    <input type="file" id="input-importar" accept=".json,application/json" style="display:none">
+    <p class="hint" id="datos-resumen" style="margin-top:14px"></p>
+  </div>
+</section>
+
+<!-- ============ NAVEGACIÓN ============ -->
+<nav class="tabs">
+  <button data-tab="tab-entrenar" class="active"><span class="tico">🏋️</span>Entrenar</button>
+  <button data-tab="tab-peso"><span class="tico">⚖️</span>Peso</button>
+  <button data-tab="tab-progreso"><span class="tico">📈</span>Progreso</button>
+  <button data-tab="tab-datos"><span class="tico">💾</span>Datos</button>
+</nav>
+
+<script>
+/* =====================================================================
+   CONFIGURACIÓN — edita aquí para cambiar rutinas, ejercicios u objetivos
+   ===================================================================== */
+const ALTURA_M     = 1.70;   // altura fija (m)
+const PESO_INICIAL = 77;     // peso de partida (kg)
+const IMC_OBJETIVO = 22;     // objetivo de IMC
+
+const RUTINAS = {
+  A: {
+    nombre: "Rutina A",
+    ejercicios: [
+      { id: "sentadilla", nombre: "Sentadilla con barra", series: 3, detalle: "3×8",      tipo: "peso"   },
+      { id: "press",      nombre: "Press militar de pie", series: 3, detalle: "3×8",      tipo: "peso"   },
+      { id: "plancha",    nombre: "Plancha",              series: 3, detalle: "3×30-45s", tipo: "tiempo" },
+    ],
+  },
+  B: {
+    nombre: "Rutina B",
+    ejercicios: [
+      { id: "pesomuerto", nombre: "Peso muerto rumano",   series: 3, detalle: "3×8",      tipo: "peso"   },
+      { id: "remo",       nombre: "Remo con barra",       series: 3, detalle: "3×10",     tipo: "peso"   },
+      { id: "plancha",    nombre: "Plancha",              series: 3, detalle: "3×30-45s", tipo: "tiempo" },
+    ],
+  },
+};
+
+/* =====================================================================
+   DATOS (localStorage)
+   ===================================================================== */
+const CLAVE = "entreno-datos-v1";
+const PESO_OBJETIVO = IMC_OBJETIVO * ALTURA_M * ALTURA_M; // 63,58 kg
+
+let datos = cargar();
+
+function cargar() {
+  try {
+    const d = JSON.parse(localStorage.getItem(CLAVE));
+    if (d && Array.isArray(d.sesiones) && Array.isArray(d.pesos)) return d;
+  } catch (e) {}
+  return { sesiones: [], pesos: [] };
+}
+function guardar() {
+  localStorage.setItem(CLAVE, JSON.stringify(datos));
+}
+
+/* ---------- utilidades de fecha ---------- */
+function hoyISO() { return fechaISO(new Date()); }
+function fechaISO(d) {
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function desdeISO(s) {
+  const [a, m, d] = s.split("-").map(Number);
+  return new Date(a, m - 1, d);
+}
+function lunesDe(d) {
+  const x = new Date(d);
+  x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); // lunes = inicio de semana
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+function fmtFecha(iso) {
+  const d = desdeISO(iso);
+  const dias = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
+  const meses = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+  return dias[d.getDay()] + " " + d.getDate() + " " + meses[d.getMonth()];
+}
+function fmtFechaCorta(iso) {
+  const d = desdeISO(iso);
+  const meses = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+  return d.getDate() + " " + meses[d.getMonth()];
+}
+function num(n, dec = 1) { return n.toFixed(dec).replace(".", ","); }
+
+/* =====================================================================
+   NAVEGACIÓN POR PESTAÑAS
+   ===================================================================== */
+document.querySelectorAll("nav.tabs button").forEach(b => {
+  b.addEventListener("click", () => {
+    document.querySelectorAll("nav.tabs button").forEach(x => x.classList.remove("active"));
+    document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
+    document.getElementById(b.dataset.tab).classList.add("active");
+    renderTodo();
+  });
+});
+
+/* =====================================================================
+   FUNCIÓN 1 — REGISTRO DE ENTRENAMIENTO
+   ===================================================================== */
+let sesionActiva = null; // { rutina:"A", ejercicios:[{...def, hechas:[bool], valor:number}] }
+
+function ultimoValor(ejId) {
+  for (let i = datos.sesiones.length - 1; i >= 0; i--) {
+    const ej = datos.sesiones[i].ejercicios.find(e => e.id === ejId);
+    if (ej && ej.valor) return ej.valor;
+  }
+  return "";
+}
+
+function rutinaSugerida() {
+  const ult = datos.sesiones[datos.sesiones.length - 1];
+  if (!ult) return "A";
+  return ult.rutina === "A" ? "B" : "A";
+}
+
+function renderElegirRutina() {
+  const cont = document.getElementById("rutinas-lista");
+  const sugerida = rutinaSugerida();
+  cont.innerHTML = "";
+  for (const clave of Object.keys(RUTINAS)) {
+    const r = RUTINAS[clave];
+    const btn = document.createElement("button");
+    btn.className = "rutina-btn";
+    btn.innerHTML =
+      '<div class="rname">' + r.nombre +
+      (clave === sugerida ? ' <span class="badge">te toca</span>' : "") + "</div>" +
+      '<div class="rlist">' + r.ejercicios.map(e => e.nombre + " " + e.detalle).join(" · ") + "</div>";
+    btn.addEventListener("click", () => empezarSesion(clave));
+    cont.appendChild(btn);
+  }
+}
+
+function empezarSesion(clave) {
+  sesionActiva = {
+    rutina: clave,
+    ejercicios: RUTINAS[clave].ejercicios.map(e => ({
+      ...e,
+      hechas: Array(e.series).fill(false),
+      valor: ultimoValor(e.id),
+    })),
+  };
+  document.getElementById("vista-elegir").style.display = "none";
+  document.getElementById("vista-sesion").style.display = "block";
+  renderSesion();
+  window.scrollTo(0, 0);
+}
+
+function renderSesion() {
+  const cont = document.getElementById("sesion-ejercicios");
+  cont.innerHTML = "";
+  const r = RUTINAS[sesionActiva.rutina];
+  const cab = document.createElement("p");
+  cab.className = "sub";
+  cab.textContent = r.nombre + " · " + fmtFecha(hoyISO());
+  cont.appendChild(cab);
+
+  sesionActiva.ejercicios.forEach((ej, i) => {
+    const card = document.createElement("div");
+    card.className = "ej-card";
+    const unidad = ej.tipo === "tiempo" ? "seg" : "kg";
+    card.innerHTML =
+      '<div class="ej-nombre">' + ej.nombre + "</div>" +
+      '<div class="ej-detalle">' + ej.detalle + "</div>" +
+      '<div class="series-row">' +
+      ej.hechas.map((h, s) =>
+        '<button class="serie-btn' + (h ? " done" : "") + '" data-ej="' + i + '" data-serie="' + s + '">' +
+        (h ? "✓" : s + 1) + "</button>").join("") +
+      "</div>" +
+      '<div class="valor-row"><label>' + (ej.tipo === "tiempo" ? "Tiempo" : "Peso") + "</label>" +
+      '<input type="number" inputmode="decimal" step="' + (ej.tipo === "tiempo" ? "5" : "0.5") + '" min="0" ' +
+      'value="' + ej.valor + '" data-valor="' + i + '" placeholder="0">' +
+      '<span class="unidad">' + unidad + "</span></div>";
+    cont.appendChild(card);
+  });
+
+  cont.querySelectorAll(".serie-btn").forEach(b => {
+    b.addEventListener("click", () => {
+      const ej = sesionActiva.ejercicios[+b.dataset.ej];
+      ej.hechas[+b.dataset.serie] = !ej.hechas[+b.dataset.serie];
+      const h = ej.hechas[+b.dataset.serie];
+      b.classList.toggle("done", h);
+      b.textContent = h ? "✓" : +b.dataset.serie + 1;
+    });
+  });
+  cont.querySelectorAll("input[data-valor]").forEach(inp => {
+    inp.addEventListener("input", () => {
+      sesionActiva.ejercicios[+inp.dataset.valor].valor = inp.value === "" ? "" : +inp.value;
+    });
+  });
+}
+
+document.getElementById("btn-cancelar-sesion").addEventListener("click", () => {
+  if (sesionActiva.ejercicios.some(e => e.hechas.some(Boolean)) &&
+      !confirm("¿Salir sin guardar la sesión?")) return;
+  cerrarSesion(false);
+});
+
+document.getElementById("btn-guardar-sesion").addEventListener("click", () => {
+  const algunaSerie = sesionActiva.ejercicios.some(e => e.hechas.some(Boolean));
+  if (!algunaSerie && !confirm("No has marcado ninguna serie. ¿Guardar igualmente?")) return;
+  datos.sesiones.push({
+    fecha: hoyISO(),
+    rutina: sesionActiva.rutina,
+    ejercicios: sesionActiva.ejercicios.map(e => ({
+      id: e.id, nombre: e.nombre, tipo: e.tipo,
+      seriesHechas: e.hechas.filter(Boolean).length,
+      seriesTotal: e.series,
+      valor: e.valor === "" ? null : e.valor,
+    })),
+  });
+  guardar();
+  cerrarSesion(true);
+});
+
+function cerrarSesion(guardada) {
+  sesionActiva = null;
+  document.getElementById("vista-sesion").style.display = "none";
+  document.getElementById("vista-elegir").style.display = "block";
+  const msg = document.getElementById("msg-sesion-guardada");
+  msg.style.display = guardada ? "block" : "none";
+  if (guardada) setTimeout(() => { msg.style.display = "none"; }, 3500);
+  renderTodo();
+  window.scrollTo(0, 0);
+}
+
+function renderHistSesiones() {
+  const cont = document.getElementById("hist-sesiones");
+  if (!datos.sesiones.length) {
+    cont.innerHTML = '<p class="hint">Todavía no hay sesiones. ¡Hoy es un buen día para empezar!</p>';
+    return;
+  }
+  cont.innerHTML = "";
+  datos.sesiones.slice(-8).reverse().forEach(s => {
+    const idx = datos.sesiones.indexOf(s);
+    const div = document.createElement("div");
+    div.className = "hist-item";
+    const resumen = s.ejercicios
+      .map(e => e.nombre.split(" ")[0] + " " + e.seriesHechas + "/" + e.seriesTotal +
+        (e.valor != null ? " · " + num(e.valor, e.valor % 1 ? 1 : 0) + (e.tipo === "tiempo" ? "s" : "kg") : ""))
+      .join("  ·  ");
+    div.innerHTML =
+      '<div class="hi-main"><div><b>' + RUTINAS[s.rutina].nombre + "</b></div>" +
+      '<div class="hi-fecha">' + fmtFecha(s.fecha) + " — " + resumen + "</div></div>" +
+      '<button class="hi-del" title="Borrar">🗑</button>';
+    div.querySelector(".hi-del").addEventListener("click", () => {
+      if (confirm("¿Borrar esta sesión del " + fmtFecha(s.fecha) + "?")) {
+        datos.sesiones.splice(idx, 1);
+        guardar();
+        renderTodo();
+      }
+    });
+    cont.appendChild(div);
+  });
+}
+
+/* =====================================================================
+   FUNCIÓN 2 — REGISTRO DE PESO CORPORAL
+   ===================================================================== */
+function pesoActual() {
+  return datos.pesos.length ? datos.pesos[datos.pesos.length - 1].kg : PESO_INICIAL;
+}
+
+document.getElementById("btn-guardar-peso").addEventListener("click", () => {
+  const inp = document.getElementById("input-peso");
+  const kg = parseFloat(inp.value);
+  if (!kg || kg < 30 || kg > 250) { alert("Introduce un peso válido en kg."); return; }
+  const hoy = hoyISO();
+  const existente = datos.pesos.find(p => p.fecha === hoy);
+  if (existente) existente.kg = kg;
+  else datos.pesos.push({ fecha: hoy, kg });
+  datos.pesos.sort((a, b) => a.fecha < b.fecha ? -1 : 1);
+  guardar();
+  inp.blur();
+  renderTodo();
+});
+
+function renderPeso() {
+  const hoy = hoyISO();
+  const deHoy = datos.pesos.find(p => p.fecha === hoy);
+  const inp = document.getElementById("input-peso");
+  if (document.activeElement !== inp) inp.value = deHoy ? deHoy.kg : "";
+  inp.placeholder = num(pesoActual());
+  document.getElementById("peso-hoy-hint").textContent = deHoy
+    ? "Hoy has registrado " + num(deHoy.kg) + " kg. Puedes corregirlo guardando de nuevo."
+    : "Aún no has registrado el peso de hoy.";
+
+  const kg = pesoActual();
+  const imc = kg / (ALTURA_M * ALTURA_M);
+  const faltan = kg - PESO_OBJETIVO;
+  document.getElementById("tiles-imc").innerHTML =
+    tile(num(kg) + " kg", "peso actual") +
+    tile(num(imc), "IMC actual (altura " + num(ALTURA_M, 2) + " m)", imc <= IMC_OBJETIVO + 0.5 ? "ok" : "") +
+    tile(num(PESO_OBJETIVO) + " kg", "peso objetivo (IMC " + IMC_OBJETIVO + ")", "accent") +
+    (faltan > 0
+      ? tile(num(faltan) + " kg", "te faltan para el objetivo")
+      : tile("🎉", "¡objetivo conseguido!", "ok"));
+
+  const cont = document.getElementById("hist-pesos");
+  if (!datos.pesos.length) {
+    cont.innerHTML = '<p class="hint">Aún no has registrado ningún peso.</p>';
+  } else {
+    cont.innerHTML = "";
+    datos.pesos.slice(-10).reverse().forEach(p => {
+      const div = document.createElement("div");
+      div.className = "hist-item";
+      const imcP = p.kg / (ALTURA_M * ALTURA_M);
+      div.innerHTML =
+        '<div class="hi-main"><b>' + num(p.kg) + ' kg</b> <span class="hi-fecha">· IMC ' + num(imcP) + "</span>" +
+        '<div class="hi-fecha">' + fmtFecha(p.fecha) + "</div></div>" +
+        '<button class="hi-del" title="Borrar">🗑</button>';
+      div.querySelector(".hi-del").addEventListener("click", () => {
+        if (confirm("¿Borrar el peso del " + fmtFecha(p.fecha) + "?")) {
+          datos.pesos = datos.pesos.filter(x => x !== p);
+          guardar();
+          renderTodo();
+        }
+      });
+      cont.appendChild(div);
+    });
+  }
+}
+
+function tile(valor, etiqueta, clase = "") {
+  return '<div class="tile"><div class="tv ' + clase + '">' + valor + '</div><div class="tl">' + etiqueta + "</div></div>";
+}
+
+/* =====================================================================
+   FUNCIÓN 3 — PROGRESO Y FEEDBACK
+   ===================================================================== */
+function sesionesEnSemana(lunes) {
+  const ini = fechaISO(lunes);
+  const finD = new Date(lunes); finD.setDate(finD.getDate() + 6);
+  const fin = fechaISO(finD);
+  return datos.sesiones.filter(s => s.fecha >= ini && s.fecha <= fin);
+}
+
+function estadisticas() {
+  const lunesActual = lunesDe(new Date());
+  const estaSemana = sesionesEnSemana(lunesActual).length;
+
+  // racha de semanas consecutivas con al menos 1 sesión
+  let racha = 0;
+  let lunes = new Date(lunesActual);
+  if (estaSemana > 0) racha = 1;
+  // si esta semana aún no hay sesión, la racha sigue viva contando desde la anterior
+  lunes.setDate(lunes.getDate() - 7);
+  while (sesionesEnSemana(lunes).length > 0) {
+    racha++;
+    lunes.setDate(lunes.getDate() - 7);
+  }
+
+  const diasEntrenados = new Set(datos.sesiones.map(s => s.fecha)).size;
+  return { estaSemana, racha, diasEntrenados, total: datos.sesiones.length };
+}
+
+function renderProgreso() {
+  const e = estadisticas();
+
+  let fb, clase;
+  if (e.estaSemana >= 3) {
+    fb = "🏆 <b>" + e.estaSemana + " sesiones esta semana.</b> ¡Enorme! Estás construyendo un hábito de verdad. Sigue así.";
+    clase = "f-ok";
+  } else if (e.estaSemana === 2) {
+    fb = "💪 <b>2 sesiones esta semana.</b> Vas bien, aprieta: una más y semana redonda.";
+    clase = "";
+  } else if (e.estaSemana === 1) {
+    fb = "🔄 <b>1 sesión esta semana.</b> Ya has hecho lo más difícil: empezar. Busca hueco mañana antes del trabajo y ponte con la siguiente.";
+    clase = "f-warn";
+  } else {
+    fb = "🌱 <b>Todavía sin sesiones esta semana.</b> No pasa nada: 20 minutos hoy valen más que el plan perfecto de mañana. Elige rutina y empieza.";
+    clase = "f-warn";
+  }
+  const el = document.getElementById("feedback-semanal");
+  el.innerHTML = fb;
+  el.className = "feedback " + clase;
+
+  document.getElementById("tiles-constancia").innerHTML =
+    tile(e.estaSemana, "sesiones esta semana", e.estaSemana >= 3 ? "ok" : "") +
+    tile(e.racha, e.racha === 1 ? "semana en racha" : "semanas en racha", e.racha >= 2 ? "ok" : "") +
+    tile(e.diasEntrenados, "días entrenados en total");
+
+  renderGrafica();
+}
+
+/* ---------- gráfica de evolución del peso (SVG) ---------- */
+function renderGrafica() {
+  const cont = document.getElementById("chart");
+  const tip = document.getElementById("chart-tip");
+  tip.style.display = "none";
+
+  const puntos = datos.pesos.slice().sort((a, b) => a.fecha < b.fecha ? -1 : 1);
+  if (puntos.length < 2) {
+    cont.innerHTML = '<p class="hint">Registra tu peso al menos dos días distintos para ver la evolución.</p>';
+    return;
+  }
+
+  const W = cont.clientWidth || 320, H = 230;
+  const M = { top: 16, right: 46, bottom: 26, left: 36 };
+  const iw = W - M.left - M.right, ih = H - M.top - M.bottom;
+
+  const t0 = desdeISO(puntos[0].fecha).getTime();
+  const t1 = desdeISO(puntos[puntos.length - 1].fecha).getTime();
+  const rangoT = Math.max(t1 - t0, 1);
+  const kgs = puntos.map(p => p.kg);
+  let yMin = Math.min(...kgs, PESO_OBJETIVO) - 1;
+  let yMax = Math.max(...kgs) + 1;
+
+  const X = t => M.left + ((t - t0) / rangoT) * iw;
+  const Y = v => M.top + (1 - (v - yMin) / (yMax - yMin)) * ih;
+
+  // ticks del eje Y (pasos "bonitos")
+  const paso = (yMax - yMin) > 12 ? 5 : (yMax - yMin) > 6 ? 2 : 1;
+  let ticks = [];
+  for (let v = Math.ceil(yMin / paso) * paso; v <= yMax; v += paso) ticks.push(v);
+
+  let svg = '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Evolución del peso corporal en kilogramos">';
+
+  // rejilla + etiquetas Y
+  for (const v of ticks) {
+    const y = Y(v);
+    svg += '<line x1="' + M.left + '" y1="' + y + '" x2="' + (W - M.right) + '" y2="' + y + '" stroke="var(--grid)" stroke-width="1"/>';
+    svg += '<text class="axis-txt" x="' + (M.left - 6) + '" y="' + (y + 3) + '" text-anchor="end">' + v + "</text>";
+  }
+
+  // línea de objetivo
+  const yObj = Y(PESO_OBJETIVO);
+  svg += '<line x1="' + M.left + '" y1="' + yObj + '" x2="' + (W - M.right) + '" y2="' + yObj +
+         '" stroke="var(--muted)" stroke-width="1" stroke-dasharray="4 4"/>';
+  svg += '<text class="axis-txt" x="' + (W - M.right + 4) + '" y="' + (yObj + 3) + '">obj.</text>';
+
+  // etiquetas X: primera, media y última fecha
+  const fechasX = puntos.length > 2
+    ? [puntos[0], puntos[Math.floor(puntos.length / 2)], puntos[puntos.length - 1]]
+    : [puntos[0], puntos[puntos.length - 1]];
+  const vistos = new Set();
+  for (const p of fechasX) {
+    if (vistos.has(p.fecha)) continue;
+    vistos.add(p.fecha);
+    const x = X(desdeISO(p.fecha).getTime());
+    const anchor = x < M.left + 20 ? "start" : x > W - M.right - 20 ? "end" : "middle";
+    svg += '<text class="axis-txt" x="' + x + '" y="' + (H - 8) + '" text-anchor="' + anchor + '">' + fmtFechaCorta(p.fecha) + "</text>";
+  }
+
+  // área + línea
+  const coords = puntos.map(p => [X(desdeISO(p.fecha).getTime()), Y(p.kg)]);
+  const linea = coords.map((c, i) => (i ? "L" : "M") + c[0].toFixed(1) + " " + c[1].toFixed(1)).join(" ");
+  const area = linea + " L" + coords[coords.length - 1][0].toFixed(1) + " " + (H - M.bottom) +
+               " L" + coords[0][0].toFixed(1) + " " + (H - M.bottom) + " Z";
+  svg += '<path d="' + area + '" fill="var(--series)" opacity="0.10"/>';
+  svg += '<path d="' + linea + '" fill="none" stroke="var(--series)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+
+  // punto y etiqueta del último valor
+  const ult = coords[coords.length - 1];
+  svg += '<circle cx="' + ult[0] + '" cy="' + ult[1] + '" r="4" fill="var(--series)" stroke="var(--card)" stroke-width="2"/>';
+  svg += '<text x="' + (ult[0] + 6) + '" y="' + (ult[1] - 8) + '" fill="var(--text)" font-size="12" font-weight="600" text-anchor="end" ' +
+         'style="font-variant-numeric:tabular-nums">' + num(puntos[puntos.length - 1].kg) + "</text>";
+
+  // capa interactiva: crosshair
+  svg += '<line id="crosshair" x1="0" y1="' + M.top + '" x2="0" y2="' + (H - M.bottom) + '" stroke="var(--muted)" stroke-width="1" visibility="hidden"/>';
+  svg += '<circle id="hoverdot" r="5" fill="var(--series)" stroke="var(--card)" stroke-width="2" visibility="hidden"/>';
+  svg += "</svg>";
+  cont.innerHTML = svg;
+
+  // interacción táctil / ratón: punto más cercano + tooltip
+  const svgEl = cont.querySelector("svg");
+  const cross = cont.querySelector("#crosshair");
+  const dot = cont.querySelector("#hoverdot");
+  const wrap = document.getElementById("chart-wrap");
+
+  function mover(clientX) {
+    const rect = svgEl.getBoundingClientRect();
+    const px = (clientX - rect.left) * (W / rect.width);
+    let mejor = 0, mejorD = Infinity;
+    coords.forEach((c, i) => {
+      const d = Math.abs(c[0] - px);
+      if (d < mejorD) { mejorD = d; mejor = i; }
+    });
+    const p = puntos[mejor], c = coords[mejor];
+    cross.setAttribute("x1", c[0]); cross.setAttribute("x2", c[0]);
+    cross.setAttribute("visibility", "visible");
+    dot.setAttribute("cx", c[0]); dot.setAttribute("cy", c[1]);
+    dot.setAttribute("visibility", "visible");
+    tip.innerHTML = "<b>" + num(p.kg) + " kg</b> · IMC " + num(p.kg / (ALTURA_M * ALTURA_M)) +
+                    "<br>" + fmtFecha(p.fecha);
+    tip.style.display = "block";
+    const wrapRect = wrap.getBoundingClientRect();
+    const cxPx = (c[0] / W) * rect.width;
+    let left = cxPx + 10;
+    if (left + tip.offsetWidth > wrapRect.width) left = cxPx - tip.offsetWidth - 10;
+    tip.style.left = Math.max(0, left) + "px";
+    tip.style.top = "8px";
+  }
+  function ocultar() {
+    cross.setAttribute("visibility", "hidden");
+    dot.setAttribute("visibility", "hidden");
+    tip.style.display = "none";
+  }
+  svgEl.addEventListener("mousemove", e => mover(e.clientX));
+  svgEl.addEventListener("mouseleave", ocultar);
+  svgEl.addEventListener("touchstart", e => mover(e.touches[0].clientX), { passive: true });
+  svgEl.addEventListener("touchmove", e => mover(e.touches[0].clientX), { passive: true });
+  svgEl.addEventListener("touchend", () => setTimeout(ocultar, 1500), { passive: true });
+}
+
+/* =====================================================================
+   FUNCIÓN 4 — RESPALDO (exportar / importar)
+   ===================================================================== */
+document.getElementById("btn-exportar").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify({ app: "entreno", version: 1, exportado: new Date().toISOString(), ...datos }, null, 2)],
+    { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "entreno-respaldo-" + hoyISO() + ".json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+});
+
+document.getElementById("btn-importar").addEventListener("click", () => {
+  document.getElementById("input-importar").click();
+});
+document.getElementById("input-importar").addEventListener("change", e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const lector = new FileReader();
+  lector.onload = () => {
+    try {
+      const d = JSON.parse(lector.result);
+      if (!Array.isArray(d.sesiones) || !Array.isArray(d.pesos)) throw new Error("formato");
+      if (!confirm("Se reemplazarán los datos actuales por los del archivo (" +
+          d.sesiones.length + " sesiones, " + d.pesos.length + " pesos). ¿Continuar?")) return;
+      datos = { sesiones: d.sesiones, pesos: d.pesos };
+      datos.pesos.sort((a, b) => a.fecha < b.fecha ? -1 : 1);
+      guardar();
+      renderTodo();
+      alert("Datos restaurados correctamente ✓");
+    } catch (err) {
+      alert("No se pudo leer el archivo. Asegúrate de elegir un respaldo exportado por esta app.");
+    }
+  };
+  lector.readAsText(f);
+  e.target.value = "";
+});
+
+function renderDatos() {
+  document.getElementById("datos-resumen").textContent =
+    "Ahora mismo: " + datos.sesiones.length + " sesiones y " + datos.pesos.length + " registros de peso.";
+}
+
+/* =====================================================================
+   RENDER GLOBAL
+   ===================================================================== */
+function renderTodo() {
+  renderElegirRutina();
+  renderHistSesiones();
+  renderPeso();
+  renderProgreso();
+  renderDatos();
+}
+window.addEventListener("resize", renderGrafica);
+renderTodo();
+</script>
+</body>
+</html>
