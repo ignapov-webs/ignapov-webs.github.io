@@ -7,135 +7,132 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Antibióticos HUN">
-<title>Guía antimicrobiana HUN · Buscador</title>
+<title>Antibióticos HUN · Buscador</title>
 <style>
   :root{
     --bg:#f4f7fb; --panel:#ffffff; --panel2:#eef3f9; --line:#dde6f0;
-    --txt:#2b3a4a; --muted:#6b7c8d; --accent:#5b8def; --accent2:#8aa9e6; --accent-soft:#e7f0ff;
+    --txt:#2b3a4a; --muted:#6b7c8d; --accent:#5b8def; --accent-soft:#e7f0ff;
     --green:#4fae73; --green-bg:#e6f6ec; --green-line:#bfe6cd;
     --amber:#d99a3a; --amber-bg:#fbf1dd; --amber-line:#ecd6a6;
     --red:#dd6b58; --red-bg:#fcebe7; --red-line:#f3cabf;
+    --purple:#8a6fd0; --purple-bg:#efeafb; --purple-line:#d9cef2;
     --radius:16px; --shadow:0 1px 3px rgba(43,58,74,.06),0 6px 20px rgba(43,58,74,.05);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0}
-  body{
-    background:var(--bg); color:var(--txt);
+  body{background:var(--bg);color:var(--txt);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    line-height:1.5; -webkit-font-smoothing:antialiased; font-size:16px;
-  }
-  .wrap{max-width:880px;margin:0 auto;padding:16px 14px calc(60px + env(safe-area-inset-bottom))}
-  header.hero{padding:14px 4px 4px}
-  .hero h1{font-size:1.5rem;margin:0 0 6px;letter-spacing:-.3px}
-  .hero p{color:var(--muted);margin:0;font-size:.92rem;max-width:640px}
-  .tag{display:inline-block;background:var(--accent-soft);color:var(--accent);font-size:.7rem;
-       font-weight:800;letter-spacing:.5px;padding:4px 11px;border-radius:20px;margin-bottom:10px}
-
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
-        padding:16px;margin:14px 0;box-shadow:var(--shadow)}
+    line-height:1.5;-webkit-font-smoothing:antialiased;font-size:16px}
+  .wrap{max-width:820px;margin:0 auto;padding:14px 14px calc(50px + env(safe-area-inset-bottom))}
+  header.hero{padding:12px 2px 2px}
+  .hero h1{font-size:1.45rem;margin:0 0 5px;letter-spacing:-.3px}
+  .hero p{color:var(--muted);margin:0;font-size:.9rem}
+  .tag{display:inline-block;background:var(--accent-soft);color:var(--accent);font-size:.68rem;
+       font-weight:800;letter-spacing:.5px;padding:4px 11px;border-radius:20px;margin-bottom:9px}
 
   /* mode toggle */
-  .modes{display:flex;gap:8px;background:var(--panel2);border:1px solid var(--line);
+  .modes{display:flex;gap:6px;background:var(--panel2);border:1px solid var(--line);
     border-radius:13px;padding:5px;margin:14px 0 10px}
   .modes button{flex:1;background:transparent;border:none;color:var(--muted);font-weight:700;
-    padding:11px 8px;border-radius:9px;cursor:pointer;font-size:.9rem;min-height:44px;transition:.15s}
+    padding:11px 8px;border-radius:9px;cursor:pointer;font-size:.92rem;min-height:46px;transition:.15s}
   .modes button.on{background:var(--panel);color:var(--accent);box-shadow:var(--shadow)}
 
-  /* search box */
   .searchbox{position:relative}
-  .searchbox input{width:100%;padding:14px 44px 14px 15px;border:1.5px solid var(--line);
-    border-radius:13px;font-size:1rem;background:var(--panel);color:var(--txt);outline:none;transition:.15s}
+  .searchbox input{width:100%;padding:15px 44px 15px 16px;border:1.5px solid var(--line);
+    border-radius:14px;font-size:1.02rem;background:var(--panel);color:var(--txt);outline:none;transition:.15s}
   .searchbox input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-  .searchbox .clr{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;
+  .searchbox .clr{position:absolute;right:9px;top:50%;transform:translateY(-50%);border:none;
     background:var(--panel2);color:var(--muted);width:30px;height:30px;border-radius:50%;
-    font-size:1rem;cursor:pointer;display:none;align-items:center;justify-content:center}
+    font-size:1.05rem;cursor:pointer;display:none;align-items:center;justify-content:center}
   .searchbox .clr.show{display:flex}
 
-  .hint{font-size:.82rem;color:var(--muted);margin:9px 2px 2px}
-  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 2px}
+  .hint{font-size:.8rem;color:var(--muted);margin:9px 2px 2px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:9px 0 2px}
   .chip{background:var(--accent-soft);border:1px solid #d4e2fb;color:var(--accent);
-    padding:8px 13px;border-radius:20px;cursor:pointer;font-size:.83rem;font-weight:600;transition:.15s}
+    padding:8px 13px;border-radius:20px;cursor:pointer;font-size:.82rem;font-weight:600;transition:.15s}
   .chip:active{transform:scale(.96)}
-  .chip.bact{background:var(--panel2);border-color:var(--line);color:var(--txt)}
-
-  .count{font-size:.8rem;color:var(--muted);margin:16px 2px 4px;font-weight:600}
+  .chip.bact{background:var(--purple-bg);border-color:var(--purple-line);color:var(--purple)}
+  .count{font-size:.8rem;color:var(--muted);margin:16px 2px 2px;font-weight:600}
 
   /* result card */
-  .res{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
-    padding:0;margin:12px 0;box-shadow:var(--shadow);overflow:hidden}
-  .res .rhead{padding:15px 16px 12px;border-bottom:1px solid var(--line)}
-  .res .cat{font-size:.66rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
-    color:var(--accent);background:var(--accent-soft);padding:3px 9px;border-radius:20px;display:inline-block;margin-bottom:7px}
-  .res h2{font-size:1.08rem;margin:0;letter-spacing:-.2px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    margin:12px 0;box-shadow:var(--shadow);overflow:hidden}
+  .chead{padding:15px 16px 13px;border-bottom:1px solid var(--line)}
+  .chead .synd{font-size:.66rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
+    color:var(--accent);background:var(--accent-soft);padding:3px 9px;border-radius:20px;display:inline-block;margin-bottom:8px}
+  .chead .synd.bac{color:var(--purple);background:var(--purple-bg)}
+  .chead h2{font-size:1.14rem;margin:0;letter-spacing:-.2px;line-height:1.25}
+  .chead .detail{font-size:.83rem;color:var(--muted);margin-top:5px}
 
-  .reco{background:var(--green-bg);border:1px solid var(--green-line);border-radius:12px;
-    margin:14px 16px;padding:13px 14px}
-  .reco .rt{font-size:.68rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
-    color:var(--green);margin-bottom:8px;display:flex;align-items:center;gap:7px}
-  .reco.bact{background:var(--accent-soft);border-color:#d4e2fb}
-  .reco.bact .rt{color:var(--accent)}
+  .cbody{padding:6px 16px 16px}
+  .eti{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
+  .eti .lab{font-size:.68rem;font-weight:800;letter-spacing:.4px;text-transform:uppercase;
+    color:var(--muted);width:100%;margin-bottom:2px}
+  .eti span.b{background:var(--panel2);border:1px solid var(--line);color:var(--txt);
+    font-size:.8rem;padding:4px 10px;border-radius:8px}
 
-  /* node rendering */
-  .nodes p{margin:.45em 0;font-size:.92rem}
-  .nodes .sub{font-weight:800;color:var(--accent);font-size:.82rem;margin:.7em 0 .2em;
-    text-transform:none;letter-spacing:.2px}
-  .nodes .cap{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;
-    font-weight:700;border-top:1px dashed var(--line);padding-top:8px;margin-top:10px}
-  .nodes ul{margin:.4em 0;padding-left:0;list-style:none}
-  .nodes ul li{position:relative;padding:5px 0 5px 20px;font-size:.92rem}
-  .nodes ul li:before{content:"";position:absolute;left:4px;top:12px;width:6px;height:6px;
-    border-radius:50%;background:var(--accent)}
-  .reco .nodes p:first-child{margin-top:0}
+  .block{border-radius:12px;padding:11px 13px;margin-top:11px;border:1px solid}
+  .block .bt{font-size:.72rem;font-weight:800;letter-spacing:.3px;margin-bottom:7px;display:flex;align-items:center;gap:6px}
+  .block ul{margin:0;padding-left:0;list-style:none}
+  .block li{position:relative;padding:4px 0 4px 18px;font-size:.92rem}
+  .block li:before{content:"";position:absolute;left:3px;top:11px;width:6px;height:6px;border-radius:50%}
+  .block.emp{background:var(--green-bg);border-color:var(--green-line)}
+  .block.emp .bt{color:var(--green)} .block.emp li:before{background:var(--green)}
+  .block.alg{background:var(--amber-bg);border-color:var(--amber-line)}
+  .block.alg .bt{color:#b47a1e} .block.alg li:before{background:var(--amber)}
+  .block.risk{background:var(--red-bg);border-color:var(--red-line)}
+  .block.risk .bt{color:var(--red)} .block.risk li:before{background:var(--red)}
+  .block.neu{background:var(--panel2);border-color:var(--line)}
+  .block.neu .bt{color:var(--muted)} .block.neu li:before{background:var(--muted)}
+
+  .dur{display:flex;align-items:flex-start;gap:8px;background:var(--accent-soft);border:1px solid #d4e2fb;
+    border-radius:11px;padding:10px 12px;margin-top:12px;font-size:.88rem}
+  .dur b{color:var(--accent);white-space:nowrap;font-size:.72rem;text-transform:uppercase;letter-spacing:.4px;padding-top:1px}
+
+  details.notas{margin-top:11px}
+  details.notas>summary{list-style:none;cursor:pointer;color:var(--muted);font-size:.82rem;font-weight:700;
+    padding:6px 0;display:flex;align-items:center;gap:6px}
+  details.notas>summary::-webkit-details-marker{display:none}
+  details.notas .cv{transition:.2s;display:inline-block}
+  details.notas[open]>summary .cv{transform:rotate(90deg)}
+  details.notas ul{margin:2px 0 0;padding-left:16px;font-size:.84rem;color:var(--muted)}
+  details.notas li{margin:4px 0}
+
   mark{background:#fff2b0;color:inherit;padding:0 2px;border-radius:3px}
 
-  details.full{margin:4px 16px 14px}
-  details.full>summary{list-style:none;cursor:pointer;color:var(--accent);font-size:.85rem;
-    font-weight:700;padding:8px 0;display:flex;align-items:center;gap:6px}
-  details.full>summary::-webkit-details-marker{display:none}
-  details.full>summary .cv{transition:.2s;display:inline-block}
-  details.full[open]>summary .cv{transform:rotate(90deg)}
-  details.full .nodes{border-top:1px solid var(--line);padding-top:10px}
-
-  .empty{color:var(--muted);font-size:.92rem;text-align:center;padding:26px 10px}
+  .empty{color:var(--muted);font-size:.92rem;text-align:center;padding:24px 12px}
   .empty b{color:var(--txt)}
 
-  /* browse list */
   .browse .grp{margin-top:16px}
-  .browse .grp h3{font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);
-    margin:0 0 8px;font-weight:800}
-  .browse .item{display:flex;align-items:center;justify-content:space-between;gap:10px;
-    background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 14px;
-    margin:7px 0;cursor:pointer;font-size:.92rem;transition:.15s;min-height:44px}
-  .browse .item:active{transform:scale(.99)}
-  .browse .item .arr{color:var(--accent);font-size:1.2rem}
+  .browse .grp h3{font-size:.7rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:0 0 7px;font-weight:800}
+  .browse .item{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--panel);
+    border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:7px 0;cursor:pointer;font-size:.9rem;
+    transition:.15s;min-height:44px}
+  .browse .item:active{transform:scale(.99)} .browse .item .arr{color:var(--accent);font-size:1.15rem}
 
-  details.gloss{margin-top:18px}
-  details.gloss>summary{list-style:none;cursor:pointer;font-weight:700;padding:14px 0;font-size:.95rem;
+  details.gloss{margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:0 16px;box-shadow:var(--shadow)}
+  details.gloss>summary{list-style:none;cursor:pointer;font-weight:700;padding:14px 0;font-size:.94rem;
     display:flex;align-items:center;justify-content:space-between}
   details.gloss>summary::-webkit-details-marker{display:none}
   details.gloss .row{display:flex;gap:12px;padding:9px 0;border-top:1px solid var(--line);font-size:.85rem}
   details.gloss .row .ab{flex:0 0 96px;font-weight:800;color:var(--accent)}
-  details.gloss .row .df{flex:1}
+  details.gloss .row:last-child{padding-bottom:14px}
 
   .disclaimer{font-size:.78rem;color:var(--muted);background:var(--amber-bg);border:1px solid var(--amber-line);
-    border-radius:12px;padding:12px 14px;margin:14px 0}
+    border-radius:12px;padding:11px 13px;margin:12px 0}
   .disclaimer b{color:#b47a1e}
-  .foot{font-size:.75rem;color:var(--muted);border-top:1px solid var(--line);margin-top:22px;padding-top:14px}
+  .foot{font-size:.74rem;color:var(--muted);border-top:1px solid var(--line);margin-top:20px;padding-top:13px}
   a{color:var(--accent)}
 </style>
 </head>
 <body>
 <div class="wrap">
-
   <header class="hero">
-    <span class="tag">HUN · ADULTOS · PROA</span>
+    <span class="tag">HUN · ADULTOS · GUÍA MAYO 2025</span>
     <h1>Buscador antimicrobiano</h1>
-    <p>Introduce un <b>diagnóstico</b> (p. ej. «apendicitis con peritonitis») o una <b>bacteria</b> (p. ej. «Pseudomonas») y obtén la pauta recomendada según la Guía antimicrobiana del HUN.</p>
+    <p>Escribe un <b>diagnóstico</b> o una <b>bacteria</b> y obtén la pauta de la Guía antimicrobiana del HUN.</p>
   </header>
-
-  <div class="disclaimer">
-    <b>⚠️ Herramienta de ayuda a la prescripción.</b> Reproduce el texto de la Guía antimicrobiana del HUN (adultos). No sustituye el juicio clínico ni la consulta de la guía oficial ni de Infecciosas/PROA. Verifica siempre dosis, alergias y ajuste renal antes de prescribir.
-  </div>
 
   <div class="modes" id="modes">
     <button data-mode="dx" class="on">🩺 Por diagnóstico</button>
@@ -143,295 +140,163 @@
   </div>
 
   <div class="searchbox">
-    <input id="q" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Escribe un diagnóstico…">
+    <input id="q" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Ej. apendicitis con peritonitis">
     <button class="clr" id="clr" aria-label="Borrar">×</button>
   </div>
 
   <div class="hint" id="hint"></div>
   <div class="chips" id="chips"></div>
-
   <div id="out"></div>
 
-  <details class="gloss card">
+  <div class="disclaimer">
+    <b>⚠️ Ayuda a la prescripción</b>, no sustituye el juicio clínico ni la guía oficial ni a Infecciosas/PROA. Verifica dosis, alergias y ajuste renal. Contenido resumido de la Guía antimicrobiana HUN (adultos), mayo 2025.
+  </div>
+
+  <details class="gloss">
     <summary>📖 Glosario de siglas <span style="color:var(--accent)">›</span></summary>
     <div id="glossbody"></div>
   </details>
 
-  <div class="foot">
-    Fuente: <b>Guía antimicrobiana HUN (adultos)</b> · Comisión de Infecciones, Profilaxis y Política Antibiótica · PROA HUN.
-    App de ayuda personal, no oficial. Contenido reproducido textualmente de la guía.
-  </div>
+  <div class="foot">Fuente: Guía antimicrobiana HUN (adultos) · Comisión de Infecciones y PROA HUN. App de ayuda personal, no oficial.</div>
 </div>
 
 <script>
-const EXAMPLES_DX = ["Apendicitis con peritonitis","Colecistitis aguda","Celulitis","Neumonía comunitaria","Pielonefritis","Sepsis sin foco","Meningitis","Pie diabético","Diverticulitis","Prostatitis"];
-const EXAMPLES_BAC = ["S. aureus","SARM","Pseudomonas","E. coli BLEE","Enterococcus","S. pneumoniae","Bacteroides fragilis","Candida","Clostridioides difficile","Listeria","Streptococcus pyogenes"];
-const GLOSS = [
-  ["AMC","Amoxicilina/clavulánico"],["PTZ","Piperacilina/tazobactam"],
-  ["TMP/SMX","Trimetoprim/sulfametoxazol (cotrimoxazol)"],
-  ["SARM","S. aureus resistente a meticilina"],["SASM","S. aureus sensible a meticilina"],
-  ["BLEE","Betalactamasa de espectro extendido"],["AMPc","Betalactamasa tipo AmpC"],
-  ["BGN","Bacilos gram negativos"],["iv / vo / im","Intravenoso / vía oral / intramuscular"],
-  ["IIA","Infección intraabdominal"],["IPPB","Infección de piel y partes blandas"],
-  ["NAC","Neumonía adquirida en la comunidad"],["NN / NAVM","Neumonía nosocomial / asociada a ventilación mecánica"],
-  ["ITU","Infección del tracto urinario"],["OM","Osteomielitis"],
-  ["ICD","Infección por Clostridioides difficile"],["ADVP","Adicto a drogas por vía parenteral"],
-  ["HBPM / ETEV","Heparina bajo peso molecular / enf. tromboembólica venosa"],
-  ["CPRE","Colangiopancreatografía retrógrada endoscópica"],
-  ["ECA","Ensayo clínico aleatorizado"],["PreQ","Prequirúrgico (antes de la incisión)"],
-  ["PROA","Programa de Optimización de Antibioterapia"],["HUN","Hospital Universitario de Navarra"]
-];
-const STOP = new Set("de la el los las un una y o con sin por en al a e u del se es su sus para segun según mas más aguda agudo cronica crónica cronico grave leve moderada moderado tratamiento infeccion infección enfermedad paciente".split(" "));
+const EX_DX=["Apendicitis con peritonitis","Colecistitis complicada","Celulitis","Neumonía comunitaria","Pielonefritis","Sepsis sin foco","Meningitis","Pie diabético grave","Diverticulitis","Prostatitis","Artritis séptica","Herida quirúrgica"];
+const EX_BAC=["S. aureus","SARM","Pseudomonas","E. coli BLEE","Enterococcus","S. pneumoniae","Bacteroides","Candida","Clostridioides difficile","Listeria"];
+const GLOSS=[["AMC","Amoxicilina/clavulánico"],["PTZ","Piperacilina/tazobactam"],["TMP/SMX","Cotrimoxazol"],
+ ["SARM/SASM","S. aureus resistente / sensible a meticilina"],["BLEE","Betalactamasa de espectro extendido"],
+ ["MDR","Multirresistente"],["BGN","Bacilos gram negativos"],["iv/vo/im","Intravenoso/oral/intramuscular"],
+ ["DU","Dosis única"],["NAC","Neumonía adquirida en la comunidad"],["NN/NAVM","Neumonía nosocomial / asociada a VM"],
+ ["ITU","Infección del tracto urinario"],["IIA","Infección intraabdominal"],["ICD","Infección por C. difficile"],
+ ["CVC/CVP","Catéter venoso central / periférico"],["EI","Endocarditis infecciosa"],["CPRE","Colangiopancreatografía retrógrada"],
+ ["FG","Filtrado glomerular"],["PreQ","Prequirúrgico"]];
+const STOP=new Set("de la el los las un una y o con sin por en al a e u del se es su sus para segun según mas más aguda agudo aguda cronica crónica grave leve moderada moderado tratamiento infeccion infección paciente riesgo".split(" "));
 
-let DATA=[], mode="dx";
-const norm = s => (s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g," ").trim();
-const tokens = q => norm(q).split(" ").filter(w=>w.length>=2 && !STOP.has(w));
-
-const $ = id => document.getElementById(id);
+let RISK={},COND=[],PATH=[],mode="dx";
+const norm=s=>(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g," ").trim();
+const toks=q=>norm(q).split(" ").filter(w=>w.length>=2&&!STOP.has(w));
+const $=id=>document.getElementById(id);
+const esc=s=>s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+function hl(s,t){let h=esc(s);const p=t.filter(x=>x.length>=3).map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).sort((a,b)=>b.length-a.length);
+  if(!p.length)return h;try{h=h.replace(new RegExp("("+p.join("|")+")","gi"),"<mark>$1</mark>")}catch(e){}return h;}
 
 fetch("data.json").then(r=>r.json()).then(d=>{
-  DATA = d.map(s=>{
-    const nn = s.nodes.map(n => norm((n.text||"") + " " + (n.items? n.items.join(" "):"")));
-    return {...s, _title:norm(s.title), _alias:s.aliases.map(norm), _text:norm(s.text), _nn:nn};
-  });
+  RISK=d.risk||{};
+  COND=d.conditions.map(c=>({...c,_s:norm([c.name,c.detail,c.synd,c.cat,(c.aliases||[]).join(" "),(c.eti||[]).join(" ")].join(" ")),
+    _name:norm(c.name),_al:(c.aliases||[]).map(norm),_synd:norm(c.synd)}));
+  PATH=d.pathogens.map(p=>({...p,_s:norm([p.name,(p.aliases||[]).join(" ")].join(" ")),_al:(p.aliases||[]).map(norm)}));
   render();
-}).catch(e=>{ $("out").innerHTML='<div class="empty">No se pudo cargar la base de datos (<b>data.json</b>). Asegúrate de que está junto a esta página.</div>'; });
+}).catch(e=>{$("out").innerHTML='<div class="empty">No se pudo cargar <b>data.json</b>.</div>'});
 
-// ---------- scoring ----------
-function scoreSection(sec, toks, q){
-  const nq = norm(q);
-  let sc = 0;
-  // strong: full query equals/contained in an alias or title
-  for(const a of sec._alias){ if(a && (nq===a || nq.includes(a) || a.includes(nq)) && nq.length>=4) sc += 60; }
-  if(sec._title.includes(nq) && nq.length>=4) sc += 40;
-  for(const t of toks){
-    let hit=false;
-    for(const a of sec._alias){ if(a.includes(t)){ sc+=16; hit=true; break; } }
-    if(sec._title.includes(t)){ sc+=14; hit=true; }
-    // text frequency
-    const occ = sec._text.split(t).length-1;
-    if(occ>0){ sc += Math.min(occ,6)*2.2; hit=true; }
-  }
-  // require that most tokens appear somewhere
-  const present = toks.filter(t => sec._alias.some(a=>a.includes(t)) || sec._text.includes(t)).length;
-  if(toks.length && present===0) return 0;
-  if(toks.length>1 && present<Math.ceil(toks.length/2)) sc *= .4;
+// ---- block colouring by label ----
+function blockClass(label){
+  const l=norm(label);
+  if(/alerg/.test(l))return"alg";
+  if(/blee|multirresist|riesgo|sarm|grave|shock|nosocomial|complicad|carbapenem/.test(l))return"risk";
+  if(/emp|opcion|no complicad|ambulatori|precoz|tardia|sensible|primer episodio|pauta|manejo|leve|comunitari|referencia/.test(l))return"emp";
+  return"neu";
+}
+function txHTML(tx,t){
+  return tx.map(b=>`<div class="block ${blockClass(b.t)}"><div class="bt">${esc(b.t)}</div><ul>${
+    b.o.map(o=>`<li>${hl(o,t)}</li>`).join("")}</ul></div>`).join("");
+}
+function etiHTML(eti,t){
+  if(!eti||!eti.length)return"";
+  return `<div class="eti"><span class="lab">Etiología habitual</span>${eti.map(e=>`<span class="b">${hl(e,t)}</span>`).join("")}</div>`;
+}
+function notasHTML(notas,t){
+  if(!notas||!notas.length)return"";
+  return `<details class="notas"><summary><span class="cv">›</span>Comentarios y matices (${notas.length})</summary><ul>${
+    notas.map(n=>`<li>${hl(n,t)}</li>`).join("")}</ul></details>`;
+}
+function condCard(c,t){
+  return `<div class="card"><div class="chead"><span class="synd">${esc(c.synd)}</span>
+    <h2>${hl(c.name,t)}</h2>${c.detail?`<div class="detail">${hl(c.detail,t)}</div>`:""}</div>
+    <div class="cbody">${etiHTML(c.eti,t)}${txHTML(c.tx,t)}
+    ${c.dur?`<div class="dur"><b>Duración</b><span>${hl(c.dur,t)}</span></div>`:""}
+    ${notasHTML(c.notas,t)}</div></div>`;
+}
+function pathCard(p,t){
+  return `<div class="card"><div class="chead"><span class="synd bac">Tratamiento dirigido</span>
+    <h2>${hl(p.name,t)}</h2></div><div class="cbody">${txHTML(p.tx,t)}${notasHTML(p.notas,t)}</div></div>`;
+}
+
+// ---- scoring ----
+function scoreCond(c,ts,q){
+  const nq=norm(q);let sc=0;
+  let aliasBest=0;   // best single alias match (avoid inflating variants with many partial aliases)
+  for(const a of c._al){if(!a)continue;
+    if(nq===a)aliasBest=Math.max(aliasBest,120);
+    else if(nq.length>=4&&(a.includes(nq)||nq.includes(a)))aliasBest=Math.max(aliasBest,70);}
+  sc+=aliasBest;
+  if(c._name.includes(nq)&&nq.length>=4)sc+=60;
+  if(c._synd.includes(nq)&&nq.length>=4)sc+=30;
+  let cov=0;
+  for(const t of ts){let h=false;
+    if(c._name.includes(t)){sc+=18;h=true;}
+    for(const a of c._al){if(a.includes(t)){sc+=14;h=true;break;}}
+    if(c._synd.includes(t)){sc+=8;h=true;}
+    if(c._s.includes(t)){sc+=3;h=true;}
+    if(h)cov++;}
+  if(ts.length&&cov===0)return 0;
+  if(ts.length>1&&cov<ts.length)sc*=(cov/ts.length);
   return sc;
 }
-
-// Is this paragraph an "etiología" line (a list of microorganisms) rather than a
-// clinical-scenario header? Used to tell where one table row ends and the next begins.
-const ORG_RE=/enterobacter|aerugin|pneumon|fragilis|\bspp\b| spp|aureus|strepto|staphylo|estafiloc|estrept|enteroco|\bcoli\b|klebsiel|candida|clostridi|listeria|bacteroid|anaerobi|\bgram|pseudomona|polimicrob|cocos|bacilos|\bbgn\b|\bsarm\b|\bsasm\b|hongos|etiología similar|idem/i;
-const DRUG_RE=/\d\s?(mg|g|ui|mui)\b|\/(iv|vo|im)\b|\/kg|\/\d+\s?h/i;
-function isOrg(txt){ return ORG_RE.test(txt); }
-// distance (in nodes) to the treatment list this node "owns"; 99 if a NEW condition
-// header (a long, non-organism paragraph) or a table caption intervenes first.
-function nextULdist(sec,i){
-  for(let j=i+1;j<sec.nodes.length;j++){
-    const n=sec.nodes[j];
-    if(n.t==="ul") return j-i;
-    if(n.t==="cap") return 99;
-    if(n.t==="p" && n.text.length>45 && !isOrg(n.text)) return 99; // next condition began
-  }
-  return 99;
-}
-// Anchor = the condition header that BOTH matches the query AND owns a nearby
-// treatment list. This prevents crossing into a different condition's pauta
-// (e.g. matching an "apendicitis" definition line but showing the nosocomial dose).
-function bestNode(sec, toks){
-  let bi=-1, bs=-1;
-  sec._nn.forEach((tx,i)=>{
-    const nt=sec.nodes[i].t;
-    if(nt==="ul"||nt==="cap") return;
-    let cov=0, occ=0, neg=0;
-    for(const t of toks){
-      const total=tx.split(t).length-1;
-      if(total<=0) continue;
-      const negated=tx.split("no "+t).length-1;   // "no complicada", "no grave"...
-      const pos=total-negated;
-      if(pos>0){ cov++; occ+=pos; }
-      else if(negated>0){ neg++; }                 // term present ONLY in negated form
-    }
-    if(cov<=0) return;
-    const d=nextULdist(sec,i);
-    if(d>8) return;                 // must directly own a treatment list
-    // prefer anchors whose owned list looks like an antibiotic regimen (doses),
-    // not prose measures (e.g. "mordedura" -> "Celulitis por mordedura: AMC..." over wound-care tips)
-    const ul=sec.nodes[i+d];
-    const drug = ul && ul.t==="ul" && DRUG_RE.test(ul.items.join(" ")) ? 15 : 0;
-    // coverage of DISTINCT terms dominates (specificity); heavily penalise negated matches
-    // so "colecistitis complicada" never anchors on "colecistitis ... NO complicada".
-    let s=cov*100 + occ - d - neg*40 + drug + (nt==="p"?1:0);
-    if(s>bs){ bs=s; bi=i; }
-  });
-  return bi;
+function scorePath(p,ts,q){
+  const nq=norm(q);let sc=0;
+  for(const a of p._al){if(a&&(nq===a||a.includes(nq)||nq.includes(a))&&nq.length>=3)sc+=100;}
+  let cov=0;for(const t of ts){if(p._s.includes(t)){sc+=20;cov++;}}
+  if(ts.length&&cov===0)return 0;return sc;
 }
 
-// gather a "recommendation span": from anchor node, include following etiología + treatment lists
-function span(sec, i){
-  const out=[i]; let seenUl=false, uls=0;
-  for(let j=i+1;j<sec.nodes.length && out.length<10;j++){
-    const n=sec.nodes[j];
-    if(n.t==="cap") break;
-    if(n.t==="p" && seenUl) break;                              // comment/next block after pauta
-    if(n.t==="p" && n.text.length>45 && !isOrg(n.text)) break;  // a new condition header
-    out.push(j);
-    if(n.t==="ul"){ seenUl=true; uls++; if(uls>=2) break; }
-  }
-  return out;
-}
-
-// ---------- rendering helpers ----------
-function esc(s){ return s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
-function hl(s, toks){
-  let h=esc(s);
-  if(!toks.length) return h;
-  const pat = toks.filter(t=>t.length>=3).map(t=>t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).sort((a,b)=>b.length-a.length);
-  if(!pat.length) return h;
-  // build accent-insensitive-ish regex on the raw (works for plain ascii tokens)
-  try{
-    const re=new RegExp("("+pat.join("|")+")","gi");
-    // apply on a de-accented shadow to find ranges is complex; simple approach: highlight ascii matches
-    h=h.replace(re, "<mark>$1</mark>");
-  }catch(e){}
-  return h;
-}
-function nodeHTML(n, toks){
-  if(n.t==="ul") return "<ul>"+n.items.map(x=>"<li>"+hl(x,toks)+"</li>").join("")+"</ul>";
-  if(n.t==="sub") return '<div class="sub">'+hl(n.text,toks)+"</div>";
-  if(n.t==="cap") return '<div class="cap">'+esc(n.text)+"</div>";
-  return "<p>"+hl(n.text,toks)+"</p>";
-}
-function nodesHTML(sec, idxs, toks){
-  return '<div class="nodes">'+idxs.map(i=>nodeHTML(sec.nodes[i],toks)).join("")+"</div>";
-}
-function allNodesHTML(sec, toks){
-  return '<div class="nodes">'+sec.nodes.map(n=>nodeHTML(n,toks)).join("")+"</div>";
-}
-
-// ---------- render diagnosis result ----------
 function renderDx(q){
-  const toks=tokens(q);
-  const ranked = DATA.map(s=>({s,sc:scoreSection(s,toks,q)}))
-                     .filter(x=>x.sc>0).sort((a,b)=>b.sc-a.sc).slice(0,6);
-  if(!ranked.length){ $("out").innerHTML=noRes(q); return; }
-  let html=`<div class="count">${ranked.length} resultado${ranked.length>1?"s":""} · ordenados por relevancia</div>`;
-  ranked.forEach(({s})=>{
-    // topic query: the section title/alias already IS the diagnosis -> show the whole
-    // section (it is the answer). Narrow extraction only for a specific sub-condition
-    // inside a multi-condition section (e.g. "apendicitis con peritonitis" in "Infección intraabdominal").
-    const topic = toks.length>0 && toks.every(t=>s._title.includes(t));
-    const bi = topic ? -1 : bestNode(s,toks);
-    let reco="", open=false;
-    if(bi>=0){
-      reco=`<div class="reco"><div class="rt">✓ Pauta de la guía · condición más parecida</div>${nodesHTML(s,span(s,bi),toks)}</div>`;
-    } else {
-      open = true;   // no narrow pauta -> open the full section directly
-    }
-    html+=`<div class="res">
-      <div class="rhead"><span class="cat">${esc(s.cat)}</span><h2>${esc(s.title)}</h2></div>
-      ${reco}
-      <details class="full"${open?" open":""}><summary><span class="cv">›</span>${open?"Contenido de la guía":"Ver sección completa de la guía"}</summary>${allNodesHTML(s,toks)}</details>
-    </div>`;
-  });
-  $("out").innerHTML=html;
+  const ts=toks(q);
+  const r=COND.map(c=>({c,sc:scoreCond(c,ts,q)})).filter(x=>x.sc>0).sort((a,b)=>b.sc-a.sc).slice(0,7);
+  if(!r.length){$("out").innerHTML=noRes(q);return;}
+  $("out").innerHTML=`<div class="count">${r.length} resultado${r.length>1?"s":""} · el más relevante primero</div>`+
+    r.map(x=>condCard(x.c,ts)).join("");
 }
-
-// ---------- render bacteria result ----------
 function renderBac(q){
-  const toks=tokens(q);
-  if(!toks.length){ $("out").innerHTML=noRes(q); return; }
-  // find node hits across corpus
-  const hits=[];
-  DATA.forEach(s=>{
-    s._nn.forEach((tx,i)=>{
-      let s0=0; for(const t of toks){ if(tx.includes(t)) s0+=(tx.split(t).length-1); }
-      if(s0>0){
-        // boost microorganism-specific sections and directed-treatment context
-        let boost = s.cat==="Microorganismos específicos" ? 3 : 0;
-        const around = (s._nn[i]+" "+(s._nn[i+1]||"")+" "+(s._nn[i-1]||""));
-        if(around.includes("dirigid")) boost+=1.5;
-        hits.push({s,i,sc:s0+boost});
-      }
-    });
-  });
-  if(!hits.length){ $("out").innerHTML=noRes(q); return; }
-  // group by section, keep best hit per section, rank sections
-  const bySec={};
-  hits.forEach(h=>{ const k=h.s.id; if(!bySec[k]||h.sc>bySec[k].sc) bySec[k]=h; });
-  const secs=Object.values(bySec).sort((a,b)=>b.sc-a.sc).slice(0,7);
-  const plural=secs.length>1;
-  let html=`<div class="count">${secs.length} ${plural?"secciones":"sección"} de la guía ${plural?"mencionan":"menciona"} «${esc(q)}»</div>`;
-  secs.forEach(h=>{
-    const s=h.s;
-    // collect up to 2 relevant spans in this section
-    const anchorList = hits.filter(x=>x.s.id===s.id).sort((a,b)=>b.sc-a.sc);
-    const used=new Set(); const parts=[];
-    for(const a of anchorList){
-      if(parts.length>=2) break;
-      if(used.has(a.i)) continue;
-      const sp=span(s,a.i); sp.forEach(x=>used.add(x));
-      parts.push(nodesHTML(s,sp,toks));
-    }
-    html+=`<div class="res">
-      <div class="rhead"><span class="cat">${esc(s.cat)}</span><h2>${esc(s.title)}</h2></div>
-      <div class="reco bact"><div class="rt">🦠 Menciones y pauta dirigida · texto de la guía</div>${parts.join('<div style="height:8px"></div>')}</div>
-      <details class="full"><summary><span class="cv">›</span>Ver sección completa de la guía</summary>${allNodesHTML(s,toks)}</details>
-    </div>`;
-  });
-  $("out").innerHTML=html;
+  const ts=toks(q);
+  if(!ts.length){browse();return;}
+  const r=PATH.map(p=>({p,sc:scorePath(p,ts,q)})).filter(x=>x.sc>0).sort((a,b)=>b.sc-a.sc).slice(0,6);
+  if(!r.length){$("out").innerHTML=noResBac(q);return;}
+  $("out").innerHTML=`<div class="count">${r.length} patógeno${r.length>1?"s":""}</div>`+r.map(x=>pathCard(x.p,ts)).join("");
 }
+function noRes(q){return `<div class="empty">Sin coincidencias para <b>${esc(q)}</b>.<br>Prueba con otro diagnóstico o toca un ejemplo.</div>`;}
+function noResBac(q){return `<div class="empty">Sin coincidencias para <b>${esc(q)}</b>.<br>Prueba con el nombre del microorganismo o toca un ejemplo.</div>`;}
 
-function noRes(q){
-  return `<div class="empty">Sin coincidencias para <b>${esc(q)}</b>.<br>Prueba con otro término (${mode==="dx"?"diagnóstico":"bacteria"}) o usa los ejemplos de arriba.<br><br>La guía cubre ${DATA.length} apartados; no incluye todos los detalles del documento original.</div>`;
-}
-
-// ---------- browse (empty query) ----------
-function renderBrowse(){
+function browse(){
   if(mode==="bac"){
-    $("out").innerHTML=`<div class="empty">Escribe una <b>bacteria</b> o toca un ejemplo.<br>La búsqueda recorre todo el texto de la guía (etiología, tratamiento dirigido y microorganismos específicos).</div>`;
-    return;
+    $("out").innerHTML=`<div class="count">Patógenos disponibles</div><div class="browse"><div class="grp">`+
+      PATH.map(p=>`<div class="item" data-go="${esc(p.aliases[0]||p.name)}"><span>${esc(p.name)}</span><span class="arr">›</span></div>`).join("")+`</div></div>`;
+  }else{
+    const cats={};COND.forEach(c=>{(cats[c.cat]=cats[c.cat]||[]).push(c)});
+    let h='<div class="count">Explorar por diagnóstico</div><div class="browse">';
+    Object.keys(cats).forEach(cat=>{h+=`<div class="grp"><h3>${esc(cat)}</h3>`;
+      cats[cat].forEach(c=>{h+=`<div class="item" data-go="${esc(c.aliases[0]||c.name)}"><span>${esc(c.name)}</span><span class="arr">›</span></div>`});h+="</div>";});
+    $("out").innerHTML=h+"</div>";
   }
-  const cats={};
-  DATA.forEach(s=>{ (cats[s.cat]=cats[s.cat]||[]).push(s); });
-  let html='<div class="count">Explorar todos los apartados</div><div class="browse">';
-  Object.keys(cats).forEach(c=>{
-    html+=`<div class="grp"><h3>${esc(c)}</h3>`;
-    cats[c].forEach(s=>{ html+=`<div class="item" data-go="${esc(s.title)}"><span>${esc(s.title)}</span><span class="arr">›</span></div>`; });
-    html+="</div>";
-  });
-  html+="</div>";
-  $("out").innerHTML=html;
-  $("out").querySelectorAll("[data-go]").forEach(el=>el.onclick=()=>{ setQuery(el.dataset.go); });
+  $("out").querySelectorAll("[data-go]").forEach(el=>el.onclick=()=>setQ(el.dataset.go));
 }
-
-// ---------- controllers ----------
 function render(){
   const q=$("q").value.trim();
-  $("clr").classList.toggle("show", q.length>0);
-  buildChips();
-  if(!q){ renderBrowse(); return; }
-  if(mode==="dx") renderDx(q); else renderBac(q);
+  $("clr").classList.toggle("show",q.length>0);
+  const ex=mode==="dx"?EX_DX:EX_BAC;
+  $("hint").textContent=mode==="dx"?"Ejemplos de diagnóstico:":"Ejemplos de bacteria:";
+  $("chips").innerHTML=ex.map(e=>`<span class="chip${mode==="bac"?" bact":""}" data-ex="${esc(e)}">${esc(e)}</span>`).join("");
+  $("chips").querySelectorAll("[data-ex]").forEach(el=>el.onclick=()=>setQ(el.dataset.ex));
+  if(!q){browse();return;}
+  mode==="dx"?renderDx(q):renderBac(q);
 }
-function buildChips(){
-  const ex = mode==="dx"?EXAMPLES_DX:EXAMPLES_BAC;
-  $("hint").textContent = mode==="dx" ? "Ejemplos de diagnóstico:" : "Ejemplos de bacteria:";
-  $("chips").innerHTML = ex.map(e=>`<span class="chip${mode==="bac"?" bact":""}" data-ex="${esc(e)}">${esc(e)}</span>`).join("");
-  $("chips").querySelectorAll("[data-ex]").forEach(el=>el.onclick=()=>setQuery(el.dataset.ex));
-}
-function setQuery(v){ $("q").value=v; render(); window.scrollTo({top:0,behavior:"smooth"}); }
-
-let t=null;
-$("q").addEventListener("input",()=>{ clearTimeout(t); t=setTimeout(render,120); });
-$("clr").onclick=()=>{ $("q").value=""; render(); $("q").focus(); };
+function setQ(v){$("q").value=v;render();window.scrollTo({top:0,behavior:"smooth"});}
+let tmr=null;
+$("q").addEventListener("input",()=>{clearTimeout(tmr);tmr=setTimeout(render,110)});
+$("clr").onclick=()=>{$("q").value="";render();$("q").focus()};
 $("modes").querySelectorAll("button").forEach(b=>b.onclick=()=>{
-  mode=b.dataset.mode;
-  $("modes").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));
-  $("q").placeholder = mode==="dx" ? "Escribe un diagnóstico…" : "Escribe una bacteria…";
-  render();
-});
-
-$("glossbody").innerHTML = GLOSS.map(g=>`<div class="row"><div class="ab">${esc(g[0])}</div><div class="df">${esc(g[1])}</div></div>`).join("");
+  mode=b.dataset.mode;$("modes").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));
+  $("q").placeholder=mode==="dx"?"Ej. apendicitis con peritonitis":"Ej. Pseudomonas";render();});
+$("glossbody").innerHTML=GLOSS.map(g=>`<div class="row"><div class="ab">${esc(g[0])}</div><div class="df">${esc(g[1])}</div></div>`).join("");
 </script>
 </body>
 </html>
