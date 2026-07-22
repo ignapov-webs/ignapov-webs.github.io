@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ADARNAT">
+<title>Ensayo ADARNAT · Información a la paciente y criterios de selección</title>
+<style>
+  :root{
+    --bg:#f7f7f5; --card:#ffffff; --ink:#1f1f1d; --muted:#6b6b66;
+    --line:#e4e3dd; --accent:#0c447c; --accent-bg:#e6f1fb;
+    --green:#27500a; --green-bg:#eaf3de;
+    --amber:#854f0b; --amber-bg:#faeeda;
+    --red:#791f1f; --red-bg:#fcebeb;
+    --pink:#993556; --pink-bg:#fbeaf0;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.55;padding:0 0 60px}
+  .wrap{max-width:720px;margin:0 auto;padding:18px}
+  header{padding:24px 18px 8px}
+  h1{font-size:1.45rem;font-weight:600;margin:0 0 4px;letter-spacing:-.01em}
+  .sub{color:var(--muted);font-size:.95rem;margin:0}
+  .tag{display:inline-block;font-size:.72rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
+    color:var(--accent);background:var(--accent-bg);padding:3px 9px;border-radius:20px;margin-bottom:10px}
+  .vers{display:inline-block;font-size:.7rem;font-weight:600;color:var(--green);background:var(--green-bg);
+    padding:2px 8px;border-radius:6px;margin-top:8px}
+  .tabs{display:flex;gap:6px;margin:6px 0 14px;flex-wrap:wrap}
+  .tab{flex:1;min-width:110px;text-align:center;padding:10px;border:1px solid var(--line);background:var(--card);
+    border-radius:10px;font-size:.9rem;font-weight:500;cursor:pointer;color:var(--muted)}
+  .tab.on{color:var(--accent);border-color:var(--accent);background:var(--accent-bg)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:14px}
+  .secttl{font-size:.74rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);
+    margin:0 0 14px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  .q{margin-bottom:18px}
+  .q:last-child{margin-bottom:0}
+  .q .label{font-weight:600;font-size:.98rem;margin-bottom:9px;display:block}
+  .q .hint{color:var(--muted);font-size:.82rem;font-weight:400;display:block;margin-top:3px}
+  .opts{display:flex;gap:8px;flex-wrap:wrap}
+  .opt{flex:1;min-width:86px;padding:11px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;
+    text-align:center;font-size:.88rem;cursor:pointer;transition:.12s;user-select:none}
+  .opt:hover{border-color:#bbb}
+  .opt.sel{border-color:var(--accent);background:var(--accent-bg);color:var(--accent);font-weight:600}
+  .chk{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer;font-size:.9rem}
+  .chk:last-child{border-bottom:none}
+  .chk input{margin:3px 0 0;width:17px;height:17px;flex-shrink:0;accent-color:var(--red)}
+  .btnrow{display:flex;gap:10px;margin-top:6px}
+  button.act{flex:1;padding:14px;border:none;border-radius:12px;background:var(--accent);color:#fff;
+    font-size:1rem;font-weight:600;cursor:pointer}
+  button.ghost{flex:0 0 auto;padding:14px 18px;border:1px solid var(--line);border-radius:12px;background:#fff;
+    color:var(--muted);font-size:1rem;cursor:pointer}
+  .result{display:none;margin-top:4px}
+  .verdict{border-radius:var(--radius);padding:18px;margin-bottom:14px;border:1px solid}
+  .verdict h2{font-size:1.2rem;margin:0 0 6px;font-weight:600}
+  .verdict p{margin:0;font-size:.95rem}
+  .v-green{background:var(--green-bg);border-color:#c0dd97;color:var(--green)}
+  .v-amber{background:var(--amber-bg);border-color:#fac775;color:var(--amber)}
+  .v-red{background:var(--red-bg);border-color:#f7c1c1;color:var(--red)}
+  .reasons{list-style:none;padding:0;margin:10px 0 0}
+  .reasons li{padding:7px 0 7px 26px;position:relative;font-size:.9rem;border-top:1px solid rgba(0,0,0,.06)}
+  .reasons li::before{position:absolute;left:0;top:7px;font-weight:700}
+  .reasons li.ok::before{content:"✓";color:var(--green)}
+  .reasons li.no::before{content:"✕";color:var(--red)}
+  .reasons li.warn::before{content:"!";color:var(--amber)}
+  h3.sec{font-size:1rem;font-weight:600;margin:0 0 10px}
+  .pac{font-size:1.05rem;line-height:1.72}
+  .pac h2{font-size:1.15rem;font-weight:600;margin:0 0 10px;color:var(--accent)}
+  .pac p{margin:0 0 12px}
+  .pac p:last-child{margin-bottom:0}
+  .arms{display:flex;gap:10px;margin:14px 0;flex-wrap:wrap}
+  .arm{flex:1;min-width:170px;border:1px solid var(--line);border-radius:12px;padding:14px;background:#fff}
+  .arm .n{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+  .arm.a .n{color:var(--accent)} .arm.b .n{color:var(--pink)}
+  .arm .t{font-weight:600;margin-bottom:5px;font-size:.98rem}
+  .arm .d{font-size:.88rem;color:var(--muted);line-height:1.5}
+  .keypt{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);align-items:flex-start}
+  .keypt:last-child{border-bottom:none}
+  .keypt .ic{font-size:1.3rem;flex-shrink:0;line-height:1.3}
+  .keypt .tx{font-size:.95rem}
+  .keypt .tx b{display:block;margin-bottom:2px}
+  .quote{background:var(--accent-bg);border-radius:12px;padding:14px 16px;font-size:.98rem;margin:14px 0;color:var(--accent)}
+  details{border:1px solid var(--line);border-radius:10px;margin-bottom:10px;background:#fff}
+  summary{padding:13px 16px;font-weight:600;cursor:pointer;font-size:.95rem}
+  details[open] summary{border-bottom:1px solid var(--line)}
+  .det-body{padding:14px 16px;font-size:.9rem}
+  .ref{font-size:.86rem;padding:10px 0;border-bottom:1px solid var(--line)}
+  .ref:last-child{border:none}
+  .ref b{color:var(--accent)}
+  .new{background:var(--green-bg);color:var(--green);font-size:.68rem;font-weight:700;padding:1px 6px;border-radius:5px;margin-left:6px;text-transform:uppercase}
+  .warnbox{background:var(--amber-bg);border:1px solid #fac775;color:var(--amber);border-radius:12px;padding:14px 16px;font-size:.88rem;margin-bottom:14px}
+  .disc{font-size:.78rem;color:var(--muted);padding:14px 4px;line-height:1.5}
+  .page{display:none} .page.on{display:block}
+  table{width:100%;border-collapse:collapse;font-size:.85rem;margin-top:8px}
+  th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600}
+</style>
+</head>
+<body>
+<header class="wrap">
+  <span class="tag">Ensayo clínico · Unidad de Patología Mamaria</span>
+  <h1>Ensayo ADARNAT</h1>
+  <p class="sub">Radioterapia axilar frente a linfadenectomía en cáncer de mama con ganglio centinela positivo tras tratamiento neoadyuvante. NCT04889924 · PR148/21.</p>
+  <span class="vers">Protocolo versión 6 · 14-sep-2023</span>
+</header>
+
+<div class="wrap">
+  <div class="tabs">
+    <div class="tab on" data-page="pac">Para la paciente</div>
+    <div class="tab" data-page="cand">¿Es candidata?</div>
+    <div class="tab" data-page="est">El estudio</div>
+  </div>
+
+  <!-- ══════════ PARA LA PACIENTE ══════════ -->
+  <div class="page on" id="pac">
+    <div class="card pac">
+      <h2>¿Qué estamos investigando?</h2>
+      <p>Cuando el cáncer de mama ha llegado a los ganglios de la axila, el tratamiento habitual ha sido <b>quitar todos los ganglios de la axila</b>. Es una operación eficaz, pero puede dejar secuelas: hinchazón del brazo (lo que llamamos linfedema), menos movilidad en el hombro o molestias duraderas.</p>
+      <p>Hoy sabemos que, en muchas pacientes, <b>la radioterapia sobre la axila consigue el mismo control de la enfermedad</b> que quitar los ganglios, pero con muchas menos secuelas. Esto ya está demostrado en mujeres que se operan directamente, sin tratamiento previo.</p>
+      <p>Lo que <b>todavía no sabemos</b> es si ocurre lo mismo en mujeres que han recibido antes quimioterapia u hormonoterapia. Eso es exactamente lo que quiere responder este estudio.</p>
+      <p>La pregunta principal es si <b>la radioterapia consigue reducir a la mitad la hinchazón del brazo</b>, manteniendo el mismo control de la enfermedad.</p>
+    </div>
+
+    <div class="card pac">
+      <h2>¿Qué le proponemos?</h2>
+      <p>Si usted acepta participar, tras la cirugía se decidirá <b>al azar</b>, como al lanzar una moneda, cuál de estos dos tratamientos recibirá en la axila:</p>
+      <div class="arms">
+        <div class="arm a">
+          <div class="n">Opción A</div>
+          <div class="t">Radioterapia axilar</div>
+          <div class="d">No se le quitan más ganglios. Se trata la axila con radioterapia.</div>
+        </div>
+        <div class="arm b">
+          <div class="n">Opción B</div>
+          <div class="t">Linfadenectomía</div>
+          <div class="d">Se le quitan los ganglios de la axila, que es el tratamiento habitual hoy.</div>
+        </div>
+      </div>
+      <p><b>Los dos son tratamientos que ya usamos normalmente</b> y que consideramos igual de válidos. Precisamente porque no sabemos cuál es mejor, la elección se hace al azar: si supiéramos que uno es superior, no haríamos el estudio.</p>
+      <p>En ambos casos recibirá también radioterapia en la zona de encima de la clavícula, como se hace habitualmente.</p>
+    </div>
+
+    <div class="card pac">
+      <h2>¿Qué puede ganar?</h2>
+      <div class="keypt"><span class="ic">✓</span><span class="tx"><b>Puede ahorrarse una segunda operación</b>La mitad de las participantes no necesitarán que les quiten los ganglios.</span></div>
+      <div class="keypt"><span class="ic">✓</span><span class="tx"><b>Menos riesgo de secuelas en el brazo</b>Menos linfedema y menos limitación del hombro, y por tanto mejor calidad de vida.</span></div>
+      <div class="keypt"><span class="ic">✓</span><span class="tx"><b>Ayuda a las pacientes que vengan después</b>Los resultados pueden cambiar cómo se trata a miles de mujeres en el futuro.</span></div>
+    </div>
+
+    <div class="card pac">
+      <h2>¿Qué riesgos tiene?</h2>
+      <p>Consideramos que es un estudio <b>de riesgo bajo</b>, porque los dos tratamientos son los que ya empleamos en la práctica habitual, y porque seleccionamos con mucho cuidado a quién se lo proponemos.</p>
+      <p>El riesgo teórico es que, si nuestra hipótesis resultara equivocada, las pacientes que reciben solo radioterapia podrían tener <b>algo más de riesgo de que la enfermedad reaparezca en la axila</b>. Creemos que esa posibilidad es pequeña, y por eso solo participan mujeres en las que:</p>
+      <div class="keypt"><span class="ic">·</span><span class="tx">Las pruebas de imagen tras el tratamiento muestran que <b>los ganglios han respondido</b>, de forma parcial o completa.</span></div>
+      <div class="keypt"><span class="ic">·</span><span class="tx">Hay como mucho <b>uno o dos ganglios afectados</b>, y de poco volumen.</span></div>
+      <div class="keypt"><span class="ic">·</span><span class="tx">Es, por tanto, <b>muy poco probable que queden más ganglios enfermos</b> en el resto de la axila.</span></div>
+      <p style="margin-top:12px">La radioterapia que se administra es exactamente la misma, en dosis y en técnica, que la que damos fuera del estudio. No supone más toxicidad.</p>
+    </div>
+
+    <div class="card pac">
+      <h2>Su decisión es libre</h2>
+      <div class="quote">Participar es <b>voluntario</b>. Si prefiere no hacerlo, recibirá el mejor tratamiento disponible exactamente igual, y su atención no cambiará en nada.</div>
+      <div class="keypt"><span class="ic">·</span><span class="tx">Puede <b>retirarse cuando quiera</b>, sin dar explicaciones y sin que afecte a su tratamiento ni a su relación con el equipo.</span></div>
+      <div class="keypt"><span class="ic">·</span><span class="tx">Antes de entrar se le pedirá que <b>firme un consentimiento informado</b>, después de leerlo con calma y de resolver todas sus dudas.</span></div>
+      <div class="keypt"><span class="ic">·</span><span class="tx">Sus <b>datos son confidenciales</b>: se identifica con un código, nunca con su nombre.</span></div>
+      <div class="keypt"><span class="ic">·</span><span class="tx">Se le hará un <b>seguimiento de 5 años</b>, con revisiones parecidas a las habituales, más controles del brazo y del hombro por Rehabilitación.</span></div>
+      <div class="keypt"><span class="ic">·</span><span class="tx">El estudio cuenta con un <b>seguro de responsabilidad civil</b> y con la aprobación del comité de ética.</span></div>
+      <div class="keypt"><span class="ic">·</span><span class="tx">Si finalmente <b>no puede entrar en el sorteo</b>, le pediremos permiso para registrar igualmente sus datos de forma anónima, para ayudar a ampliar en el futuro quién puede beneficiarse.</span></div>
+      <p style="margin-top:14px">Tómese el tiempo que necesite. Puede comentarlo en casa y traernos las dudas en la siguiente visita.</p>
+    </div>
+
+    <a href="hoja.html" style="display:block;text-decoration:none;background:var(--accent);color:#fff;
+      border-radius:var(--radius);padding:16px 18px;text-align:center;font-weight:600;font-size:1rem;margin-bottom:14px">
+      Hoja informativa imprimible →
+      <span style="display:block;font-weight:400;font-size:.85rem;opacity:.85;margin-top:3px">Resumen en A4 para entregar en consulta</span>
+    </a>
+    <p style="font-size:.82rem;color:var(--muted);margin:0 0 4px;padding:0 4px">
+      La hoja es un resumen informativo de apoyo. <b>No es el consentimiento informado</b> ni lo sustituye: el documento
+      oficial aprobado por el CEIC es el que la paciente debe leer y firmar.
+    </p>
+  </div>
+
+  <!-- ══════════ ¿ES CANDIDATA? ══════════ -->
+  <div class="page" id="cand">
+    <div class="warnbox">Criterios del <b>protocolo versión 6 (14-sep-2023)</b>. Seleccione lo que ya conozca: los datos de cirugía y anatomía patológica pueden dejarse en <b>«Pendiente»</b> si aún no se ha operado.</div>
+
+    <div class="card">
+      <p class="secttl">A · Al diagnóstico</p>
+      <div class="q">
+        <span class="label">1 · Edad</span>
+        <div class="opts" data-q="edad"><div class="opt" data-v="ok">≥ 18 años</div><div class="opt" data-v="no">&lt; 18 años</div></div>
+      </div>
+      <div class="q">
+        <span class="label">2 · Estado general<span class="hint">Karnofsky ≥ 70 % y Barthel ≥ 60 puntos</span></span>
+        <div class="opts" data-q="ps"><div class="opt" data-v="ok">Cumple</div><div class="opt" data-v="no">No cumple</div></div>
+      </div>
+      <div class="q">
+        <span class="label">3 · Afectación ganglionar clínica al diagnóstico<span class="hint">Criterio v6: cT1–cT4 cN0 o cT0–cT4 cN1. La sospecha de N1 debe confirmarse con PAAF o BAG.</span></span>
+        <div class="opts" data-q="cn">
+          <div class="opt" data-v="cn0">cN0</div>
+          <div class="opt" data-v="cn1">cN1</div>
+          <div class="opt" data-v="cn2">cN2</div>
+        </div>
+      </div>
+      <div class="q">
+        <span class="label">4 · ¿Carcinoma inflamatorio (cT4d)?</span>
+        <div class="opts" data-q="t4d"><div class="opt" data-v="no">No</div><div class="opt" data-v="si">Sí</div></div>
+      </div>
+      <div class="q">
+        <span class="label">5 · Adenopatías sospechosas en ecografía axilar<span class="hint">Criterios de Bedi: sospechosa si BEDI ≥ 3, o a criterio del radiólogo en casos dudosos.</span></span>
+        <div class="opts" data-q="aden">
+          <div class="opt" data-v="0_3">0–3</div>
+          <div class="opt" data-v="4_5">4–5</div>
+          <div class="opt" data-v="mas">&gt; 5</div>
+        </div>
+      </div>
+      <div class="q">
+        <span class="label">6 · Subtipo molecular subrogado</span>
+        <div class="opts" data-q="subtipo">
+          <div class="opt" data-v="lum">Luminal A / B</div>
+          <div class="opt" data-v="her2">HER2+</div>
+          <div class="opt" data-v="tn">Triple negativo</div>
+        </div>
+      </div>
+      <div class="q">
+        <span class="label">7 · Tipo histológico</span>
+        <div class="opts" data-q="histo"><div class="opt" data-v="nst">Infiltrante NST</div><div class="opt" data-v="lob">Lobulillar</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="secttl">B · Tratamiento neoadyuvante</p>
+      <div class="q">
+        <span class="label">8 · Tipo de neoadyuvancia<span class="hint">La v6 admite hormonoterapia tanto en cN0 como en cN1.</span></span>
+        <div class="opts" data-q="nat"><div class="opt" data-v="qmt">Quimioterapia</div><div class="opt" data-v="htp">Hormonoterapia</div></div>
+      </div>
+      <div class="q">
+        <span class="label">9 · ¿Tratamiento completado?<span class="hint">Mínimo 4 ciclos de quimioterapia o 6 meses de hormonoterapia. Si hubo toxicidad que obligó a suspender, se admiten 3 meses de quimioterapia.</span></span>
+        <div class="opts" data-q="compl"><div class="opt" data-v="si">Sí</div><div class="opt" data-v="no">No</div><div class="opt" data-v="pend">Pendiente</div></div>
+      </div>
+      <div class="q">
+        <span class="label">10 · Respuesta axilar por imagen tras la neoadyuvancia<span class="hint">Ecografía axilar o RMN. Basta con respuesta parcial; no es necesaria respuesta completa.</span></span>
+        <div class="opts" data-q="resp">
+          <div class="opt" data-v="si">Respuesta parcial o completa</div>
+          <div class="opt" data-v="no">Sin respuesta</div>
+          <div class="opt" data-v="prog">Progresión</div>
+          <div class="opt" data-v="pend">Pendiente</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="secttl">C · Cirugía y anatomía patológica</p>
+      <div class="q">
+        <span class="label">11 · Ganglios extraídos en el GC o TAD<span class="hint">Si cN1: ganglio marcado + centinela, o ≥ 3 centinelas si ninguno llevaba marcaje. Con técnica combinada o verde de indocianina, ≥ 3 ganglios. En todos los casos, menos de 8 en total.</span></span>
+        <div class="opts" data-q="numgg">
+          <div class="opt" data-v="ok">Adecuado</div>
+          <div class="opt" data-v="pocos">Insuficiente</div>
+          <div class="opt" data-v="muchos">&gt; 8 ganglios</div>
+          <div class="opt" data-v="pend">Pendiente</div>
+        </div>
+      </div>
+      <div class="q">
+        <span class="label">12 · Ganglios afectos en la AP definitiva<span class="hint">Micro y macrometástasis cuentan como afectos, <b>haya o no rotura extracapsular</b>. Las células tumorales aisladas (ypN0i+) cuentan como ganglio NEGATIVO.</span></span>
+        <div class="opts" data-q="afectos">
+          <div class="opt" data-v="1_2">1–2 afectos</div>
+          <div class="opt" data-v="0">Ninguno</div>
+          <div class="opt" data-v="3mas">≥ 3 afectos</div>
+          <div class="opt" data-v="pend">Pendiente</div>
+        </div>
+      </div>
+      <div class="q">
+        <span class="label">13 · Si es lobulillar: ¿hay algún ganglio negativo además del o de los afectos?</span>
+        <div class="opts" data-q="lobneg"><div class="opt" data-v="si">Sí</div><div class="opt" data-v="no">No</div><div class="opt" data-v="na">No aplica / pendiente</div></div>
+      </div>
+      <div class="q">
+        <span class="label">14 · Ganglio centinela extra-axilar positivo (intramamario o mamaria interna) con centinela axilar negativo</span>
+        <div class="opts" data-q="extraax"><div class="opt" data-v="no">No</div><div class="opt" data-v="si">Sí</div><div class="opt" data-v="pend">Pendiente</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="secttl">D · Antecedentes y situación clínica</p>
+      <p style="font-size:.88rem;color:var(--muted);margin:0 0 6px">Marque los que estén presentes. Cualquiera de ellos excluye a la paciente.</p>
+      <label class="chk"><input type="checkbox" class="ex" data-t="Cirugía mamaria por cáncer ipsilateral en los últimos 10 años"><span>Cirugía mamaria por cáncer ipsilateral en los últimos 10 años</span></label>
+      <label class="chk"><input type="checkbox" class="ex" data-t="Cirugía axilar previa"><span>Cirugía axilar previa</span></label>
+      <label class="chk"><input type="checkbox" class="ex" data-t="Irradiación mamaria o torácica previa que contraindique la radioterapia actual"><span>Irradiación mamaria o torácica previa que contraindique la RT actual</span></label>
+      <label class="chk"><input type="checkbox" class="ex" data-t="Radioterapia neoadyuvante"><span>Radioterapia neoadyuvante</span></label>
+      <label class="chk"><input type="checkbox" class="ex" data-t="Otro cáncer en los últimos 5 años"><span>Otro cáncer en los últimos 5 años (salvo escamoso de piel o basocelular)</span></label>
+      <label class="chk"><input type="checkbox" class="ex" data-t="Tumor bilateral con lado contralateral de peor pronóstico"><span>Tumor bilateral con el lado contralateral de peor pronóstico</span></label>
+      <label class="chk"><input type="checkbox" class="ex" data-t="Comorbilidades que condicionan baja esperanza de vida"><span>Comorbilidades que condicionan baja esperanza de vida</span></label>
+      <label class="chk"><input type="checkbox" class="ex" data-t="Participación en otro ensayo cuyo endpoint sea la recidiva axilar"><span>Participa en otro ensayo cuyo <i>endpoint</i> sea la recidiva axilar</span></label>
+      <label class="chk"><input type="checkbox" class="ex" data-t="Embarazo o lactancia"><span>Embarazo o lactancia</span></label>
+    </div>
+
+    <div class="card">
+      <div class="btnrow">
+        <button class="act" id="run">Evaluar candidatura</button>
+        <button class="ghost" id="reset">Limpiar</button>
+      </div>
+    </div>
+
+    <div class="result" id="result"></div>
+  </div>
+
+  <!-- ══════════ EL ESTUDIO ══════════ -->
+  <div class="page" id="est">
+    <div class="card">
+      <h3 class="sec">Ficha del ensayo <span class="hint" style="font-weight:400;color:var(--muted);font-size:.82rem">· protocolo v6, 14-sep-2023</span></h3>
+      <table>
+        <tr><th>Nombre</th><td><b>ADARNAT</b> — <i>Adjuvant Dissection, Axillary Radiotherapy and Neoadjuvant Therapy</i></td></tr>
+        <tr><th>Registro</th><td>ClinicalTrials.gov <b>NCT04889924</b> · CEIC Bellvitge <b>PR148/21</b></td></tr>
+        <tr><th>Diseño</th><td>Fase III, aleatorizado 1:1, abierto, multicéntrico, de <b>no inferioridad</b>, bajo nivel de intervención (BNI)</td></tr>
+        <tr><th>Muestra</th><td><b>820 pacientes</b> en 5 años: 410 tras quimioterapia + 410 tras hormonoterapia</td></tr>
+        <tr><th>Promotor</th><td>IDIBELL · Hospital Universitari de Bellvitge · Institut Català d'Oncologia</td></tr>
+        <tr><th>Brazo estudio</th><td>Radioterapia axilar <b>sin</b> linfadenectomía (niveles I–III de Berg y supraclavicular ± mamaria interna)</td></tr>
+        <tr><th>Brazo control</th><td>Linfadenectomía axilar niveles I–II, <b>mínimo 6 ganglios</b> (TAD + vaciamiento) + RT de nivel III y supraclavicular ± mamaria interna</td></tr>
+        <tr><th>Estratificación</th><td><b>Centro</b>, régimen neoadyuvante (QMT / HTP) y carga ganglionar (micro <i>vs</i> macrometástasis)</td></tr>
+        <tr><th>Objetivo principal</th><td><b>Linfedema</b>: evaluar si la RT axilar sin vaciamiento reduce a la mitad su aparición (15 % <i>vs</i> 28 % esperado)</td></tr>
+        <tr><th>Objetivos secundarios</th><td>No inferioridad en recidiva local, supervivencia libre de enfermedad y global; tiempo hasta el linfedema; impacto del subtipo molecular; limitación del arco articular y síndrome de red axilar; factores de riesgo; calidad de vida (EORTC QLQ-C30 y QLQ-BR23)</td></tr>
+        <tr><th>Estado</th><td>Fase piloto de 200 pacientes con <b>inclusión completada</b> (pendiente de seguimiento). Ensayo principal <b>en curso desde el 2-may-2023</b>; reclutamiento previsto hasta dic-2025 y seguimiento mínimo hasta dic-2028.</td></tr>
+        <tr><th>Cohorte paralela</th><td>Las pacientes que no cumplan criterios pueden registrarse, con su permiso, en una <b>cohorte observacional</b> para estudiar una futura ampliación de criterios</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3 class="sec">Contexto y evidencia</h3>
+      <details open>
+        <summary>La pregunta que responde <span class="new">clave</span></summary>
+        <div class="det-body">Z0011, AMAROS e IBCSG 23-01 permitieron omitir la linfadenectomía con 1–2 centinelas positivos, pero <b>solo en cirugía primaria</b>. En las pacientes que reciben neoadyuvancia y quedan con enfermedad ganglionar residual (ypN+), la linfadenectomía sigue siendo el estándar, y al sumarse a la radioterapia dispara el riesgo de linfedema. ADARNAT responde si la RT axilar puede sustituir al vaciamiento <b>en el escenario post-neoadyuvancia</b>, incluyendo también hormonoterapia, algo que el ensayo estadounidense Alliance A011202 no contempla.</div>
+      </details>
+      <details>
+        <summary>Cifras de referencia</summary>
+        <div class="det-body">
+          <table>
+            <tr><th>Parámetro</th><th>Valor</th></tr>
+            <tr><td>Linfedema esperado con RT axilar</td><td>15 %</td></tr>
+            <tr><td>Linfedema esperado con linfadenectomía</td><td>28 %</td></tr>
+            <tr><td>Diagnóstico de linfedema</td><td>Exceso de volumen &gt; 10 % (leve &lt; 20 %, moderado 20–40 %, severo &gt; 40 %)</td></tr>
+            <tr><td>Limitación del arco articular</td><td>Diferencia ≥ 10° respecto al lado contralateral</td></tr>
+            <tr><td>pCR axilar con neoadyuvancia</td><td>70–97 % HER2+ · 50–70 % triple negativo · 21–30 % luminal B HER2</td></tr>
+          </table>
+        </div>
+      </details>
+      <details>
+        <summary>Definiciones anatomopatológicas</summary>
+        <div class="det-body">
+          <table>
+            <tr><th>Categoría</th><th>Histología</th><th>OSNA</th></tr>
+            <tr><td>Células aisladas tumorales</td><td>≤ 0,2 mm</td><td>≤ 250 copias</td></tr>
+            <tr><td>Micrometástasis</td><td>&gt; 0,2 y &lt; 2 mm</td><td>&gt; 250 y &lt; 5.000</td></tr>
+            <tr><td>Macrometástasis</td><td>&gt; 2 mm</td><td>&gt; 5.000</td></tr>
+          </table>
+          <p style="margin:10px 0 0">Las <b>células aisladas tumorales cuentan como ganglio negativo</b> (ypN0i+). En estudio histológico se requiere al menos hematoxilina-eosina y una citoqueratina.</p>
+        </div>
+      </details>
+      <details>
+        <summary>Reducción de falsos negativos del centinela post-neoadyuvancia</summary>
+        <div class="det-body">El protocolo recoge que el examen axilar exhaustivo tras el tratamiento sistémico, el <b>doble trazador</b>, la obtención de <b>al menos 3 ganglios centinela</b> o la inclusión del <b>ganglio marcado con clip</b>, junto con el uso obligatorio de inmunohistoquímica, reducen la tasa de falsos negativos <b>del 10 % a cifras del 2–5 %</b>.</div>
+      </details>
+      <details>
+        <summary>⚠️ Puntos a confirmar con el investigador principal</summary>
+        <div class="det-body">
+          <p style="margin:0 0 10px">La versión 6 introduce dos ambigüedades respecto a versiones previas:</p>
+          <table>
+            <tr><th>Punto</th><th>Situación en la v6</th></tr>
+            <tr><td><b>cN2</b></td><td>Ya <b>no figura como criterio de exclusión</b> (la v2 sí lo excluía), pero los criterios de inclusión solo contemplan cN0 y cN1. El análisis de subgrupos, en cambio, menciona «cT1-T3 <i>vs</i> T4 y/o N2».</td></tr>
+            <tr><td><b>cT4d (inflamatorio)</b></td><td>Ya <b>no figura como criterio de exclusión</b> y la inclusión admite «T1-T4» sin restringir el subtipo. La v2 lo excluía expresamente.</td></tr>
+          </table>
+          <p style="margin:10px 0 0">Esta herramienta marca ambos casos como <b>«a confirmar»</b> en lugar de excluirlos de forma automática.</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="card">
+      <h3 class="sec">Fuentes</h3>
+      <div class="ref"><b>Protocolo ADARNAT PR148/21</b>, versión 6, 14 de septiembre de 2023. Documento operativo del ensayo. <span class="new">vigente</span></div>
+      <div class="ref"><b>Garcia-Tejedor A, et al.</b> Axillary lymph node dissection versus radiotherapy in breast cancer with positive sentinel nodes after neoadjuvant therapy (ADARNAT trial). <i>Front Oncol</i>. 2023;13:1184021.</div>
+      <div class="ref"><b>Giuliano AE, et al.</b> ACOSOG Z0011. <i>JAMA</i>. 2017;318:918–926.</div>
+      <div class="ref"><b>Donker M, et al.</b> AMAROS (EORTC 10981-22023). <i>Lancet Oncol</i>. 2014;15:1303–1310.</div>
+      <div class="ref"><b>Galimberti V, et al.</b> IBCSG 23-01. <i>Lancet Oncol</i>. 2013;14:297–305.</div>
+      <div class="ref"><b>Caudle AS, et al.</b> Targeted axillary dissection. <i>J Clin Oncol</i>. 2016;34:1072–1078.</div>
+      <div class="ref"><b>Bedi DG, et al.</b> Cortical morphologic features of axillary lymph nodes. <i>AJR</i>. 2008;191:646–652.</div>
+      <div class="ref"><b>van Nijnatten TJA, et al.</b> Pronóstico de la enfermedad axilar residual: CAT y micrometástasis frente a macrometástasis. <i>Breast Cancer Res Treat</i>. 2017;163:159–166.</div>
+    </div>
+  </div>
+
+  <p class="disc">Herramienta interna de apoyo para la consulta y para la información a la paciente, basada en el protocolo versión 6 (14-sep-2023). No sustituye al protocolo del ensayo, al consentimiento informado ni al juicio clínico. La inclusión definitiva y la aleatorización se realizan según el protocolo vigente en el centro, a través de la plataforma REDCap. Verifique siempre los criterios contra la última versión aprobada.</p>
+</div>
+
+<script>
+  var state={};
+  document.querySelectorAll('.opts').forEach(function(g){
+    g.addEventListener('click',function(e){
+      var o=e.target.closest('.opt'); if(!o)return;
+      g.querySelectorAll('.opt').forEach(function(x){x.classList.remove('sel')});
+      o.classList.add('sel'); state[g.dataset.q]=o.dataset.v;
+    });
+  });
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click',function(){
+      document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('on')});
+      document.querySelectorAll('.page').forEach(function(x){x.classList.remove('on')});
+      t.classList.add('on'); document.getElementById(t.dataset.page).classList.add('on');
+      window.scrollTo({top:0,behavior:'smooth'});
+    });
+  });
+  document.getElementById('reset').addEventListener('click',function(){
+    state={};
+    document.querySelectorAll('.opt').forEach(function(x){x.classList.remove('sel')});
+    document.querySelectorAll('.ex').forEach(function(x){x.checked=false});
+    document.getElementById('result').style.display='none';
+  });
+
+  document.getElementById('run').addEventListener('click',function(){
+    var need=['edad','ps','cn','t4d','aden','subtipo','histo','nat','compl','resp','numgg','afectos','lobneg','extraax'];
+    var falta=need.filter(function(k){return !state[k]});
+    var res=document.getElementById('result');
+    if(falta.length){
+      res.innerHTML='<div class="verdict v-amber"><h2>Faltan datos</h2><p>Responda a las '+need.length+' preguntas (use «Pendiente» donde aún no lo sepa). Quedan '+falta.length+' sin contestar.</p></div>';
+      res.style.display='block'; res.scrollIntoView({behavior:'smooth'}); return;
+    }
+
+    var excl=[], pend=[], avisos=[], confirmar=[];
+
+    // --- Exclusiones absolutas (v6) ---
+    if(state.edad==='no') excl.push('Menor de 18 años.');
+    if(state.ps==='no') excl.push('Estado general insuficiente (Karnofsky < 70 % o Barthel < 60).');
+    if(state.aden==='mas') excl.push('Más de 5 adenopatías sospechosas (BEDI ≥ 3) en la ecografía al diagnóstico.');
+    if(state.aden==='4_5' && state.subtipo==='lum')
+      excl.push('4–5 adenopatías sospechosas en un tumor luminal: solo se admiten 4–5 en HER2+ o triple negativo.');
+    if(state.compl==='no') excl.push('No ha completado el mínimo de neoadyuvancia (4 ciclos de QMT, o 3 meses si hubo toxicidad, o 6 meses de HTP).');
+    if(state.resp==='prog') excl.push('Progresión durante el tratamiento neoadyuvante.');
+    if(state.resp==='no') excl.push('Ausencia de respuesta axilar por imagen tras la neoadyuvancia.');
+    if(state.numgg==='pocos') excl.push('Número de ganglios extraídos insuficiente (ganglio marcado + centinela, o ≥ 3 centinelas si ninguno iba marcado).');
+    if(state.numgg==='muchos') excl.push('Más de 8 ganglios extraídos en el GC/TAD antes de la aleatorización.');
+    if(state.afectos==='3mas') excl.push('3 o más ganglios afectos en la anatomía patológica definitiva.');
+    if(state.histo==='lob' && state.lobneg==='no')
+      excl.push('Carcinoma lobulillar sin ningún ganglio negativo además del o de los afectos.');
+    if(state.extraax==='si') excl.push('Centinela extra-axilar positivo con centinela axilar negativo: no estaría indicada la linfadenectomía.');
+    document.querySelectorAll('.ex:checked').forEach(function(c){ excl.push(c.dataset.t+'.'); });
+
+    // --- Fuera del supuesto del ensayo ---
+    var noProcede = (state.afectos==='0');
+
+    // --- A confirmar con el IP (la v6 dejó de excluirlos explícitamente) ---
+    if(state.cn==='cn2') confirmar.push('<b>cN2 al diagnóstico</b>: los criterios de inclusión de la v6 solo contemplan cN0 y cN1, pero cN2 ya no figura como exclusión y el análisis de subgrupos lo menciona. Consultar con el investigador principal.');
+    if(state.t4d==='si') confirmar.push('<b>Carcinoma inflamatorio (cT4d)</b>: la v6 ya no lo excluye expresamente y admite «T1-T4». Consultar con el investigador principal.');
+
+    // --- Avisos y condicionantes ---
+    if(state.cn==='cn0' && state.afectos==='1_2')
+      avisos.push('Si la afectación es <b>micrometástasis o células aisladas tumorales</b> en paciente cN0, solo se incluye en centros que realicen linfadenectomía sistemática de forma asistencial.');
+    if(state.aden==='4_5' && (state.subtipo==='her2'||state.subtipo==='tn'))
+      avisos.push('4–5 adenopatías admitidas por ser '+(state.subtipo==='her2'?'HER2+':'triple negativo')+', siempre que la respuesta post-quimioterapia sea buena y siga siendo clínicamente N1.');
+    if(state.histo==='lob' && state.lobneg==='si')
+      avisos.push('Carcinoma lobulillar con algún ganglio negativo: cumple el requisito específico del protocolo.');
+
+    // --- Pendientes ---
+    if(state.compl==='pend') pend.push('completar el tratamiento neoadyuvante');
+    if(state.resp==='pend') pend.push('la valoración de respuesta axilar por imagen');
+    if(state.numgg==='pend') pend.push('el número de ganglios extraídos en la cirugía');
+    if(state.afectos==='pend') pend.push('el resultado de la anatomía patológica definitiva');
+    if(state.extraax==='pend') pend.push('el estado del centinela extra-axilar');
+    if(state.histo==='lob' && state.lobneg==='na') pend.push('si existe algún ganglio negativo (carcinoma lobulillar)');
+
+    var cohorte='<div class="card"><h3 class="sec">Cohorte observacional</h3><p style="font-size:.92rem;margin:0">Aunque no pueda aleatorizarse, el protocolo contempla solicitarle permiso para registrar sus datos clínicos en una <b>base de datos paralela</b>, con los mismos criterios de confidencialidad, con el fin de estudiar una futura ampliación de los criterios de inclusión.</p></div>';
+
+    var html='';
+    if(excl.length){
+      html+='<div class="verdict v-red"><h2>No candidata</h2><p>Presenta '+(excl.length===1?'un criterio de exclusión':excl.length+' criterios de exclusión')+'. Manejo axilar según la práctica asistencial habitual del centro.</p>';
+      html+='<ul class="reasons">'+excl.map(function(r){return '<li class="no">'+r+'</li>'}).join('')+'</ul></div>';
+      html+=cohorte;
+    } else if(noProcede){
+      html+='<div class="verdict v-amber"><h2>No procede</h2><p>Sin ganglios afectos en la anatomía patológica definitiva (ypN0). El ensayo exige 1 o 2 ganglios afectos, y en esta situación no estaría indicada la linfadenectomía.</p></div>';
+    } else if(confirmar.length){
+      html+='<div class="verdict v-amber"><h2>A confirmar con el investigador principal</h2><p>No presenta criterios de exclusión, pero su situación queda en una zona ambigua del protocolo v6.</p>';
+      html+='<ul class="reasons">'+
+        confirmar.map(function(r){return '<li class="warn">'+r+'</li>'}).join('')+
+        pend.map(function(r){return '<li class="warn">Pendiente: '+r+'.</li>'}).join('')+
+        avisos.map(function(r){return '<li class="warn">'+r+'</li>'}).join('')+
+        '</ul></div>';
+    } else if(pend.length){
+      html+='<div class="verdict v-amber"><h2>Candidata potencial</h2><p>No presenta ningún criterio de exclusión, pero la decisión definitiva queda pendiente. <b>Puede plantearse el consentimiento informado.</b></p>';
+      html+='<ul class="reasons">'+
+        '<li class="ok">Sin criterios de exclusión con los datos disponibles.</li>'+
+        pend.map(function(r){return '<li class="warn">Pendiente: '+r+'.</li>'}).join('')+
+        avisos.map(function(r){return '<li class="warn">'+r+'</li>'}).join('')+
+        '</ul></div>';
+    } else {
+      html+='<div class="verdict v-green"><h2>Candidata</h2><p>Cumple los criterios de inclusión y no presenta criterios de exclusión. <b>Procede consentimiento informado y aleatorización.</b></p>';
+      html+='<ul class="reasons">'+
+        '<li class="ok">Estadio, carga ganglionar y respuesta a la neoadyuvancia dentro de criterio.</li>'+
+        '<li class="ok">1–2 ganglios afectos con número de ganglios extraídos adecuado.</li>'+
+        '<li class="ok">Sin antecedentes ni situaciones excluyentes.</li>'+
+        avisos.map(function(r){return '<li class="warn">'+r+'</li>'}).join('')+
+        '</ul></div>';
+      html+='<div class="card"><h3 class="sec">Siguientes pasos</h3><ul class="reasons">'+
+        '<li class="ok">Explicar el estudio con el apartado «Para la paciente».</li>'+
+        '<li class="ok">Entregar y firmar el consentimiento informado.</li>'+
+        '<li class="ok">Aleatorizar en REDCap al introducir el nombre en el cuaderno electrónico (estratifica por centro, QMT/HTP y micro/macrometástasis).</li>'+
+        '<li class="ok">Valoración basal de Rehabilitación: circometría del brazo en 5 puntos y arco articular del hombro.</li>'+
+        '<li class="ok">Cuestionarios de calidad de vida EORTC QLQ-C30 y QLQ-BR23 (basal y anual durante 5 años).</li>'+
+        '<li class="ok">Si se aleatoriza a linfadenectomía: completar entre 2 y 8 semanas tras el TAD, preferentemente antes de 5, con un mínimo de 6 ganglios.</li>'+
+        '</ul></div>';
+    }
+    res.innerHTML=html; res.style.display='block'; res.scrollIntoView({behavior:'smooth'});
+  });
+</script>
+</body>
+</html>
