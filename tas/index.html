@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="TAS axilar">
+<title>Decisión TAS · Cirugía axilar a medida en cáncer de mama N+</title>
+<style>
+  :root{
+    --bg:#f7f7f5; --card:#ffffff; --ink:#1f1f1d; --muted:#6b6b66;
+    --line:#e4e3dd; --accent:#0c447c; --accent-bg:#e6f1fb;
+    --green:#27500a; --green-bg:#eaf3de;
+    --amber:#854f0b; --amber-bg:#faeeda;
+    --red:#791f1f; --red-bg:#fcebeb;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.55;padding:0 0 60px}
+  .wrap{max-width:720px;margin:0 auto;padding:18px}
+  header{padding:24px 18px 8px}
+  h1{font-size:1.45rem;font-weight:600;margin:0 0 4px;letter-spacing:-.01em}
+  .sub{color:var(--muted);font-size:.95rem;margin:0}
+  .tag{display:inline-block;font-size:.72rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
+    color:var(--accent);background:var(--accent-bg);padding:3px 9px;border-radius:20px;margin-bottom:10px}
+  .tabs{display:flex;gap:6px;margin:6px 0 14px;flex-wrap:wrap}
+  .tab{flex:1;min-width:120px;text-align:center;padding:10px;border:1px solid var(--line);background:var(--card);
+    border-radius:10px;font-size:.9rem;font-weight:500;cursor:pointer;color:var(--muted)}
+  .tab.on{color:var(--accent);border-color:var(--accent);background:var(--accent-bg)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:14px}
+  .q{margin-bottom:18px}
+  .q:last-child{margin-bottom:0}
+  .q .label{font-weight:600;font-size:.98rem;margin-bottom:9px;display:block}
+  .q .hint{color:var(--muted);font-size:.82rem;font-weight:400}
+  .opts{display:flex;gap:8px;flex-wrap:wrap}
+  .opt{flex:1;min-width:90px;padding:11px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;
+    text-align:center;font-size:.9rem;cursor:pointer;transition:.12s;user-select:none}
+  .opt:hover{border-color:#bbb}
+  .opt.sel{border-color:var(--accent);background:var(--accent-bg);color:var(--accent);font-weight:600}
+  .btnrow{display:flex;gap:10px;margin-top:6px}
+  button.act{flex:1;padding:14px;border:none;border-radius:12px;background:var(--accent);color:#fff;
+    font-size:1rem;font-weight:600;cursor:pointer}
+  button.ghost{flex:0 0 auto;padding:14px 18px;border:1px solid var(--line);border-radius:12px;background:#fff;
+    color:var(--muted);font-size:1rem;cursor:pointer}
+  .result{display:none;margin-top:4px}
+  .verdict{border-radius:var(--radius);padding:18px;margin-bottom:14px;border:1px solid}
+  .verdict h2{font-size:1.2rem;margin:0 0 6px;font-weight:600}
+  .verdict p{margin:0;font-size:.95rem}
+  .v-green{background:var(--green-bg);border-color:#c0dd97;color:var(--green)}
+  .v-amber{background:var(--amber-bg);border-color:#fac775;color:var(--amber)}
+  .v-red{background:var(--red-bg);border-color:#f7c1c1;color:var(--red)}
+  .reasons{list-style:none;padding:0;margin:10px 0 0}
+  .reasons li{padding:7px 0 7px 26px;position:relative;font-size:.9rem;border-top:1px solid rgba(0,0,0,.06)}
+  .reasons li::before{position:absolute;left:0;top:7px;font-weight:700}
+  .reasons li.ok::before{content:"✓";color:var(--green)}
+  .reasons li.no::before{content:"✕";color:var(--red)}
+  .reasons li.warn::before{content:"!";color:var(--amber)}
+  h3.sec{font-size:1rem;font-weight:600;margin:0 0 10px}
+  .check{list-style:none;padding:0;margin:0}
+  .check li{padding:9px 0 9px 28px;position:relative;font-size:.92rem;border-bottom:1px solid var(--line)}
+  .check li:last-child{border-bottom:none}
+  .check li::before{content:"";position:absolute;left:2px;top:12px;width:14px;height:14px;border:2px solid var(--accent);border-radius:4px}
+  .pill{display:inline-block;font-size:.75rem;font-weight:600;padding:2px 8px;border-radius:6px;background:var(--accent-bg);color:var(--accent);margin-left:4px}
+  details{border:1px solid var(--line);border-radius:10px;padding:0;margin-bottom:10px;background:#fff}
+  summary{padding:13px 16px;font-weight:600;cursor:pointer;font-size:.95rem}
+  details[open] summary{border-bottom:1px solid var(--line)}
+  .det-body{padding:14px 16px;font-size:.9rem}
+  .ref{font-size:.86rem;padding:10px 0;border-bottom:1px solid var(--line)}
+  .ref:last-child{border:none}
+  .ref b{color:var(--accent)}
+  .new{background:var(--green-bg);color:var(--green);font-size:.68rem;font-weight:700;padding:1px 6px;border-radius:5px;margin-left:6px;text-transform:uppercase}
+  .disc{font-size:.78rem;color:var(--muted);padding:14px 4px;line-height:1.5}
+  .page{display:none}
+  .page.on{display:block}
+  table{width:100%;border-collapse:collapse;font-size:.85rem;margin-top:8px}
+  th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600}
+</style>
+</head>
+<body>
+<header class="wrap">
+  <span class="tag">Comité de mama · uso de apoyo</span>
+  <h1>Cirugía axilar a medida (TAS)</h1>
+  <p class="sub"><i>Tailored Axillary Surgery</i> · Ayuda a la decisión en cirugía primaria del cáncer de mama clínicamente N+ de baja carga, sin neoadyuvancia.</p>
+</header>
+
+<div class="wrap">
+  <div class="tabs">
+    <div class="tab on" data-page="calc">Calculadora</div>
+    <div class="tab" data-page="tech">Técnica TAS</div>
+    <div class="tab" data-page="evid">Evidencia</div>
+  </div>
+
+  <!-- ============ CALCULADORA ============ -->
+  <div class="page on" id="calc">
+    <div class="card" id="form">
+      <div class="q">
+        <span class="label">1 · Tamaño tumoral clínico <span class="hint">(cT)</span></span>
+        <div class="opts" data-q="cT">
+          <div class="opt" data-v="t12">cT1–cT2</div>
+          <div class="opt" data-v="t34">cT3 / cT4</div>
+        </div>
+      </div>
+      <div class="q">
+        <span class="label">2 · Ganglios sospechosos en ecografía axilar</span>
+        <div class="opts" data-q="nodes">
+          <div class="opt" data-v="12">1–2 ganglios</div>
+          <div class="opt" data-v="3">≥ 3 ganglios</div>
+        </div>
+      </div>
+      <div class="q">
+        <span class="label">3 · Confirmación patológica N1 <span class="hint">(BAG / PAAF)</span></span>
+        <div class="opts" data-q="path">
+          <div class="opt" data-v="si">Sí, N1 confirmado</div>
+          <div class="opt" data-v="no">No confirmado</div>
+        </div>
+      </div>
+      <div class="q">
+        <span class="label">4 · Perfil inmunohistoquímico</span>
+        <div class="opts" data-q="subtype">
+          <div class="opt" data-v="lum">Luminal A / B</div>
+          <div class="opt" data-v="her2">HER2+</div>
+          <div class="opt" data-v="tnbc">Triple negativo</div>
+        </div>
+      </div>
+      <div class="q">
+        <span class="label">5 · Tipo histológico</span>
+        <div class="opts" data-q="histo">
+          <div class="opt" data-v="nst">Infiltrante NST</div>
+          <div class="opt" data-v="lob">Lobulillar</div>
+        </div>
+      </div>
+      <div class="q">
+        <span class="label">6 · Factores de exclusión presentes</span>
+        <div class="opts" data-q="excl">
+          <div class="opt" data-v="no">Ninguno</div>
+          <div class="opt" data-v="inflam">Carc. inflamatorio</div>
+          <div class="opt" data-v="palp">Adenopatía palpable</div>
+        </div>
+      </div>
+      <div class="q">
+        <span class="label">7 · ¿Cumple criterios de quimioterapia neoadyuvante?
+          <span class="hint">La TAS upfront se reserva a pacientes que NO son candidatas a neoadyuvancia.</span></span>
+        <div class="opts" data-q="nac">
+          <div class="opt" data-v="no">No</div>
+          <div class="opt" data-v="si">Sí</div>
+        </div>
+      </div>
+      <div class="btnrow">
+        <button class="act" id="run">Evaluar indicación</button>
+        <button class="ghost" id="reset">Limpiar</button>
+      </div>
+    </div>
+
+    <div class="result" id="result"></div>
+  </div>
+
+  <!-- ============ TÉCNICA ============ -->
+  <div class="page" id="tech">
+    <div class="card">
+      <h3 class="sec">Requisitos quirúrgicos de la TAS</h3>
+      <ul class="check">
+        <li>Extirpación obligatoria de los 1–2 ganglios <b>marcados</b> tras la biopsia positiva (semilla, marcador de bola o lazo).</li>
+        <li>Identificación y extirpación de los <b>ganglios centinela</b> con trazador (radioisótopo).</li>
+        <li>Mínimo total <b>≥ 3 ganglios</b> (marcados + centinela) para minimizar falsos negativos.</li>
+        <li>Recomendable <b>doble marcador</b>: radioisótopo + Magtrace (SPIO).</li>
+        <li>Extirpar <b>todos los ganglios sospechosos</b> a la palpación intraoperatoria, aunque no capten trazador ni tengan marcador — el paso que define la TAS y convierte la axila clínicamente positiva en negativa.</li>
+        <li><b>Control radiológico intraoperatorio</b> de la pieza para confirmar extirpación del ganglio marcado.</li>
+        <li><b>Radioterapia externa postoperatoria obligatoria</b> de los niveles axilares de Berg I, II y III.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="sec">Conversión a linfadenectomía (niveles I–II)</h3>
+      <p class="sub" style="margin:0 0 10px">Diferida o inmediata si concurre alguno:</p>
+      <ul class="reasons">
+        <li class="no">≥ 3 ganglios positivos en el estudio patológico definitivo de la TAS.</li>
+        <li class="no">Imposibilidad de identificar o recuperar el ganglio marcado durante la cirugía.</li>
+        <li class="no">Enfermedad macroscópica residual: adenopatía palpable o conglomerado tras la TAS.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ============ EVIDENCIA ============ -->
+  <div class="page" id="evid">
+    <div class="card">
+      <h3 class="sec">Marco de evidencia <span class="hint">(actualizado jun-2026)</span></h3>
+      <details open>
+        <summary>TAS y TAD no son lo mismo <span class="new">clave</span></summary>
+        <div class="det-body">
+          <p style="margin:0 0 10px">Esta propuesta es una <b>TAS</b>, no una TAD. Conviene no mezclar los términos en el comité ni en la historia clínica:</p>
+          <table>
+            <tr><th>&nbsp;</th><th>TAD</th><th>TAS</th></tr>
+            <tr><td><b>Qué es</b></td><td>Técnica concreta de marcaje localizado</td><td>Concepto quirúrgico amplio y adaptativo</td></tr>
+            <tr><td><b>Qué extirpa</b></td><td>Ganglio marcado/clipado + centinelas</td><td>Ganglio marcado + centinelas + <b>todos los sospechosos palpables</b></td></tr>
+            <tr><td><b>Escenario</b></td><td>Sobre todo tras neoadyuvancia</td><td>Neoadyuvancia <b>y cirugía primaria</b></td></tr>
+            <tr><td><b>Objetivo</b></td><td>Comprobar respuesta al tratamiento en ese ganglio</td><td>Reducir carga tumoral y evitar el vaciamiento completo</td></tr>
+            <tr><td><b>Referencia</b></td><td>Caudle 2016 · NCCN</td><td>TAXIS · Heidinger 2023</td></tr>
+          </table>
+          <p style="margin:10px 0 0">Como aquí se opera en <b>cirugía primaria</b>, se extirpan además todos los ganglios sospechosos intraoperatorios y se administra RT axilar completa, el término correcto es <b>cirugía axilar a medida (TAS)</b>.</p>
+        </div>
+      </details>
+      <details>
+        <summary>TAXIS (Galimberti / Weber) <span class="new">en curso</span></summary>
+        <div class="det-body">Ensayo fase III que compara <b>cirugía axilar a medida (TAS)</b> + radioterapia frente a linfadenectomía en cN+, <b>incluyendo el escenario de cirugía primaria</b>. Reclutamiento completado hacia 2025; análisis del objetivo primario (supervivencia libre de enfermedad) previsto para ~2029. Es la base científica directa de esta propuesta y el origen del concepto de TAS.</div>
+      </details>
+      <details>
+        <summary>NCCN Breast Cancer v1.2026 <span class="new">vigente</span></summary>
+        <div class="det-body">Acepta la <b>TAD</b> en pacientes cN+ que pasan a cN0 tras neoadyuvancia, exigiendo 3 condiciones para bajar la tasa de falsos negativos por debajo del 10 %: extirpar el <b>ganglio marcado/clipado</b>, usar <b>doble trazador</b> y recuperar <b>≥ 3 ganglios</b>. Si no se cumplen o hay ganglios positivos → linfadenectomía. <i>Esta propuesta adopta esos tres requisitos de calidad, pero los aplica dentro de una TAS en cirugía primaria — un escenario que NCCN todavía no recoge formalmente.</i></div>
+      </details>
+      <details>
+        <summary>SENOMAC (Reimer/de Boniface) <span class="new">2024</span></summary>
+        <div class="det-body">En cN0 con 1–2 macrometástasis en centinela, omitir la linfadenectomía es <b>no inferior</b> en supervivencia libre de recurrencia, con mucha menos morbilidad de brazo. Respalda la desescalada axilar y el papel de la radioterapia.</div>
+      </details>
+      <details>
+        <summary>AMAROS · Z0011 (fundacionales)</summary>
+        <div class="det-body">Z0011 (JAMA 2011): en cirugía conservadora con 1–2 centinelas positivos, la linfadenectomía no mejora supervivencia. AMAROS (Lancet Oncol 2014): la <b>radioterapia axilar</b> iguala el control regional con menos linfedema. Sostienen que la RT puede sustituir al vaciamiento.</div>
+      </details>
+      <details>
+        <summary>Rendimiento del marcaje dirigido — TAD (metaanálisis 2024–2026)</summary>
+        <div class="det-body">
+          <table>
+            <tr><th>Parámetro</th><th>Rango</th></tr>
+            <tr><td>Tasa de identificación</td><td>82,6 – 100 %</td></tr>
+            <tr><td>Tasa de falsos negativos</td><td>2 – 12 % (objetivo &lt; 10 %)</td></tr>
+            <tr><td>Valor predictivo negativo</td><td>87,5 – 100 %</td></tr>
+          </table>
+          <p style="margin:10px 0 0">Cifras procedentes de series de <b>TAD</b> (mayoritariamente post-neoadyuvancia). El uso de doble trazador y ≥ 3 ganglios sitúa la tasa de falsos negativos por debajo del 10 %; los marcadores visibles intraoperatoriamente mejoran el rendimiento. La TAS incorpora estos requisitos y añade la extirpación de los sospechosos palpables, lo que reduce aún más la enfermedad residual.</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="card">
+      <h3 class="sec">Referencias bibliográficas</h3>
+      <div class="ref"><b>NCCN</b> Clinical Practice Guidelines in Oncology. Breast Cancer. v1.2026, 16-ene-2026.</div>
+      <div class="ref"><b>Galimberti V, et al.</b> Tailored axillary surgery in node-positive breast cancer (TAXIS). Ann Surg 2022;275:112–121.</div>
+      <div class="ref"><b>Galimberti V, et al.</b> Feasibility and accuracy of tailored axillary surgery. Lancet Oncol 2023.</div>
+      <div class="ref"><b>Giuliano AE, et al.</b> ACOSOG Z0011 trial. JAMA 2011;305:569–575.</div>
+      <div class="ref"><b>Donker M, et al.</b> AMAROS trial. Lancet Oncol 2014;15:1303–1310.</div>
+      <div class="ref"><b>Reimer T, et al.</b> SENOMAC trial. Lancet Oncol 2024.</div>
+      <div class="ref"><b>Gnant M, et al.</b> ESMO CPG: Early Breast Cancer. Ann Oncol 2023.</div>
+      <div class="ref"><b>Caudle AS, et al.</b> Selective surgical localization of axillary nodes. Ann Surg 2016;264:622–630.</div>
+      <div class="ref"><b>Heidinger M, et al.</b> Tailored axillary surgery — a novel concept for cN+ breast cancer. Breast 2023.</div>
+      <div class="ref"><b>Heidinger M, et al.</b> Axillary Surgery for Breast Cancer in 2024. Cancers 2024.</div>
+      <div class="ref"><b>Boughey JC, et al.</b> De-escalation of axillary surgery after NAC (I-SPY2, &gt;1500 pacientes). Ann Surg Oncol 2025.</div>
+      <div class="ref"><b>ASBrS</b> Management of the Axilla — Consensus Statement. American Society of Breast Surgeons, feb-2026. <span class="new">nuevo</span></div>
+      <div class="ref"><b>TAXIS-2 (NCT07140172)</b> Axillary Radiotherapy or ALND in cN+ Breast Cancer Undergoing Upfront Tailored Axillary Surgery. Ensayo en curso, 2025–. <span class="new">nuevo</span></div>
+    </div>
+  </div>
+
+  <p class="disc">Herramienta de apoyo a la decisión para uso clínico interno y discusión en comité multidisciplinar. No sustituye el juicio clínico ni la valoración individualizada. Todos los casos deben evaluarse y aprobarse en el comité de cáncer de mama. Contenido en español. Actualizado jun-2026.</p>
+</div>
+
+<script>
+  var state={};
+  document.querySelectorAll('.opts').forEach(function(g){
+    g.addEventListener('click',function(e){
+      var o=e.target.closest('.opt'); if(!o)return;
+      g.querySelectorAll('.opt').forEach(function(x){x.classList.remove('sel')});
+      o.classList.add('sel'); state[g.dataset.q]=o.dataset.v;
+    });
+  });
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click',function(){
+      document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('on')});
+      document.querySelectorAll('.page').forEach(function(x){x.classList.remove('on')});
+      t.classList.add('on'); document.getElementById(t.dataset.page).classList.add('on');
+      window.scrollTo({top:0,behavior:'smooth'});
+    });
+  });
+  document.getElementById('reset').addEventListener('click',function(){
+    state={};
+    document.querySelectorAll('.opt').forEach(function(x){x.classList.remove('sel')});
+    document.getElementById('result').style.display='none';
+  });
+
+  document.getElementById('run').addEventListener('click',function(){
+    var need=['cT','nodes','path','subtype','histo','excl','nac'];
+    var missing=need.filter(function(k){return !state[k]});
+    var res=document.getElementById('result');
+    if(missing.length){
+      res.innerHTML='<div class="verdict v-amber"><h2>Faltan datos</h2><p>Responde a todas las preguntas para evaluar la indicación.</p></div>';
+      res.style.display='block'; res.scrollIntoView({behavior:'smooth'}); return;
+    }
+    var hard=[];  // exclusiones absolutas
+    if(state.cT==='t34') hard.push('Tumor cT3/cT4: estadio avanzado, fuera de criterio.');
+    if(state.nodes==='3') hard.push('≥ 3 ganglios sospechosos en ecografía: carga tumoral elevada.');
+    if(state.excl==='inflam') hard.push('Cáncer de mama inflamatorio: contraindicación.');
+    if(state.excl==='palp') hard.push('Adenopatía palpable: enfermedad clínicamente evidente.');
+
+    var redirect=[]; // mejor otra vía
+    if(state.path==='no') redirect.push('Sin confirmación patológica N1 (BAG/PAAF): la indicación exige afectación confirmada.');
+    if(state.subtype==='her2'||state.subtype==='tnbc') redirect.push('Perfil '+(state.subtype==='her2'?'HER2+':'triple negativo')+': candidata preferente a quimioterapia neoadyuvante, no a TAS en cirugía primaria.');
+    if(state.nac==='si') redirect.push('Cumple criterios de neoadyuvancia: la TAS en cirugía primaria se reserva a quien NO los cumple.');
+
+    var warn=[]; // cautelas
+    if(state.histo==='lob') warn.push('Carcinoma lobulillar: no es contraindicación absoluta, pero valorar obesidad y hallazgos en TC/PET.');
+
+    var html='';
+    if(hard.length){
+      html+='<div class="verdict v-red"><h2>No candidata a TAS</h2><p>Presencia de criterio(s) de exclusión absolutos. Considerar linfadenectomía y/o tratamiento sistémico según comité.</p>';
+      html+='<ul class="reasons">'+hard.map(function(r){return '<li class="no">'+r+'</li>'}).join('')+'</ul></div>';
+    } else if(redirect.length){
+      html+='<div class="verdict v-amber"><h2>Indicación no preferente</h2><p>No cumple el perfil de la propuesta. Reevaluar vía terapéutica en comité.</p>';
+      html+='<ul class="reasons">'+redirect.map(function(r){return '<li class="warn">'+r+'</li>'}).join('')+'</ul></div>';
+    } else {
+      html+='<div class="verdict v-green"><h2>Candidata a TAS</h2><p>Cumple los criterios de la propuesta. <b>Confirmación obligatoria en comité multidisciplinar.</b></p>';
+      html+='<ul class="reasons">'+
+        '<li class="ok">cT1–cT2 con 1–2 ganglios sospechosos.</li>'+
+        '<li class="ok">N1 confirmado e histología/perfil compatibles.</li>'+
+        '<li class="ok">Sin criterios de exclusión ni de neoadyuvancia.</li>'+
+        (warn.length?warn.map(function(r){return '<li class="warn">'+r+'</li>'}).join(''):'')+
+        '</ul></div>';
+      html+='<div class="card"><h3 class="sec">Plan quirúrgico</h3><ul class="check">'+
+        '<li>Extirpar los 1–2 ganglios marcados (semilla/bola/lazo).</li>'+
+        '<li>Centinela con trazador · objetivo <b>≥ 3 ganglios</b> totales.</li>'+
+        '<li>Doble marcador recomendado (radioisótopo + Magtrace).</li>'+
+        '<li>Extirpar <b>todos</b> los ganglios sospechosos a la palpación intraoperatoria.</li>'+
+        '<li>Control radiológico intraoperatorio de la pieza.</li>'+
+        '<li>Radioterapia postoperatoria de niveles Berg I–II–III.</li>'+
+        '</ul></div>';
+    }
+    res.innerHTML=html; res.style.display='block'; res.scrollIntoView({behavior:'smooth'});
+  });
+</script>
+</body>
+</html>
