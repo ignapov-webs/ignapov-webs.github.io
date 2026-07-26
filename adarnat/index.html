@@ -258,7 +258,7 @@
     <div class="card">
       <p class="secttl">C · Cirugía y anatomía patológica</p>
       <div class="q">
-        <span class="label">10 · Ganglios extraídos en el GC o TAD<span class="hint">Si cN1: ganglio marcado + centinela, o ≥ 3 centinelas si ninguno llevaba marcaje. Con técnica combinada o verde de indocianina, ≥ 3 ganglios. En todos los casos, menos de 8 en total.</span></span>
+        <span class="label">10 · Ganglios extraídos en el GC o TAD<span class="hint"><b>cN0 (centinela/GC):</b> sin número mínimo, vale cualquier número (incluso 1–2). <b>cN1 (TAD):</b> ganglio marcado + centinela, o ≥ 3 centinelas si ninguno iba marcado (o si migró el clip); un solo ganglio no basta. En todos los casos, menos de 8 en total.</span></span>
         <div class="opts" data-q="numgg">
           <div class="opt" data-v="ok">Adecuado</div>
           <div class="opt" data-v="pocos">Insuficiente</div>
@@ -280,7 +280,7 @@
         <div class="opts" data-q="extraax"><div class="opt" data-v="no">No / negativo</div><div class="opt" data-v="si">Sí, positivo</div><div class="opt" data-v="pend">Pendiente</div></div>
       </div>
       <div class="q">
-        <span class="label">13 · Si es lobulillar: ¿hay algún ganglio negativo además del o de los afectos?</span>
+        <span class="label">13 · Si es lobulillar: ¿hay algún ganglio negativo además del o de los afectos?<span class="hint">El CLI solo entra si hay ≥1 ganglio negativo (no se beneficia de la regla general de «1–2 positivos sin negativo»). Por eso, en lobulillar, doble marcaje y extraer ≥3 ganglios siempre.</span></span>
         <div class="opts" data-q="lobneg"><div class="opt" data-v="si">Sí</div><div class="opt" data-v="no">No</div><div class="opt" data-v="na">No aplica / pendiente</div></div>
       </div>
     </div>
@@ -370,6 +370,29 @@
             <li>El número de ganglios como estadio es un concepto <b>patológico</b> (pN1 = 1–3, pN2 = 4–9), no clínico.</li>
           </ul>
           <p style="margin:10px 0 0">Tras la quimioterapia el filtro es la <b>AP definitiva</b>: solo se aceptan <b>1–2 ganglios positivos</b>; con ≥ 3, exclusión. En el análisis de subgrupos, el «N2» alude a esta mayor carga ganglionar por imagen, no al cN2 fijo de la AJCC. Línea coherente con García-Tejedor et al. (2020) sobre desescalar la axila en tumores quimiosensibles.</p>
+        </div>
+      </details>
+      <details>
+        <summary>GC (cN0) vs TAD (cN1): número de ganglios</summary>
+        <div class="det-body">
+          <p style="margin:0 0 8px">El TAD (extirpar el ganglio marcado + centinelas) es la técnica del <b>cN1</b>; el <b>cN0</b> se opera con centinela convencional (GC). El requisito de número difiere:</p>
+          <ul style="margin:0;padding-left:18px">
+            <li style="margin-bottom:6px"><b>cN0 (GC):</b> sin número mínimo; se incluye «independientemente del número de ganglios que se extraigan». Aquí caben los casos de solo 1–2 ganglios.</li>
+            <li><b>cN1 (TAD):</b> mínimo ganglio marcado + centinela, o ≥ 3 centinelas si ninguno iba marcado (o si migró el clip). Un solo ganglio no basta.</li>
+          </ul>
+          <p style="margin:10px 0 0">La frase del protocolo «si en el TAD se extraen solo 1 o 2 ganglios…» está redactada de forma imprecisa: el apartado es «GC o TAD», y el supuesto de <b>1</b> ganglio en realidad solo se da en el GC del cN0, no en un TAD válido de cN1.</p>
+        </div>
+      </details>
+      <details>
+        <summary>Carcinoma lobulillar (CLI): requisito de ganglio negativo</summary>
+        <div class="det-body">
+          <p style="margin:0 0 8px">Para el CLI, tanto cN0 como cN1, el protocolo exige que <b>haya al menos un ganglio negativo</b> además del o de los afectos. El CLI <b>no</b> se beneficia de la regla general (que permite 1–2 positivos aunque no haya ningún negativo).</p>
+          <ul style="margin:0;padding-left:18px">
+            <li style="margin-bottom:6px">2 ganglios extraídos, 1 positivo + 1 negativo → <b>entra</b>.</li>
+            <li style="margin-bottom:6px">2 ganglios extraídos, ambos positivos → <b>excluida</b> (da igual el subtipo, incluido HER2+/TN).</li>
+            <li>Con 2 positivos, para entrar habría que tener ≥ 3 ganglios (2 positivos + al menos 1 negativo).</li>
+          </ul>
+          <p style="margin:10px 0 0"><b>Implicación práctica:</b> en lobulillar, <b>doble marcaje y extraer ≥ 3 ganglios siempre</b>. Como no se sabe de antemano cuántos serán positivos, quedarse en 2 arriesga perder a la paciente si ambos resultan positivos.</p>
         </div>
       </details>
       <details>
@@ -468,7 +491,7 @@
     if(state.extraax==='si' && state.afectos==='0')
       excl.push('Ganglio extra-axilar (intramamario o mamaria interna) positivo con centinela axilar negativo: no estaría indicada la linfadenectomía.');
     if(state.histo==='lob' && state.lobneg==='no')
-      excl.push('Carcinoma lobulillar sin ningún ganglio negativo además del o de los afectos.');
+      excl.push('Carcinoma lobulillar sin ningún ganglio negativo (p. ej. se extrajeron 2 y ambos positivos): el protocolo exige al menos un ganglio negativo además del o de los afectos, y el CLI no se beneficia de la regla general de «1–2 positivos sin negativo».');
     document.querySelectorAll('.ex:checked').forEach(function(c){ excl.push(c.dataset.t+'.'); });
 
     // --- Fuera del supuesto del ensayo ---
@@ -482,7 +505,7 @@
     if(state.aden==='4_5' && (state.subtipo==='her2'||state.subtipo==='tn'))
       avisos.push('4–5 adenopatías admitidas por ser '+(state.subtipo==='her2'?'HER2+':'triple negativo')+', siempre que la respuesta post-quimioterapia sea buena y siga siendo clínicamente N1.');
     if(state.histo==='lob' && state.lobneg==='si')
-      avisos.push('Carcinoma lobulillar con algún ganglio negativo: cumple el requisito específico del protocolo.');
+      avisos.push('Carcinoma lobulillar con algún ganglio negativo: cumple el requisito específico. Recuerde que en CLI conviene doble marcaje y ≥3 ganglios para asegurarlo.');
 
     // --- Pendientes ---
     if(state.compl==='pend') pend.push('completar el tratamiento neoadyuvante');
