@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ADARNAT · Hoja informativa para la paciente</title>
+<title>ADARNAT · Guía para explicar el estudio a la paciente</title>
 <style>
   :root{--ink:#1a1a18;--muted:#5a5a55;--line:#d8d7d0;--accent:#0c447c;--accentbg:#eaf2fb;--pink:#993556}
   *{box-sizing:border-box}
@@ -19,11 +19,14 @@
   h1{font-size:17pt;margin:0 0 3px;letter-spacing:-.01em}
   .sub{color:var(--muted);font-size:9.5pt;margin:0 0 4px}
   .code{font-size:8.5pt;color:var(--muted);margin:0}
-  .rule{height:3px;background:var(--accent);border-radius:2px;margin:12px 0 18px}
+  .rule{height:3px;background:var(--accent);border-radius:2px;margin:12px 0 16px}
+  .intro{background:var(--accentbg);border-radius:8px;padding:11px 14px;margin:0 0 16px;font-size:9.5pt}
+  .intro b{color:var(--accent)}
   h2{font-size:12pt;color:var(--accent);margin:20px 0 7px}
   h2:first-of-type{margin-top:0}
   p{margin:0 0 9px;font-size:10.5pt}
-  .lead{font-size:11pt}
+  .say{border-left:3px solid var(--accent);padding:2px 0 2px 12px;margin:0 0 9px;font-size:10.5pt}
+  .say .lab{display:block;font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin-bottom:2px}
   .arms{display:flex;gap:10px;margin:12px 0}
   .arm{flex:1;border:1px solid var(--line);border-radius:8px;padding:11px 13px}
   .arm .n{font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
@@ -32,19 +35,18 @@
   .arm .d{font-size:9.5pt;color:var(--muted);line-height:1.45}
   ul{margin:0 0 9px;padding-left:19px}
   li{font-size:10.5pt;margin-bottom:5px}
-  .box{background:var(--accentbg);border-radius:8px;padding:12px 14px;margin:12px 0;font-size:10.5pt}
   .note{border:1.5px solid var(--accent);border-radius:8px;padding:12px 14px;margin:16px 0;font-size:10pt}
   .note b{color:var(--accent)}
-  .dudas{border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-top:16px}
-  .dudas .t{font-weight:700;font-size:10.5pt;margin-bottom:8px}
-  .lines div{border-bottom:1px solid var(--line);height:22px}
+  .chk{border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-top:16px}
+  .chk .t{font-weight:700;font-size:10.5pt;margin-bottom:8px}
+  .chk ul{margin:0;padding-left:19px}
   footer{margin-top:20px;padding-top:10px;border-top:1px solid var(--line);
     font-size:8pt;color:var(--muted);line-height:1.45;display:flex;justify-content:space-between;gap:14px}
   @media print{
     body{background:#fff}
     .bar{display:none}
     .sheet{box-shadow:none;margin:0;max-width:none;padding:0;width:auto}
-    .note,.box,.dudas,.arms{break-inside:avoid;page-break-inside:avoid}
+    .note,.intro,.chk,.arms{break-inside:avoid;page-break-inside:avoid}
     h2{break-after:avoid;page-break-after:avoid}
   }
   @page{size:A4;margin:14mm 15mm}
@@ -53,81 +55,84 @@
 <body>
 
 <div class="bar">
-  <span>Hoja informativa · lista para imprimir en A4</span>
+  <span>Guía para el profesional · imprimible en A4</span>
   <button onclick="window.print()">Imprimir o guardar en PDF</button>
   <a class="alt" href="./">Volver a la herramienta</a>
 </div>
 
 <div class="sheet">
-  <h1>Estudio ADARNAT</h1>
-  <p class="sub">Información para las pacientes · Unidad de Patología Mamaria</p>
+  <h1>Cómo explicar el estudio ADARNAT</h1>
+  <p class="sub">Guía para el equipo médico · Unidad de Patología Mamaria</p>
   <p class="code">Ensayo clínico NCT04889924 · Protocolo PR148/21 · Promotor: IDIBELL</p>
   <div class="rule"></div>
 
-  <p class="lead">Le proponemos participar en un estudio sobre el tratamiento de los ganglios de la axila. Esta hoja resume lo esencial para que pueda pensarlo con calma en casa.</p>
+  <div class="intro">
+    <b>Cómo usar esta guía.</b> Es un apoyo interno para explicar el ensayo a la paciente con palabras sencillas, adaptables a cualquier
+    nivel de estudios. <b>No es un documento para entregar</b> ni sustituye a nada: la hoja de información al paciente y el consentimiento
+    informado oficiales (versión 5) son documentos aparte, y son los que la paciente lee y firma. Use estas frases como punto de partida y
+    adáptelas a cada persona.
+  </div>
 
-  <h2>¿Por qué este estudio?</h2>
-  <p>Cuando el cáncer de mama ha llegado a los ganglios de la axila, lo habitual ha sido <b>quitar todos los ganglios</b>. Es una operación eficaz, pero puede dejar secuelas: hinchazón del brazo (linfedema), menos movilidad del hombro o molestias duraderas.</p>
-  <p>Hoy sabemos que, en muchas pacientes, <b>la radioterapia sobre la axila controla la enfermedad igual de bien</b> que quitar los ganglios, y con muchas menos secuelas. Esto ya está demostrado en mujeres que se operan directamente, sin tratamiento previo.</p>
-  <p>Lo que <b>todavía no sabemos</b> es si ocurre lo mismo en mujeres que, como usted, han recibido antes quimioterapia u hormonoterapia. La pregunta principal del estudio es si la radioterapia consigue <b>reducir a la mitad la hinchazón del brazo</b>, manteniendo el mismo control de la enfermedad.</p>
+  <h2>1 · Por qué le proponemos el estudio</h2>
+  <p class="say"><span class="lab">Puede decirle</span>«Cuando el cáncer ha llegado a los ganglios de la axila, lo habitual ha sido quitarlos todos con una operación. Es eficaz, pero a veces deja secuelas: el brazo se puede hinchar —lo llamamos linfedema—, o el hombro se mueve peor.»</p>
+  <p class="say"><span class="lab">Y añadir</span>«Hoy sabemos que, en muchas mujeres, tratar la axila con radioterapia controla la enfermedad igual de bien y con menos secuelas. Eso ya está demostrado cuando se opera directamente. Lo que queremos saber es si pasa lo mismo cuando antes se ha dado quimioterapia u hormonoterapia, como en su caso.»</p>
 
-  <h2>¿Qué le proponemos?</h2>
-  <p>Si acepta participar, después de la cirugía se decidirá <b>al azar</b>, como al lanzar una moneda, cuál de estos dos tratamientos recibirá en la axila:</p>
+  <h2>2 · Qué le proponemos</h2>
+  <p class="say"><span class="lab">La idea del sorteo</span>«Si acepta, después de la cirugía se decidirá al azar, como al lanzar una moneda, cuál de estos dos tratamientos recibirá en la axila. Los dos son buenos y los usamos a diario; justamente porque no sabemos cuál es mejor, lo decidimos al azar. Si supiéramos que uno gana, no haría falta el estudio.»</p>
   <div class="arms">
     <div class="arm a">
       <div class="n">Opción A</div>
       <div class="t">Radioterapia axilar</div>
-      <div class="d">No se le quitan más ganglios. Se trata la axila con radioterapia.</div>
+      <div class="d">No se quitan más ganglios. Se trata la axila con radioterapia.</div>
     </div>
     <div class="arm b">
       <div class="n">Opción B</div>
       <div class="t">Linfadenectomía</div>
-      <div class="d">Se le quitan los ganglios de la axila. Es el tratamiento habitual hoy.</div>
+      <div class="d">Se quitan los ganglios de la axila. Es lo habitual hoy.</div>
     </div>
   </div>
-  <p><b>Los dos son tratamientos que ya usamos normalmente</b> y que consideramos igual de válidos. Precisamente porque no sabemos cuál es mejor, la elección se hace al azar: si supiéramos que uno es superior, no haríamos el estudio. En ambos casos recibirá también radioterapia por encima de la clavícula, como se hace habitualmente.</p>
+  <p>En ambos casos se añade radioterapia por encima de la clavícula, como se hace normalmente.</p>
 
-  <h2>¿Qué puede ganar?</h2>
+  <h2>3 · Qué puede ganar</h2>
   <ul>
-    <li><b>Puede ahorrarse una segunda operación.</b> La mitad de las participantes no necesitarán que les quiten los ganglios.</li>
-    <li><b>Menos riesgo de secuelas en el brazo:</b> menos linfedema y menos limitación del hombro, y por tanto mejor calidad de vida.</li>
-    <li><b>Ayuda a las pacientes que vengan después.</b> Los resultados pueden cambiar cómo se trata a miles de mujeres en el futuro.</li>
+    <li><b>Puede ahorrarse una segunda operación:</b> la mitad de las participantes no necesitarán que les quiten los ganglios.</li>
+    <li><b>Menos secuelas en el brazo:</b> menos hinchazón y menos limitación del hombro, y mejor calidad de vida.</li>
+    <li><b>Ayuda a otras mujeres:</b> los resultados pueden cambiar el tratamiento en el futuro.</li>
   </ul>
 
-  <h2>¿Qué riesgos tiene?</h2>
-  <p>Consideramos que es un estudio <b>de riesgo bajo</b>, porque los dos tratamientos son los que ya empleamos en la práctica habitual y porque seleccionamos con mucho cuidado a quién se lo proponemos.</p>
-  <p>El riesgo teórico es que, si nuestra hipótesis resultara equivocada, quienes reciben solo radioterapia podrían tener <b>algo más de riesgo de que la enfermedad reaparezca en la axila</b>. Creemos que esa posibilidad es pequeña, porque solo participan mujeres en las que:</p>
+  <h2>4 · Qué riesgos tiene (dígalo con franqueza)</h2>
+  <p class="say"><span class="lab">Puede decirle</span>«El riesgo, si nos equivocáramos, sería que la enfermedad volviese en la axila con algo más de frecuencia en el grupo de radioterapia. Creemos que es muy poco probable, porque solo entran en el estudio mujeres en las que los ganglios han respondido bien al tratamiento y queda muy poca enfermedad.»</p>
   <ul>
-    <li>Las pruebas de imagen muestran que <b>los ganglios han respondido</b> al tratamiento, de forma parcial o completa.</li>
-    <li>Hay como mucho <b>uno o dos ganglios afectados</b>, y de poco volumen.</li>
-    <li>Es, por tanto, muy poco probable que queden más ganglios enfermos en el resto de la axila.</li>
+    <li>La radioterapia puede dar <b>enrojecimiento o irritación de la piel</b> durante unas semanas; es pasajero.</li>
+    <li>La dosis y la técnica de radioterapia son <b>las mismas</b> que fuera del estudio.</li>
   </ul>
-  <p>La radioterapia que se administra es <b>exactamente la misma</b>, en dosis y en técnica, que la que damos fuera del estudio. No supone más toxicidad.</p>
 
-  <h2>Su decisión es libre</h2>
-  <div class="box">Participar es <b>voluntario</b>. Si prefiere no hacerlo, recibirá el mejor tratamiento disponible exactamente igual, y su atención no cambiará en nada.</div>
+  <h2>5 · Que quede clara su libertad</h2>
   <ul>
-    <li>Puede <b>retirarse cuando quiera</b>, sin dar explicaciones y sin que afecte a su tratamiento ni a su relación con el equipo.</li>
-    <li>Sus <b>datos son confidenciales</b>: se le identifica con un código, nunca con su nombre.</li>
-    <li>Se le hará un <b>seguimiento de 5 años</b>, con revisiones parecidas a las habituales, más controles del brazo y del hombro por Rehabilitación.</li>
-    <li>El estudio cuenta con un <b>seguro de responsabilidad civil</b> y con la aprobación del comité de ética.</li>
-    <li>Si finalmente <b>no pudiera entrar en el sorteo</b>, le pediremos permiso para registrar igualmente sus datos de forma anónima, para ayudar a ampliar en el futuro quién puede beneficiarse.</li>
+    <li>Participar es <b>voluntario</b>. Si dice que no, recibe el mejor tratamiento igual y no cambia nada.</li>
+    <li>Puede <b>retirarse cuando quiera</b>, sin dar explicaciones.</li>
+    <li>Sus <b>datos son confidenciales</b>: se usa un código, no su nombre.</li>
+    <li><b>Seguimiento de 5 años</b>, con revisiones parecidas a las habituales y controles del brazo y el hombro.</li>
+    <li>Si al final <b>no puede entrar en el sorteo</b>, se le pide permiso para registrar sus datos de forma anónima (cohorte observacional).</li>
   </ul>
 
   <div class="note">
-    <b>Importante.</b> Esta hoja es solo un <b>resumen informativo</b> para ayudarle a entender el estudio y preparar sus preguntas.
-    <b>No es el consentimiento informado</b> y no sustituye a la hoja de información al paciente ni al documento de consentimiento
-    oficiales del ensayo, que son los aprobados por el Comité de Ética y los únicos que deberá leer y firmar si decide participar.
-    Su médico se los entregará y los revisará con usted.
+    <b>Recuerde.</b> Esta guía es solo un apoyo para la conversación. Entregue y revise con la paciente la <b>hoja de información al paciente
+    y el consentimiento informado oficiales (versión 5)</b>, que son los únicos documentos que ella debe leer y firmar, y déle tiempo para pensarlo.
   </div>
 
-  <div class="dudas">
-    <div class="t">Apunte aquí sus dudas para la próxima visita</div>
-    <div class="lines"><div></div><div></div><div></div><div></div></div>
+  <div class="chk">
+    <div class="t">Antes de terminar, compruebe que ha entendido:</div>
+    <ul>
+      <li>Que el tratamiento de la axila se decide al azar entre dos opciones válidas.</li>
+      <li>Que participar es voluntario y puede retirarse en cualquier momento.</li>
+      <li>Cuál es el posible riesgo y por qué lo consideramos bajo.</li>
+      <li>Que dispone de tiempo para decidir y de una copia del consentimiento.</li>
+    </ul>
   </div>
 
   <footer>
-    <span>Unidad de Patología Mamaria · Documento informativo de apoyo, no sustituye al consentimiento informado del ensayo.</span>
+    <span>Unidad de Patología Mamaria · Guía interna de apoyo a la explicación; no es documento para la paciente ni sustituye al consentimiento informado.</span>
     <span>ADARNAT · NCT04889924</span>
   </footer>
 </div>
