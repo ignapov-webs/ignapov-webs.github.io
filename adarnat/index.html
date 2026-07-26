@@ -205,15 +205,15 @@
         <div class="opts" data-q="ps"><div class="opt" data-v="ok">Cumple</div><div class="opt" data-v="no">No cumple</div></div>
       </div>
       <div class="q">
-        <span class="label">3 · Afectación ganglionar clínica al diagnóstico<span class="hint">Inclusión v6: cT1–cT4 cN0 o cT0–cT4 cN1. La sospecha de N1 debe confirmarse con PAAF o BAG. cN2 y M1 son criterios de exclusión.</span></span>
+        <span class="label">3 · Estadio ganglionar clínico (AJCC 8.ª ed.)<span class="hint">Por movilidad y localización, <b>no por número</b>. Entran cN0 y cN1 (ganglios móviles). cN2–cN3 (fijos o apelmazados, mamaria interna o supraclavicular) excluyen en todos los subtipos. El número de adenopatías va aparte, en la pregunta 4.</span></span>
         <div class="opts" data-q="cn">
           <div class="opt" data-v="cn0">cN0</div>
-          <div class="opt" data-v="cn1">cN1</div>
-          <div class="opt" data-v="cn2">cN2</div>
+          <div class="opt" data-v="cn1">cN1 (móviles)</div>
+          <div class="opt" data-v="cn2">cN2–3 (fijos)</div>
         </div>
       </div>
       <div class="q">
-        <span class="label">4 · Adenopatías sospechosas en ecografía axilar<span class="hint">Criterios de Bedi: sospechosa si BEDI ≥ 3, o a criterio del radiólogo en casos dudosos.</span></span>
+        <span class="label">4 · Número de adenopatías sospechosas en ecografía axilar<span class="hint">Filtro de carga tumoral, no la categoría cN. Bedi ≥ 3 = sospechosa. ≤3 general; se admiten 4–5 solo en HER2+/triple negativo (siguen siendo cN1); &gt;5 excluye.</span></span>
         <div class="opts" data-q="aden">
           <div class="opt" data-v="0_3">0–3</div>
           <div class="opt" data-v="4_5">4–5</div>
@@ -360,6 +360,18 @@
         </div>
       </details>
       <details>
+        <summary>Estadio cN vs número de adenopatías <span class="new">clave</span></summary>
+        <div class="det-body">
+          <p style="margin:0 0 8px">Son dos ejes distintos y conviene no confundirlos (AJCC 8.ª ed.):</p>
+          <ul style="margin:0;padding-left:18px">
+            <li style="margin-bottom:6px"><b>Estadio cN</b> = movilidad y localización, <b>no número</b>. cN1 = ganglios móviles; cN2 = fijos o apelmazados (o mamaria interna aislada). <b>cN2–cN3 excluyen en todos los subtipos.</b></li>
+            <li style="margin-bottom:6px"><b>Número de adenopatías</b> sospechosas en ecografía = filtro de carga tumoral, aparte del cN. ≤3 general; <b>4–5 solo en HER2+/triple negativo</b> (por su alta respuesta a la quimioterapia); &gt;5 excluye. Estas pacientes de 4–5 siguen siendo <b>cN1</b>, no cN2.</li>
+            <li>El número de ganglios como estadio es un concepto <b>patológico</b> (pN1 = 1–3, pN2 = 4–9), no clínico.</li>
+          </ul>
+          <p style="margin:10px 0 0">Tras la quimioterapia el filtro es la <b>AP definitiva</b>: solo se aceptan <b>1–2 ganglios positivos</b>; con ≥ 3, exclusión. En el análisis de subgrupos, el «N2» alude a esta mayor carga ganglionar por imagen, no al cN2 fijo de la AJCC. Línea coherente con García-Tejedor et al. (2020) sobre desescalar la axila en tumores quimiosensibles.</p>
+        </div>
+      </details>
+      <details>
         <summary>Definiciones anatomopatológicas</summary>
         <div class="det-body">
           <table>
@@ -374,7 +386,7 @@
       <details>
         <summary>Criterios de exclusión (resumen)</summary>
         <div class="det-body">
-          <p style="margin:0">cN2 · M1 · ypN0 · &gt; 4 adenopatías BEDI ≥ 3 (salvo 4–5 en HER2+/triple negativo) · técnica combinada con &lt; 3 ganglios en cN1 · lobulillar sin ningún ganglio negativo · centinela extra-axilar positivo con axilar negativo · TAD con &gt; 8 ganglios · linfadenectomía con &lt; 6 ganglios · progresión durante la neoadyuvancia · RT neoadyuvante · cirugía mamaria ipsilateral &lt; 10 años · cirugía axilar previa · otro cáncer &lt; 5 años · tumor bilateral de peor pronóstico contralateral · comorbilidad con baja esperanza de vida · irradiación torácica previa · embarazo o lactancia · participación en otro ensayo de recidiva axilar.</p>
+          <p style="margin:0">cN2–cN3 (ganglios fijos, apelmazados o extra-axilares) · M1 · ypN0 · &gt; 5 adenopatías BEDI ≥ 3 (se admiten 4–5 solo en HER2+/triple negativo) · técnica combinada con &lt; 3 ganglios en cN1 · lobulillar sin ningún ganglio negativo · centinela extra-axilar positivo con axilar negativo · TAD con &gt; 8 ganglios · linfadenectomía con &lt; 6 ganglios · ≥ 3 ganglios positivos en la AP definitiva · progresión durante la neoadyuvancia · RT neoadyuvante · cirugía mamaria ipsilateral &lt; 10 años · cirugía axilar previa · otro cáncer &lt; 5 años · tumor bilateral de peor pronóstico contralateral · comorbilidad con baja esperanza de vida · irradiación torácica previa · embarazo o lactancia · participación en otro ensayo de recidiva axilar.</p>
         </div>
       </details>
       <details>
@@ -442,7 +454,7 @@
     // --- Exclusiones absolutas (v6) ---
     if(state.edad==='no') excl.push('Menor de 18 años.');
     if(state.ps==='no') excl.push('Estado general insuficiente (Karnofsky < 70 % o Barthel < 60).');
-    if(state.cn==='cn2') excl.push('cN2 al diagnóstico.');
+    if(state.cn==='cn2') excl.push('cN2–cN3 clínico: ganglios fijos o apelmazados, mamaria interna o supraclavicular (enfermedad axilar avanzada). Excluye en todos los subtipos; la categoría cN se define por movilidad, no por número de ganglios.');
     if(state.aden==='mas') excl.push('Más de 5 adenopatías sospechosas (BEDI ≥ 3) en la ecografía al diagnóstico.');
     if(state.aden==='4_5' && state.subtipo==='lum')
       excl.push('4–5 adenopatías sospechosas en un tumor luminal: solo se admiten 4–5 en HER2+ o triple negativo.');
