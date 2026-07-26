@@ -81,6 +81,9 @@
   const ARCHIVOS = ['plan.xlsx', 'plan.xls'];   // acepta cualquiera de los dos (sube el que prefieras)
   const HOJA = 'General';                        // hoja a mostrar
   let anioPlan = new Date().getFullYear();       // año del plan (se detecta del propio archivo al cargar)
+  // Personas que ya no están en plantilla (jubilaciones, bajas definitivas): se elimina su columna
+  // entera de la tabla, identificándolas por su letra en la subcabecera (2ª fila). P. ej. Armendáriz.
+  const OCULTAR_PERSONAS = ['A'];                 // A = Armendáriz (jubilado en julio 2026)
 
   // Prueba los nombres candidatos y devuelve la primera respuesta válida
   function buscarArchivo(i) {
@@ -110,6 +113,7 @@
         const hoja = wb.Sheets[HOJA] || wb.Sheets[wb.SheetNames[0]];
         if (!hoja) throw new Error('No se encontró la hoja "' + HOJA + '".');
         reconstruirFechas(hoja);
+        ocultarPersonas(hoja, OCULTAR_PERSONAS);
         const badge = document.getElementById('anioCab');
         badge.textContent = anioPlan;
         badge.style.display = 'inline-block';
@@ -169,6 +173,57 @@
         cont++;
       }
     }
+  }
+
+  // Elimina por completo la columna de cada persona indicada (por su letra en la subcabecera, 2ª fila).
+  // Útil cuando alguien deja la plantilla (p. ej. una jubilación) y su columna ya no debe mostrarse.
+  function ocultarPersonas(hoja, letras) {
+    if (!letras || !letras.length) return;
+    const range = XLSX.utils.decode_range(hoja['!ref']);
+    const objetivo = [];
+    for (let C = range.s.c; C <= range.e.c; C++) {
+      const cell = hoja[XLSX.utils.encode_cell({ r: 1, c: C })];
+      const v = cell ? String(cell.v).trim() : '';
+      if (letras.includes(v)) objetivo.push(C);
+    }
+    // borra de derecha a izquierda para no invalidar los índices aún pendientes
+    objetivo.sort((a, b) => b - a).forEach(C => eliminarColumna(hoja, C));
+  }
+
+  // Borra una columna de la hoja, desplazando el resto a la izquierda y ajustando !ref y celdas combinadas.
+  function eliminarColumna(hoja, delCol) {
+    const range = XLSX.utils.decode_range(hoja['!ref']);
+    // preserva las etiquetas de grupo (p. ej. "Consultas") ancladas en la columna que se borra
+    const preservar = [];
+    (hoja['!merges'] || []).forEach(m => {
+      if (m.s.c === delCol && m.e.c > delCol) {
+        const ref = XLSX.utils.encode_cell({ r: m.s.r, c: delCol });
+        if (hoja[ref]) preservar.push({ r: m.s.r, cell: hoja[ref] });
+      }
+    });
+    for (let R = range.s.r; R <= range.e.r; R++) {
+      for (let C = delCol; C <= range.e.c; C++) {
+        const dest = XLSX.utils.encode_cell({ r: R, c: C });
+        const src = XLSX.utils.encode_cell({ r: R, c: C + 1 });
+        if (hoja[src]) hoja[dest] = hoja[src]; else delete hoja[dest];
+      }
+    }
+    preservar.forEach(p => { hoja[XLSX.utils.encode_cell({ r: p.r, c: delCol })] = p.cell; });
+    range.e.c = Math.max(range.s.c, range.e.c - 1);
+    hoja['!ref'] = XLSX.utils.encode_range(range);
+    if (hoja['!merges']) {
+      const nuevas = [];
+      for (const m of hoja['!merges']) {
+        const s = { r: m.s.r, c: m.s.c }, e = { r: m.e.r, c: m.e.c };
+        if (s.c === delCol && e.c === delCol) continue;   // merge de una sola columna: desaparece
+        if (s.c > delCol) s.c--;
+        if (e.c >= delCol) e.c--;
+        if (e.c < s.c) continue;
+        nuevas.push({ s, e });
+      }
+      hoja['!merges'] = nuevas;
+    }
+    if (hoja['!cols']) hoja['!cols'].splice(delCol, 1);
   }
 
   // Aplica a cada celda su color real del Excel (avisos). Donde no hay color, pinta rosa los findes.
