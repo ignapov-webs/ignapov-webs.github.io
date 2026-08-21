@@ -104,10 +104,10 @@
         </div>
       </div>
       <div class="q">
-        <span class="label">2 · Ganglios sospechosos en ecografía axilar</span>
-        <div class="opts" data-q="nodes">
-          <div class="opt" data-v="12">1–2 ganglios</div>
-          <div class="opt" data-v="3">≥ 3 ganglios</div>
+        <span class="label">2 · Estado clínico de la axila<span class="hint">El número de ganglios sospechosos en la ecografía <b>no</b> es el criterio (la TAS extirpa el marcado + centinelas + todos los sospechosos). Lo que excluye es la axila fija o el conglomerado.</span></span>
+        <div class="opts" data-q="axila">
+          <div class="opt" data-v="movil">N1 · ganglios móviles</div>
+          <div class="opt" data-v="fijo">cN2/cN3 · fijos, apelmazados o conglomerado</div>
         </div>
       </div>
       <div class="q">
@@ -133,11 +133,10 @@
         </div>
       </div>
       <div class="q">
-        <span class="label">6 · Factores de exclusión presentes</span>
-        <div class="opts" data-q="excl">
-          <div class="opt" data-v="no">Ninguno</div>
-          <div class="opt" data-v="inflam">Carc. inflamatorio</div>
-          <div class="opt" data-v="palp">Adenopatía palpable</div>
+        <span class="label">6 · ¿Carcinoma inflamatorio?</span>
+        <div class="opts" data-q="inflam">
+          <div class="opt" data-v="no">No</div>
+          <div class="opt" data-v="si">Sí</div>
         </div>
       </div>
       <div class="q">
@@ -146,6 +145,14 @@
         <div class="opts" data-q="nac">
           <div class="opt" data-v="no">No</div>
           <div class="opt" data-v="si">Sí</div>
+        </div>
+      </div>
+      <div class="q">
+        <span class="label">8 · Ganglios positivos en la AP definitiva de la TAS<span class="hint">Es el criterio real de baja carga: ≤ 2 positivos → RT axilar sin vaciamiento; ≥ 3 → linfadenectomía. Déjalo en «Pendiente» si aún no se ha operado.</span></span>
+        <div class="opts" data-q="ap">
+          <div class="opt" data-v="le2">≤ 2 positivos</div>
+          <div class="opt" data-v="ge3">≥ 3 positivos</div>
+          <div class="opt" data-v="pend">Pendiente</div>
         </div>
       </div>
       <div class="btnrow">
@@ -276,18 +283,17 @@
   });
 
   document.getElementById('run').addEventListener('click',function(){
-    var need=['cT','nodes','path','subtype','histo','excl','nac'];
+    var need=['cT','axila','path','subtype','histo','inflam','nac','ap'];
     var missing=need.filter(function(k){return !state[k]});
     var res=document.getElementById('result');
     if(missing.length){
-      res.innerHTML='<div class="verdict v-amber"><h2>Faltan datos</h2><p>Responde a todas las preguntas para evaluar la indicación.</p></div>';
+      res.innerHTML='<div class="verdict v-amber"><h2>Faltan datos</h2><p>Responde a todas las preguntas (usa «Pendiente» en la 8 si aún no se ha operado).</p></div>';
       res.style.display='block'; res.scrollIntoView({behavior:'smooth'}); return;
     }
     var hard=[];  // exclusiones absolutas
     if(state.cT==='t34') hard.push('Tumor cT3/cT4: estadio avanzado, fuera de criterio.');
-    if(state.nodes==='3') hard.push('≥ 3 ganglios sospechosos en ecografía: carga tumoral elevada.');
-    if(state.excl==='inflam') hard.push('Cáncer de mama inflamatorio: contraindicación.');
-    if(state.excl==='palp') hard.push('Adenopatía palpable: enfermedad clínicamente evidente.');
+    if(state.axila==='fijo') hard.push('Axila fija/apelmazada o conglomerado adenopático (cN2/cN3): enfermedad avanzada, fuera de criterio.');
+    if(state.inflam==='si') hard.push('Cáncer de mama inflamatorio: contraindicación.');
 
     var redirect=[]; // mejor otra vía
     if(state.path==='no') redirect.push('Sin confirmación patológica N1 (BAG/PAAF): la indicación exige afectación confirmada.');
@@ -304,21 +310,26 @@
     } else if(redirect.length){
       html+='<div class="verdict v-amber"><h2>Indicación no preferente</h2><p>No cumple el perfil de la propuesta. Reevaluar vía terapéutica en comité.</p>';
       html+='<ul class="reasons">'+redirect.map(function(r){return '<li class="warn">'+r+'</li>'}).join('')+'</ul></div>';
+    } else if(state.ap==='ge3'){
+      html+='<div class="verdict v-amber"><h2>TAS realizada · procede linfadenectomía</h2><p>La AP definitiva muestra <b>≥ 3 ganglios positivos</b> (carga alta): completar el vaciamiento axilar niveles I–II. La baja carga no se confirma.</p></div>';
+    } else if(state.ap==='le2'){
+      html+='<div class="verdict v-green"><h2>Desescalada confirmada · RT axilar sin vaciamiento</h2><p>La AP de la TAS muestra <b>≤ 2 ganglios positivos</b> (baja carga confirmada). Procede radioterapia de niveles Berg I–III, sin linfadenectomía.</p>';
+      html+='<ul class="reasons">'+(warn.length?warn.map(function(r){return '<li class="warn">'+r+'</li>'}).join(''):'')+'</ul></div>';
     } else {
-      html+='<div class="verdict v-green"><h2>Candidata a TAS</h2><p>Cumple los criterios de la propuesta. <b>Confirmación obligatoria en comité multidisciplinar.</b></p>';
+      html+='<div class="verdict v-green"><h2>Candidata a TAS</h2><p>Cumple los criterios de la propuesta. <b>Confirmación obligatoria en comité multidisciplinar.</b> El resultado de la AP decidirá la desescalada (≤ 2 positivos → RT; ≥ 3 → linfadenectomía).</p>';
       html+='<ul class="reasons">'+
-        '<li class="ok">cT1–cT2 con 1–2 ganglios sospechosos.</li>'+
+        '<li class="ok">cT1–cT2 con axila N1 móvil (sin fijación ni conglomerado).</li>'+
         '<li class="ok">N1 confirmado e histología/perfil compatibles.</li>'+
         '<li class="ok">Sin criterios de exclusión ni de neoadyuvancia.</li>'+
         (warn.length?warn.map(function(r){return '<li class="warn">'+r+'</li>'}).join(''):'')+
         '</ul></div>';
       html+='<div class="card"><h3 class="sec">Plan quirúrgico</h3><ul class="check">'+
-        '<li>Extirpar los 1–2 ganglios marcados (semilla/bola/lazo).</li>'+
+        '<li>Extirpar el/los ganglios marcados (semilla/bola/lazo).</li>'+
         '<li>Centinela con trazador · objetivo <b>≥ 3 ganglios</b> totales.</li>'+
         '<li>Doble marcador recomendado (radioisótopo + Magtrace).</li>'+
-        '<li>Extirpar <b>todos</b> los ganglios sospechosos a la palpación intraoperatoria.</li>'+
+        '<li>Extirpar <b>todos</b> los ganglios sospechosos a la palpación intraoperatoria (sin límite de número).</li>'+
         '<li>Control radiológico intraoperatorio de la pieza.</li>'+
-        '<li>Radioterapia postoperatoria de niveles Berg I–II–III.</li>'+
+        '<li>Según la AP: <b>≤ 2 positivos → RT niveles Berg I–III</b>; <b>≥ 3 positivos → linfadenectomía</b>.</li>'+
         '</ul></div>';
     }
     res.innerHTML=html; res.style.display='block'; res.scrollIntoView({behavior:'smooth'});
