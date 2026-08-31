@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Turnos">
-<title>Plan de turnos</title>
+<meta name="apple-mobile-web-app-title" content="MamaPlan">
+<title>MamaPlan</title>
 <style>
   :root {
     --bg: #f4f6fa;
@@ -52,19 +52,11 @@
 
   /* Guardias de la unidad de mama importadas (columnas Gdia. / Ste.) */
   td.g-mama { background: #d1fae5 !important; font-weight: 700; color: #065f46; }
-
-  /* Año del plan, en la cabecera junto al título */
-  .anio-cab {
-    display: inline-block; margin-left: 8px; padding: 3px 12px;
-    background: #fbbf24; color: #1f2937; border-radius: 999px;
-    font-size: 15px; font-weight: 800; vertical-align: middle;
-    box-shadow: 0 1px 3px rgba(0,0,0,.2);
-  }
 </style>
 </head>
 <body>
   <header>
-    <h1>📅 Plan de turnos — Cirugía General <span id="anioCab" class="anio-cab" style="display:none"></span></h1>
+    <h1>📅 MamaPlan <span id="hdrAnio"></span>— Cirugía General</h1>
     <div class="sub">Consulta de solo lectura · se actualiza al recargar</div>
   </header>
 
@@ -118,9 +110,8 @@
         reconstruirFechas(hoja);
         ocultarPersonas(hoja, OCULTAR_PERSONAS);
         const refsGuardias = añadirGuardiasMama(hoja);
-        const badge = document.getElementById('anioCab');
-        badge.textContent = anioPlan;
-        badge.style.display = 'inline-block';
+        const hdr = document.getElementById('hdrAnio');
+        if (hdr) hdr.textContent = anioPlan + ' ';   // año detectado del plan, en la cabecera
         // Genera tabla HTML respetando celdas combinadas
         let html = XLSX.utils.sheet_to_html(hoja, { editable: false });
         cont.innerHTML = html;
