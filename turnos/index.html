@@ -50,6 +50,9 @@
   td:empty { background: inherit; }
   mark { background: var(--hl); padding: 0; }
 
+  /* Guardias de la unidad de mama importadas (columnas Gdia. / Ste.) */
+  td.g-mama { background: #d1fae5 !important; font-weight: 700; color: #065f46; }
+
   /* Año del plan, en la cabecera junto al título */
   .anio-cab {
     display: inline-block; margin-left: 8px; padding: 3px 12px;
@@ -114,6 +117,7 @@
         if (!hoja) throw new Error('No se encontró la hoja "' + HOJA + '".');
         reconstruirFechas(hoja);
         ocultarPersonas(hoja, OCULTAR_PERSONAS);
+        const refsGuardias = añadirGuardiasMama(hoja);
         const badge = document.getElementById('anioCab');
         badge.textContent = anioPlan;
         badge.style.display = 'inline-block';
@@ -121,6 +125,7 @@
         let html = XLSX.utils.sheet_to_html(hoja, { editable: false });
         cont.innerHTML = html;
         pintarColores(cont, hoja);
+        refsGuardias.forEach(ref => { const td = document.getElementById('sjs-' + ref); if (td) td.classList.add('g-mama'); });
         estado.style.display = 'none';
         cont.style.display = 'block';
         filtrar();
@@ -173,6 +178,84 @@
         cont++;
       }
     }
+  }
+
+  // Guardias de la unidad de mama importadas del plan del servicio (16/10/2026 → feb 2027).
+  // Solo se cargan las de 2026; cada entrada es {m, d, l} = mes, día y letras de quien está de guardia
+  // ese día. El "saliente" se marca automáticamente al día siguiente. Letras: P=Poveda, S=Sanz,
+  // T=Talavera, Ma=Malo. Cuando exista el plan 2027, se añadirán aquí las de enero–febrero 2027.
+  const GUARDIAS_MAMA = [
+    { m: 10, d: 22, l: ['S'] }, { m: 10, d: 23, l: ['T'] }, { m: 10, d: 24, l: ['P'] },
+    { m: 10, d: 26, l: ['Ma'] }, { m: 10, d: 29, l: ['Ma'] },
+    { m: 11, d: 1, l: ['S'] }, { m: 11, d: 2, l: ['T'] }, { m: 11, d: 3, l: ['Ma', 'P'] },
+    { m: 11, d: 11, l: ['S'] }, { m: 11, d: 12, l: ['T'] }, { m: 11, d: 13, l: ['Ma', 'P'] },
+    { m: 11, d: 21, l: ['S'] }, { m: 11, d: 22, l: ['T'] }, { m: 11, d: 23, l: ['Ma', 'P'] },
+    { m: 11, d: 30, l: ['P'] },
+    { m: 12, d: 1, l: ['S'] }, { m: 12, d: 2, l: ['T'] }, { m: 12, d: 3, l: ['Ma', 'P'] },
+    { m: 12, d: 11, l: ['S'] }, { m: 12, d: 12, l: ['T'] }, { m: 12, d: 13, l: ['Ma', 'P'] },
+    { m: 12, d: 21, l: ['S'] }, { m: 12, d: 22, l: ['T'] }, { m: 12, d: 23, l: ['Ma', 'P'] },
+    { m: 12, d: 31, l: ['S'] },
+  ];
+
+  // Localiza la columna cuya cabecera de grupo (1ª fila) es exactamente txt (p. ej. "Gdia.").
+  function columnaPorGrupo(hoja, txt) {
+    const range = XLSX.utils.decode_range(hoja['!ref']);
+    for (let C = range.s.c; C <= range.e.c; C++) {
+      const c = hoja[XLSX.utils.encode_cell({ r: 0, c: C })];
+      if (c && String(c.v).trim() === txt) return C;
+    }
+    return -1;
+  }
+
+  // Añade un código a una celda sin pisar lo que ya hubiera (los separa con espacio) y conservando su estilo.
+  function añadirCodigo(hoja, ref, code) {
+    const cell = hoja[ref];
+    if (!cell) { hoja[ref] = { t: 's', v: code, w: code }; return; }
+    const prev = (cell.v == null ? '' : String(cell.v)).trim();   // celdas con estilo pero sin valor
+    const tokens = prev ? prev.split(/\s+/).filter(Boolean) : [];
+    if (tokens.includes(code)) return;
+    tokens.push(code);
+    cell.v = tokens.join(' '); cell.w = cell.v; cell.t = 's';
+  }
+
+  // Vuelca las guardias de mama en las columnas "Gdia." (día de guardia) y "Ste." (saliente, día siguiente).
+  // Devuelve las referencias de celda tocadas para poder resaltarlas. Solo aplica al plan de 2026.
+  function añadirGuardiasMama(hoja) {
+    const refs = [];
+    if (anioPlan !== 2026) return refs;
+    const colG = columnaPorGrupo(hoja, 'Gdia.');
+    const colS = columnaPorGrupo(hoja, 'Ste.');
+    if (colG < 0 || colS < 0) return refs;
+    // mapa ms(UTC) -> fila, con la misma reconstrucción posicional que usa la tabla
+    const mapa = new Map();
+    const range = XLSX.utils.decode_range(hoja['!ref']);
+    const ancla = Date.UTC(anioPlan, 0, 1);
+    let cont = 0;
+    for (let R = range.s.r; R <= range.e.r; R++) {
+      const cD = hoja[XLSX.utils.encode_cell({ r: R, c: 1 })];
+      const letra = cD ? String(cD.v).trim().toUpperCase() : '';
+      if (letra in LETRA_A_DIA) { mapa.set(ancla + cont * 86400000, R); cont++; }
+    }
+    GUARDIAS_MAMA.forEach(g => {
+      const ms = Date.UTC(2026, g.m - 1, g.d);
+      const R = mapa.get(ms);
+      if (R !== undefined) {
+        const refG = XLSX.utils.encode_cell({ r: R, c: colG });
+        g.l.forEach(x => añadirCodigo(hoja, refG, x));
+        refs.push(refG);
+      }
+      // saliente = día siguiente, solo si sigue dentro de 2026
+      const msSal = ms + 86400000;
+      if (new Date(msSal).getUTCFullYear() === 2026) {
+        const Rs = mapa.get(msSal);
+        if (Rs !== undefined) {
+          const refS = XLSX.utils.encode_cell({ r: Rs, c: colS });
+          g.l.forEach(x => añadirCodigo(hoja, refS, x));
+          refs.push(refS);
+        }
+      }
+    });
+    return refs;
   }
 
   // Elimina por completo la columna de cada persona indicada (por su letra en la subcabecera, 2ª fila).
