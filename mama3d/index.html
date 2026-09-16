@@ -84,6 +84,7 @@ input,select,textarea{font:inherit;width:100%;padding:7px 8px;border:1px solid v
 <div class="wrap">
 <main>
   <div id="viewer">
+    <svg id="leaders" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></svg>
     <div id="labels"></div>
     <div class="side-tag" style="left:10px">◀ DERECHA de la paciente</div>
     <div class="side-tag" style="right:10px">IZQUIERDA ▶</div>
@@ -185,7 +186,7 @@ input,select,textarea{font:inherit;width:100%;padding:7px 8px;border:1px solid v
       </div>
       <div class="row">
         <div><label id="distLbl">Distancia al pezón (cm)</label><input id="f_dist" type="number" step="0.1" min="0" value="4"></div>
-        <div><label>Profundidad</label><select id="f_depthMode"><option value="tercio">Por tercio</option><option value="mm">mm desde piel</option></select></div>
+        <div><label>Profundidad</label><select id="f_depthMode"><option value="tercio">Por tercio</option><option value="mm">mm desde piel</option><option value="pared">mm desde pectoral</option></select></div>
         <div><select id="f_tercio" style="margin-top:22px"><option value="ant">Anterior</option><option value="med" selected>Medio</option><option value="post">Posterior</option></select>
           <input id="f_depthMm" class="hide" type="number" step="1" min="0" value="15" style="margin-top:22px"></div>
       </div>
@@ -193,7 +194,7 @@ input,select,textarea{font:inherit;width:100%;padding:7px 8px;border:1px solid v
 
     <div id="locMX" class="hide">
       <div class="row">
-        <div><label>Proyección CC</label><select id="f_cc"><option value="1">Externa</option><option value="0">Central</option><option value="-1">Interna</option></select></div>
+        <div><label>Proyección CC</label><select id="f_cc"><option value="1">Externa</option><option value="0">Central</option><option value="-1">Interna</option><option value="PA">Cola axilar</option><option value="AX">Axila</option></select></div>
         <div><label>Proyección OML</label><select id="f_oml"><option value="1">Superior</option><option value="0">Central</option><option value="-1">Inferior</option></select></div>
       </div>
       <div class="row">
@@ -223,7 +224,7 @@ input,select,textarea{font:inherit;width:100%;padding:7px 8px;border:1px solid v
     <summary style="cursor:pointer;font-weight:600;color:var(--pink)">Cómo se calcula la posición</summary>
     <ul style="font-size:12.5px;padding-left:18px">
       <li>La mama se modela con forma de gota: cuerpo mamario (Ø de base y proyección, polo superior en pendiente y polo inferior redondeado) prolongado hacia la axila por la cola de Spence, con caída anterior según la ptosis.</li>
-      <li><b>Lector de informes:</b> reconoce lado, tipo de lesión, radio horario (“10 h”, “R10”, “a las 2:30”), cuadrante (CSE, UCS…, retroareolar, cola axilar), distancia al pezón (“a 4 cm del pezón”, “4 cm DP”), profundidad (tercio, mm desde piel), tamaño y BI-RADS. Lo que no encuentra lo supone y lo marca en amarillo para revisar. Hallazgos a ≤2,5 cm de uno ya dibujado desde otra prueba reciben el mismo nº.</li>
+      <li><b>Lector de informes:</b> reconoce lado, tipo de lesión, radio horario (“10 h”, “R10”, “a las 2:30”), cuadrante (CSE, UCS…, retroareolar, cola axilar), distancia al pezón (“a 4 cm del pezón”, “4 cm DP”), profundidad (tercio, mm desde piel), tamaño y BI-RADS. Entiende la estructura de los informes del HUN (cribado MX+eco, RM, BAG/BAV, AP y conclusión), siglas como M IZDA, UCSMI, ICINF o CSE/UCS, listas con guion y frases como “en ecografía se confirma…”. Ignora las biopsias, la anatomía patológica y la conclusión, y fusiona la misma lesión descrita varias veces. Lo que no encuentra lo supone y lo marca en amarillo para revisar. Hallazgos a ≤2,5 cm de uno ya dibujado desde otra prueba reciben el mismo nº.</li>
       <li><b>RM:</b> distancia al pezón en línea recta. <b>Eco:</b> distancia medida sobre la piel.</li>
       <li><b>Profundidad por tercios:</b> anterior, medio o posterior entre la piel y el pectoral.</li>
       <li><b>MX:</b> la proyección CC da externo/interno; la OML da superior/inferior; la profundidad se mide desde el pezón hacia el pectoral.</li>
@@ -1370,12 +1371,15 @@ function tailAxisPoint(g, frac){ const rho = bodyR(g,TAIL_PHI) + g.r*TAIL_A*frac
 
 function depthZ(g, T, lc){             // z (cm sobre el pectoral) según profundidad
   if (lc.depthMode==='mm') return Math.max(T*0.1, T - lc.depthMm/10);
+  if (lc.depthMode==='pared') return Math.min(T*0.92, Math.max(0.2, lc.depthMm/10));
   return T*TER[lc.tercio];
 }
 
 // posición sin deformar (cm, coordenadas locales de la mama)
 function lesionPos(L){
   const g = geo(L.side), lc = L.loc, N = {x:0,y:0,z:g.h};
+  if (L.mod==='MX' && lc.cc==='AX') return {...toXY(g, footR(g,TAIL_PHI)+g.r*0.35, TAIL_PHI+0.05), z:0.6};
+  if (L.mod==='MX' && lc.cc==='PA'){ const q = tailAxisPoint(g, 0.45); return {...q, z:thickXY(g,q.x,q.y)*(1-MXF[lc.mxdepth]*0.6)}; }
   if (L.mod==='MX'){
     const v=+lc.oml, l=+lc.cc, central = v===0 && l===0;
     const phi = Math.atan2(l, v);
@@ -1396,7 +1400,10 @@ function lesionPos(L){
     let acc = 0, prevT = thick(g,0,phi);
     for (let i=1;i<=n;i++){ const r=E*i/n, T=thick(g,r,phi); acc += Math.hypot(E/n, T-prevT); prevT=T; if (acc>=d){ best=r; break; } }
   } else {                              // RM: línea recta desde el pezón
-    for (let i=0;i<=n;i++){ const r=E*i/n, T=thick(g,r,phi), q={...toXY(g,r,phi), z:depthZ(g,T,lc)}; if (dist3(q,N)>=d){ best=r; break; } }
+    let hit = -1;
+    for (let i=0;i<=n;i++){ const r=E*i/n, T=thick(g,r,phi), q={...toXY(g,r,phi), z:depthZ(g,T,lc)}; if (dist3(q,N)>=d){ hit=i; best=r; break; } }
+    // lesión profunda con distancia corta: la recta ya supera d en el centro → usar distancia radial aproximada
+    if (hit <= 2 && d > 0) best = Math.min(E, Math.max(d*0.75, 1.2));
   }
   return {...toXY(g,best,phi), z:depthZ(g, thick(g,best,phi), lc)};
 }
@@ -1577,11 +1584,13 @@ function resize(){
 }
 new ResizeObserver(resize).observe(viewer);
 
-const labelsEl = document.getElementById('labels');
+const labelsEl = document.getElementById('labels'), leadersEl = document.getElementById('leaders');
 function renderLabels(rebuildDom){
   if (rebuildDom){
-    labelsEl.innerHTML = '';
+    labelsEl.innerHTML = ''; leadersEl.innerHTML = '';
     labelItems.forEach(it=>{
+      it.ln = document.createElementNS('http://www.w3.org/2000/svg','line');
+      it.ln.setAttribute('stroke', BR_COL[it.L.br]||'#999'); it.ln.setAttribute('stroke-width','1.5'); leadersEl.appendChild(it.ln);
       const d = document.createElement('div'); d.className='lbl';
       d.style.setProperty('--c', BR_COL[it.L.br]||'#999');
       d.textContent = it.L.num + '·' + MOD_TXT[it.L.mod];
@@ -1595,13 +1604,19 @@ function renderLabels(rebuildDom){
     const toCam = camera.position.clone().sub(wp).normalize();
     const pr = wp.clone().project(camera);
     it.el.style.display = show && pr.z<1 ? '' : 'none';
-    let lx = (pr.x+1)/2*w, ly = (1-pr.y)/2*h;
-    for (let k=0;k<8 && placed.some(q=>Math.abs(q[0]-lx)<44 && Math.abs(q[1]-ly)<20);k++) ly -= 21;
+    const px = (pr.x+1)/2*w, py = (1-pr.y)/2*h;
+    let lx = px, ly = py;
+    const clash = () => placed.some(q=>Math.abs(q[0]-lx)<52 && Math.abs(q[1]-ly)<20);
+    const tries = [[0,0],[48,0],[-48,0],[0,-22],[48,-22],[-48,-22],[0,22],[48,22],[-48,22],[0,-44],[70,-44],[-70,-44]];
+    for (const [dx,dy] of tries){ lx = px+dx; ly = py+dy; if (!clash()) break; }
+    const vis = show && pr.z<1;
+    it.ln.setAttribute('x1',px); it.ln.setAttribute('y1',py); it.ln.setAttribute('x2',lx); it.ln.setAttribute('y2',ly-16);
+    it.ln.style.display = vis && (lx!==px || ly!==py) ? '' : 'none';
     placed.push([lx,ly]);
     it.el.style.left = lx+'px';
     it.el.style.top = ly+'px';
     it.el.classList.toggle('hl', highlight===it.L.id);
-    it.sx = lx; it.sy = ly;
+    it.sx = lx; it.sy = ly; it.px = px; it.py = py;
   });
 }
 (function loop(){
@@ -1670,6 +1685,7 @@ function renderAnalysis(){
     } else if (a.foci.length>1){
       notes.push(`${a.foci.length} focos próximos (separación máx. ${a.maxD.toFixed(1)} cm) — posible resección en bloque.`);
     }
+    if (a.foci.length > 3) notes.push(`<b>Más de 3 focos</b>: fuera de los criterios de conservación de Z11102; la mastectomía suele ser la opción preferente.`);
     if (a.span >= 5) notes.push(`Extensión total ${a.span.toFixed(1)} cm (≥5 cm).`);
     if (a.minNip < 2) notes.push(`Lesión a ~${a.minNip.toFixed(1)} cm del pezón → valorar afectación/resección del CAP (técnicas centrales, tipo Grisotti).`);
     if (a.minSkin < 0.5) notes.push(`Muy próxima a la piel (~${(a.minSkin*10).toFixed(0)} mm) → valorar resección cutánea.`);
@@ -1699,7 +1715,7 @@ const $ = id => document.getElementById(id);
 })();
 const QUAD_H = {CSE:{D:10.5,I:1.5},CSI:{D:1.5,I:10.5},CIE:{D:7.5,I:4.5},CII:{D:4.5,I:7.5},UCS:{D:12,I:12},UCI:{D:6,I:6},UCE:{D:9,I:3},UCInt:{D:3,I:9}};
 $('f_quad').onchange = e=>{ const q=e.target.value; if(q){ $('f_hour').value = QUAD_H[q][$('f_side').value]; } e.target.value=''; };
-$('f_depthMode').onchange = ()=>{ const mm=$('f_depthMode').value==='mm'; $('f_depthMm').classList.toggle('hide',!mm); $('f_tercio').classList.toggle('hide',mm); };
+$('f_depthMode').onchange = ()=>{ const mm=$('f_depthMode').value!=='tercio'; $('f_depthMm').classList.toggle('hide',!mm); $('f_tercio').classList.toggle('hide',mm); };
 $('f_br').onchange = ()=>{ const b=$('f_br').value; $('f_mal').checked = /^(0|4|5|6)/.test(b) && b!=='0' ; };
 $('f_type').onchange = ()=>{ const t=$('f_type').value; if(t==='ganglio') $('f_hour').value='AX'; if(t==='clip'){ $('f_s1').value=3; $('f_mal').checked=false; } if(t==='quiste'){ $('f_br').value='2'; $('f_mal').checked=false; } };
 
@@ -1777,11 +1793,11 @@ function describe(L){
   const p = lesionPos(L), q = QTXT[quadrantOf(L.side,p)];
   let loc;
   if (L.mod==='MX'){
-    const cc={1:'externa',0:'central','-1':'interna'}[L.loc.cc], om={1:'superior',0:'central','-1':'inferior'}[L.loc.oml];
+    const cc={1:'externa',0:'central','-1':'interna',PA:'cola axilar',AX:'axila'}[L.loc.cc], om={1:'superior',0:'central','-1':'inferior'}[L.loc.oml];
     loc = `CC ${cc}, OML ${om}, profundidad ${ {ant:'anterior',med:'media',post:'posterior'}[L.loc.mxdepth] }${L.loc.mxdist?`, a ${L.loc.mxdist} cm del pezón`:''}`;
   } else {
     const hr = L.loc.hour, hs = {RA:'retroareolar',PA:'cola axilar',AX:'axila'}[hr] || `radio ${String(hr).replace('.5',':30')} h`;
-    const dep = L.loc.depthMode==='mm' ? `${L.loc.depthMm} mm de piel` : `tercio ${ {ant:'anterior',med:'medio',post:'posterior'}[L.loc.tercio] }`;
+    const dep = L.loc.depthMode==='mm' ? `${L.loc.depthMm} mm de piel` : L.loc.depthMode==='pared' ? `${L.loc.depthMm} mm del pectoral` : `tercio ${ {ant:'anterior',med:'medio',post:'posterior'}[L.loc.tercio] }`;
     loc = hr==='AX' ? 'axila' : `${hs}${hr==='RA'?'':`, a ${L.loc.dist} cm del pezón`}, ${dep}`;
   }
   return {sz, loc, q};
@@ -1826,54 +1842,63 @@ function toast(msg){ const d=document.createElement('div'); d.textContent=msg; d
 let pending = [];
 const nrm = t => t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
 const num = v => parseFloat(String(v).replace(',','.'));
-const Q_RULES = [
-  [/union\s+de\s+(?:los\s+)?cuadrantes\s+superiores|\bucs\b|\bucsup\b/, 'UCS'],
-  [/union\s+de\s+(?:los\s+)?cuadrantes\s+inferiores|\buci\b|\bucinf\b/, 'UCI'],
-  [/union\s+de\s+(?:los\s+)?cuadrantes\s+externos|\buce\b|\bucext\b/, 'UCE'],
-  [/union\s+de\s+(?:los\s+)?cuadrantes\s+internos|\bucint?\b/, 'UCInt'],
-  [/supero\s*-?\s*externo|superior\s+externo|superoexterno|\bcse\b|\bcsext\b/, 'CSE'],
-  [/supero\s*-?\s*interno|superior\s+interno|superointerno|\bcsi\b|\bcsint\b/, 'CSI'],
-  [/infero\s*-?\s*externo|inferior\s+externo|inferoexterno|\bcie\b|\bciext\b/, 'CIE'],
-  [/infero\s*-?\s*interno|inferior\s+interno|inferointerno|\bcii\b|\bciint\b/, 'CII'],
-  [/cola\s+(?:axilar|de\s+spence)|prolongacion\s+axilar/, 'PA'],
-  [/retroareolar|subareolar|retroaerolar|region\s+central|\bcentral\b/, 'RA'],
+const SFX = '(?=mi\\b|md\\b|\\b)';
+const QRE = [   // cuadrantes (admite sufijo pegado MI/MD: "UCSMI", "CSE-UCEMI")
+  ['UCInt', new RegExp('union\\s+de\\s+(?:los\\s+)?cuadrantes\\s+internos|\\b(?:uc|ic)\\s*(?:int|internos)'+SFX,'g')],
+  ['UCS',   new RegExp('union\\s+de\\s+(?:los\\s+)?cuadrantes\\s+superiores|\\b(?:uc|ic)\\s*(?:s|sup|superiores)'+SFX+'|region\\s+(?:superior|craneal)|polo\\s+superior','g')],
+  ['UCI',   new RegExp('union\\s+de\\s+(?:los\\s+)?cuadrantes\\s+inferiores|\\b(?:uc|ic)\\s*(?:i|inf|inferiores)'+SFX+'|region\\s+(?:inferior|caudal)|polo\\s+inferior','g')],
+  ['UCE',   new RegExp('union\\s+de\\s+(?:los\\s+)?cuadrantes\\s+externos|\\b(?:uc|ic)\\s*(?:e|ext|externos)'+SFX,'g')],
+  ['CSE',   new RegExp('supero\\s*-?\\s*extern[oa]|superior\\s+extern[oa]|\\bcse'+SFX,'g')],
+  ['CSI',   new RegExp('supero\\s*-?\\s*intern[oa]|superior\\s+intern[oa]|\\bcsi'+SFX,'g')],
+  ['CIE',   new RegExp('infero\\s*-?\\s*extern[oa]|inferior\\s+extern[oa]|\\bcie'+SFX,'g')],
+  ['CII',   new RegExp('infero\\s*-?\\s*intern[oa]|inferior\\s+intern[oa]|\\bcii'+SFX,'g')],
+  ['PA',    /cola\s+(?:mamaria\s+)?(?:axilar|de\s+spence)|prolongacion\s+axilar/g],
+  ['RA',    /retroareolar|subareolar|retroaerolar|periareolar|region\s+central/g],
 ];
-function detectMod(t){
-  if (/resonancia|\brm\b|\brmn\b|gadolinio|realce|captacion|t2|difusion/.test(t)) return 'RM';
-  if (/ecograf|hipoecoic|anecoic|ecogenic|doppler|sombra acustica|\beco\b/.test(t)) return 'ECO';
-  if (/mamograf|tomosintesis|microcalcificac|densidad|proyeccion|\bcc\b|\boml\b/.test(t)) return 'MX';
-  return null;
+function locTokens(t){
+  const toks = [];
+  QRE.forEach(([q,re])=>{ re.lastIndex = 0; let m; while ((m = re.exec(t))){ if (!toks.some(o=>m.index>=o.i && m.index<o.e)) toks.push({q, i:m.index, e:m.index+m[0].length}); } });
+  toks.sort((x,y)=>x.i-y.i);
+  const groups = [];                                  // "CSE/UCS", "UCE-CIE", "región caudal de CIE" = un solo sitio
+  toks.forEach(k=>{ const g = groups[groups.length-1];
+    if (g && /^[\s\-\/,]*(?:de\s+)?(?:la\s+)?$/.test(t.slice(g.e, k.i))){ g.qs.push(k.q); g.e = k.e; }
+    else groups.push({qs:[k.q], i:k.i, e:k.e}); });
+  return groups;
 }
-function explicitMod(t){
-  if (/resonancia|\brmn?\b/.test(t)) return 'RM';
-  if (/ecograf/.test(t)) return 'ECO';
-  if (/mamograf|tomosintesis/.test(t)) return 'MX';
-  return null;
+function hourFromQuads(qs, side){
+  if (qs.includes('PA')) return 'PA';
+  const hs = qs.filter(q=>QUAD_H[q]).map(q=>QUAD_H[q][side]);
+  if (!hs.length) return qs.includes('RA') ? 'RA' : null;
+  let x=0, y=0; hs.forEach(h=>{ x += Math.sin(h*Math.PI/6); y += Math.cos(h*Math.PI/6); });
+  let h = Math.round(((Math.atan2(x,y)*6/Math.PI)+12)%12*2)/2;
+  return h===0 ? 12 : h;
 }
+const ECO_W = /ecograf|hipoecoic|anecoic|ecogenic|isoecoic|hiperecoic|sombra\s+acustica/;
 function detectSide(t){
-  const d = /mama\s+derecha|\bmd\b|derech[oa]/.test(t), i = /mama\s+izquierda|\bmi\b|izquierd[oa]/.test(t);
+  const d = /mama\s+derecha|\bm\.?\s*dcha|\bmd\b|derech[oa]|\bdcha|\bdcho|(?:\b(?:c[si][ei]|uc\w{1,3}|ic\w{1,3}))md\b/.test(t);
+  const i = /mama\s+izquierda|\bm\.?\s*izda|\bmi\b|izquierd[oa]|\bizda|\bizdo|\bizq\b|(?:\b(?:c[si][ei]|uc\w{1,3}|ic\w{1,3}))mi\b/.test(t);
   return d && !i ? 'D' : i && !d ? 'I' : null;
 }
 const TYPE_RE = [
-  ['nme', /realce\s+(?:no\s+masa|no\s+nodular|de\s+tipo\s+no\s+masa)|captacion\s+no\s+nodular|\bnme\b/],
+  ['nme', /realce\s+(?:no\s+masa|no\s+nodular|de\s+tipo\s+no\s+masa)|captacion\s+no\s+(?:masa|nodular)|\bnme\b/],
   ['calc', /microcalcificac|calcificaciones/],
   ['dist', /distorsion/],
-  ['quiste', /quiste|anecoic/],
+  ['quiste', /quiste/],
   ['ganglio', /adenopat|ganglio|linfaden/],
-  ['masa', /nodulo|masa|lesion|tumor|neoplasia|carcinoma|realce|captacion|foco|asimetria/],
+  ['masa', /nodul[oa]|nodular|masa|lesion|tumor|neoplasia|carcinoma|realce|captacion|\bfoco|asimetria/],
   ['clip', /\bclip\b|marcador|arpon|semilla/],
 ];
 function detectType(t){        // el término que aparece primero manda ("masa ... con clip" = masa)
   let best = null, pos = 1e9;
   TYPE_RE.forEach(([k,re])=>{ const m = t.match(re); if (m && m.index < pos){ pos = m.index; best = k; } });
-  if (best==='masa'){ const n = t.match(TYPE_RE[0][1]); if (n) best = 'nme'; }
+  if (best==='masa' && (TYPE_RE[0][1].test(t) || /^(?:realce|captacion)\s+(?:de\s+predominio\s+)?(?:lineal|segmentari|regional|ductal|parchead|difus)/.test(t.slice(pos)))) best = 'nme';
   return best;
 }
-const NEG = /\b(no\s+se\s+(?:observa|observan|identifica|identifican|aprecia|aprecian|visualiza|visualizan|detecta|detectan|evidencia|evidencian)|sin\s+(?:evidencia|hallazgos|lesiones|signos|imagenes|adenopatias)|no\s+(?:hay|existen?|presenta)|ausencia\s+de|descartan?)\b/;
+const NEG = /(^|[.,;:]\s*)no\s|\b(no\s+se\s+(?:observa|observan|identifica|identifican|aprecia|aprecian|visualiza|visualizan|detecta|detectan|evidencia|evidencian)|sin\s+(?:evidencia|hallazgos|lesiones|signos|imagenes|adenopatias|alteraciones)|no\s+(?:hay|existen?|presenta)|ausencia\s+de|descartan?)\b/;
+const LESION_W = /nodul|masa|lesion|quiste|realce|calcific|distorsion|adenopat|ganglio|captacion|foco/;
 function parseHour(t){
-  let m = t.match(/(?:radio|hora|horas|\ba\s+las|\ben\s+las|\bhacia\s+las|\br)\s*(?:de\s+)?(?:las\s+)?(\d{1,2})(?:\s*[:.,h]\s*(\d{2})|\s*y\s*media)?/)
-       || t.match(/\b(\d{1,2})(?:[:.](\d{2}))?\s*(?:h\b|hrs?\b|horas?\b)/)
-       || t.match(/\b(\d{1,2})(?:[:.](\d{2}))?\s*(?:del\s+reloj|segun\s+las\s+agujas)/);
+  let m = t.match(/(?:radio|hora|horas|\ba\s+las|\ben\s+las|\bhacia\s+las|\br)\s*(?:de\s+)?(?:las\s+)?(\d{1,2})(?:\s*[:.,h]\s*(\d{2})|\s*y\s*media)?(?!\s*(?:mm|cm|\/))/)
+       || t.match(/\b(\d{1,2})(?:[:.](\d{2}))?\s*(?:h\b|hrs?\b|horas?\b)/);
   if (!m) return null;
   let h = +m[1]; if (h<1 || h>12) return null;
   const half = (m[2] && +m[2]>=15 && +m[2]<45) || /y\s*media/.test(m[0]);
@@ -1881,130 +1906,208 @@ function parseHour(t){
   return v===0 ? 12 : (v===0.5 ? 12.5 : v);
 }
 function parseDist(t){
-  const m = t.match(/(\d+(?:[.,]\d+)?)\s*(cm|mm)\s*(?:de\s+distancia\s+)?(?:del|al|de\s+la|hasta\s+el)\s*(?:pezon|cap\b|complejo\s+areola|areola)/)
-        || t.match(/(\d+(?:[.,]\d+)?)\s*(cm|mm)\s*(?:\bdp\b|\bdap\b|\bdpz\b)/)
-        || t.match(/(?:distancia\s+(?:al|del|desde\s+el)\s+pezon|\bdp\b|\bdap\b)\s*(?:de|:|=)?\s*(\d+(?:[.,]\d+)?)\s*(cm|mm)/);
+  const m = t.match(/(\d+(?:[.,]\d+)?)\s*(cm|mms?)\s*(?:de\s+distancia\s+)?(?:del|al|de\s+la|hasta\s+el)\s*(?:pezon|cap\b|complejo\s+areola|areola)/)
+        || t.match(/(\d+(?:[.,]\d+)?)\s*(cm|mms?)\s*(?:\bdp\b|\bdap\b|\bdpz\b)/)
+        || t.match(/(?:distancia\s+(?:al|del|desde\s+el)\s+pezon|\bdp\b|\bdap\b)\s*(?:de|:|=)?\s*(\d+(?:[.,]\d+)?)\s*(cm|mms?)/);
   if (!m) return null;
-  const v = num(m[1]); return m[2]==='mm' ? v/10 : v;
+  const v = num(m[1]); return m[2].startsWith('mm') ? v/10 : v;
 }
 function parseDepth(t){
-  const m = t.match(/(\d+(?:[.,]\d+)?)\s*(mm|cm)\s*(?:de\s+profundidad\s+)?(?:de|desde|bajo)\s+(?:la\s+)?piel/)
-        || t.match(/profundidad\s*(?:de|:)?\s*(\d+(?:[.,]\d+)?)\s*(mm|cm)/);
+  let m = t.match(/(\d+(?:[.,]\d+)?)\s*(mms?|cm)\s*(?:de|desde|bajo)\s+(?:la\s+)?piel/)
+        || t.match(/profundidad\s*(?:de|:)?\s*(\d+(?:[.,]\d+)?)\s*(mms?|cm)/);
   if (m){ const v = num(m[1]); return {depthMode:'mm', depthMm: m[2]==='cm' ? v*10 : v}; }
+  m = t.match(/(\d+(?:[.,]\d+)?)\s*(mms?|cm)\s*(?:de|desde|del)\s+(?:la\s+)?(?:pared(?:\s+toracica)?|(?:musculo\s+)?pectoral|plano\s+muscular)/);
+  if (m){ const v = num(m[1]); return {depthMode:'pared', depthMm: m[2]==='cm' ? v*10 : v}; }
   if (/(tercio|plano)\s+(anterior|superficial)|subcutane|superficial/.test(t)) return {depthMode:'tercio', tercio:'ant'};
-  if (/(tercio|plano)\s+(posterior|profundo)|prepectoral|retroglandular|profund/.test(t)) return {depthMode:'tercio', tercio:'post'};
+  if (/(tercio|plano)\s+(posterior|profundo)|prepectoral|retroglandular|profund|(?<!(?:mm|cm|mms)\s)\bposterior\b(?!\s+(?:e\s|y\s|al\b|a\s))/.test(t)) return {depthMode:'tercio', tercio:'post'};
   if (/(tercio|plano)\s+medio/.test(t)) return {depthMode:'tercio', tercio:'med'};
   return null;
 }
 function parseSize(t){
-  const clean = t.replace(/(\d+(?:[.,]\d+)?)\s*(cm|mm)\s*(?:de\s+distancia\s+)?(?:del|al|de\s+la|desde\s+la|bajo\s+la|hasta\s+el)\s*(?:pezon|piel|cap\b|areola|complejo)/g, m=>' '.repeat(m.length))
-                 .replace(/(?:distancia\s+(?:al|del)\s+pezon|profundidad)\s*(?:de|:)?\s*\d+(?:[.,]\d+)?\s*(?:cm|mm)/g, m=>' '.repeat(m.length))
-                 .replace(/\d+(?:[.,]\d+)?\s*(?:cm|mm)\s+(?:posterior|anterior|superior|inferior|medial|lateral|craneal|caudal|por\s+(?:encima|debajo|delante|detras))/g, m=>' '.repeat(m.length));
-  const cands = [];
+  const B = m => ' '.repeat(m.length);
+  const c = t.replace(/mms\b/g,'mm ').replace(/\+\/-|±/g,'   ')
+    .replace(/(\d)\s*(mm|cm)\s*(?:ap|tr|t|cc)\b/g, (m,d,u)=>(d+' '+u).padEnd(m.length))
+    .replace(/(\d+(?:[.,]\d+)?)\s*(cm|mm)\s*(?:de\s+distancia\s+)?(?:del|al|de\s+la|de\s+el|desde\s+la|bajo\s+la|hasta\s+el)\s*(?:pezon|piel|cap\b|areola|complejo|pared|musculo|pectoral|plano|nodulo|lesion)/g, B)
+    .replace(/(?:distancia\s+(?:al|del)\s+pezon|profundidad)\s*(?:de|:)?\s*\d+(?:[.,]\d+)?\s*(?:cm|mm)/g, B)
+    .replace(/\d+(?:[.,]\d+)?\s*(?:cm|mm)\s+(?:posterior|anterior|superior|inferior|medial|lateral|craneal|caudal|por\s+(?:encima|debajo|delante|detras))/g, B)
+    .replace(/(\d+(?:[.,]\d+)?)\s*(cm|mm)\s*(?:\bdp\b|\bdap\b)/g, B);
+  const ax = c.match(/\bap\s*(\d+(?:[.,]\d+)?)\s*mm.{0,25}?transvers\w*\s*(\d+(?:[.,]\d+)?)\s*mm.{0,25}?\bcc\s*(\d+(?:[.,]\d+)?)\s*mm/);
+  if (ax) return [ax[1],ax[2],ax[3]].map(num);
+  const cands = []; let m;
   const re3 = /(\d+(?:[.,]\d+)?)\s*(?:mm|cm)?\s*(?:x|×|\*|por)\s*(\d+(?:[.,]\d+)?)\s*(?:mm|cm)?(?:\s*(?:x|×|\*|por)\s*(\d+(?:[.,]\d+)?))?\s*(mm|cm)/g;
-  let m;
-  while ((m = re3.exec(clean))){ const f = m[4]==='cm'?10:1; cands.push({i:m.index, v:[m[1],m[2],m[3]].filter(Boolean).map(x=>Math.round(num(x)*f*10)/10)}); }
+  while ((m = re3.exec(c))){ const f = m[4]==='cm'?10:1; cands.push({i:m.index, e:m.index+m[0].length, v:[m[1],m[2],m[3]].filter(Boolean).map(x=>Math.round(num(x)*f*10)/10)}); }
+  const reS = /(\d+(?:[.,]\d+)?)\s*\/\s*(\d+(?:[.,]\d+)?)\s*(mm|cm)/g;
+  while ((m = reS.exec(c))){ const f = m[3]==='cm'?10:1; cands.push({i:m.index, e:m.index+m[0].length, v:[Math.max(num(m[1]),num(m[2]))*f]}); }
   const re1 = /(\d+(?:[.,]\d+)?)\s*(mm|cm)\b/g;
-  while ((m = re1.exec(clean))){ if (cands.some(c=>Math.abs(c.i-m.index)<25 && c.v.length>1)) continue; const f = m[2]==='cm'?10:1; cands.push({i:m.index, v:[Math.round(num(m[1])*f*10)/10]}); }
+  while ((m = re1.exec(c))){ if (cands.some(o=>m.index>=o.i && m.index<o.e)) continue; const f = m[2]==='cm'?10:1; cands.push({i:m.index, e:m.index+m[0].length, v:[Math.round(num(m[1])*f*10)/10]}); }
   if (!cands.length) return null;
   cands.sort((x,y)=>x.i-y.i);
   const tpos = Math.min(...TYPE_RE.map(([k,r])=>{ const q=t.match(r); return q?q.index:1e9; }));
-  return (cands.find(c=>c.i > tpos) || cands[0]).v;
+  return (cands.find(o=>o.i > tpos) || cands[0]).v;
 }
 function parseBR(t){
-  const m = t.match(/bi\s*-?\s*rads\s*(?:categoria\s*)?[:\s]*([0-6])\s*([abc])?\b/);
+  const m = t.match(/bi\s*-?\s*rads(?:\s*bi\s*-?\s*rads)?\s*(?:categoria\s*)?[:\s]*([0-6])\s*([abc])?\b/);
   return m ? m[1] + (m[1]==='4' ? (m[2]||'').toUpperCase() : '') : null;
 }
-function parseMXproj(t){
-  const r = {};
-  if (/cuadrantes?\s+extern|\bextern[oa]|lateral/.test(t)) r.cc = '1';
-  if (/cuadrantes?\s+intern|\bintern[oa]|medial/.test(t)) r.cc = '-1';
-  if (/superior|craneal/.test(t)) r.oml = '1';
-  if (/inferior|caudal/.test(t)) r.oml = '-1';
-  return r;
-}
-const Q_TO_MX = {CSE:['1','1'],CSI:['-1','1'],CIE:['1','-1'],CII:['-1','-1'],UCS:['0','1'],UCI:['0','-1'],UCE:['1','0'],UCInt:['-1','0'],RA:['0','0'],PA:['1','1']};
+const Q_TO_MX = {CSE:['1','1'],CSI:['-1','1'],CIE:['1','-1'],CII:['-1','-1'],UCS:['0','1'],UCI:['0','-1'],UCE:['1','0'],UCInt:['-1','0'],RA:['0','0'],PA:['PA','0']};
+const SKIP_LINE = /^(motivo de consulta|solicitud de|prestacion\b|prestacion:|antecedentes|recomendacion|densidad mamaria|asintomatica|no nota|mujer de|paciente de)/;
+const AP_START = /^(resumen de informe de ap|perfil inmunohistoquimico|categoria diagnostica|nota\b|\(?[a-e]\)\s)/;
+const AP_END = /^(conclusion|solicitud|prestaciones|hallazgos|motivo|clasificacion|paciente|programa|densidad)/;
+const PROC = /^biopsia|cilindros|realizacion de (?:una\s+)?biopsia|se realiza (?:una\s+)?(?:bag|bav|biopsia)|realizo (?:bag|bav)|\b(?:bav|bag) guiada|se biopsian?/;
 
 function parseReport(raw, modSel, sideSel){
-  const full = nrm(raw);
-  const gMod = modSel!=='auto' ? modSel : detectMod(full) || 'RM';
-  // BI-RADS por lado en la conclusión
-  const brSide = {};
-  let gBR = null;
-  const sentences = raw.replace(/\r/g,'').split(/(?<=[.;])\s+|\n+/).map(x=>x.trim()).filter(Boolean);
-  let curSide = sideSel!=='auto' ? sideSel : null, curMod = gMod, last = null, inConcl = false;
-  const out = [];
-  sentences.forEach(orig=>{
-    const t = nrm(orig);
-    if (/^(conclusion|impresion|juicio|diagnostico|recomendacion)/.test(t)) { curSide = sideSel!=='auto' ? sideSel : curSide; }
-    const sd = detectSide(t); if (sd && sideSel==='auto') curSide = sd;
-    if (/^\s*(mamografia|tomosintesis)/.test(t)) curMod = 'MX';
-    else if (/^\s*(ecografia|ecografico)/.test(t)) curMod = 'ECO';
-    else if (/^\s*(resonancia|rm\b)/.test(t)) curMod = 'RM';
-    const type = detectType(t);
-    if (/^(conclusion|impresion|juicio|diagnostico|valoracion)/.test(t)) inConcl = true;
-    const isConclusion = inConcl || /^(categoria|bi-?rads)/.test(t);
-    const hour = parseHour(t), dist = parseDist(t), depth = parseDepth(t), size = parseSize(t);
-    let quad = null; for (const [re,q] of Q_RULES) if (re.test(t)){ quad = q; break; }
-    const hasInfo = hour!=null || dist!=null || depth || quad;
-    const neg = NEG.test(t) && (!type || t.search(NEG) < t.search(/nodulo|masa|lesion|quiste|realce|calcific|distorsion|adenopat|ganglio|captacion|foco/));
-    if (neg) return;
-    if (type && !isConclusion && (hasInfo || size)){
-      if (type==='ganglio' && /normal|morfologia\s+conservada|aspecto\s+(?:benigno|reactivo)|cortical\s+fina/.test(t)) return;
-      const mod = modSel!=='auto' ? modSel : (explicitMod(t) || curMod);
-      const F = {side: curSide || 'D', sideGuess: !curSide, mod, type, br: parseBR(t), hour, quad, dist, depth, size, src: orig.slice(0,220), mx: parseMXproj(t)};
-      if (type==='ganglio') F.hour = 'AX';
-      out.push(F); last = F;
-    } else if (last && !type && (hasInfo || size) && !isConclusion){
-      ['hour','dist','depth','quad'].forEach(k=>{ const v = {hour,dist,depth,quad}[k]; if (last[k]==null && v!=null) last[k]=v; });
-      if (!last.size && size) last.size = size;
-      last.src += ' … ' + orig.slice(0,120);
+  const lines = raw.replace(/\r/g,'').split('\n');
+  const found = [], brBlock = {};
+  let block = 0, curSide = sideSel!=='auto' ? sideSel : null, curMod = modSel!=='auto' ? modSel : null;
+  let skipAP = false, skipConcl = false, ctx = null, last = null;
+  const setBR = (b, sd) => { (brBlock[block] ||= {})[sd || 'any'] = b; };
+  const setMod = m => { if (modSel==='auto') curMod = m; };
+  lines.forEach(line=>{
+    let t = nrm(line).trim();
+    if (!t) { ctx = null; return; }
+    t = t.replace(/^hallazgos radiologicos\s*:\s*/, '');
+    if (/^(paciente\s*\d|programa de deteccion|solicitud de)/.test(t)){ block++; skipAP = false; skipConcl = false; ctx = null; last = null; return; }
+    if (/^prestaciones realizadas/.test(t)){
+      const mx = /tomosintesis|mamograf/.test(t), ec = /\beco\b|ecograf/.test(t), rm = /\brmn?\b|resonancia/.test(t);
+      setMod(mx&&ec&&!rm ? 'MXECO' : rm ? 'RM' : mx ? 'MX' : ec ? 'ECO' : curMod); return;
     }
-    const b = parseBR(t);
-    if (b && !(out.length && out[out.length-1].src.startsWith(orig.slice(0,60)))){
-      if (last && !last.br && !isConclusion && (!sd || sd===last.side)) last.br = b;
-      else if (sd || curSide){ brSide[sd || curSide] = b; }
-      else gBR = b;
+    if (AP_START.test(t)){ skipAP = true; return; }
+    if (skipAP){ if (AP_END.test(t)) skipAP = false; else return; }
+    if (SKIP_LINE.test(t)) return;
+    if (/^(conclusion|impresion|juicio)/.test(t)) skipConcl = true;
+    else if (skipConcl && /^(prestaciones|hallazgos|motivo|rmn?\b|resonancia|ecografia|eco\b|mamografia|tomosintesis)/.test(t)) skipConcl = false;
+    if (skipConcl || /^(clasificacion|categoria)/.test(t)){
+      t.split(/(?<=[.;])\s+/).forEach(sn=>{ const b = parseBR(sn); if (b) setBR(b, detectSide(sn)); });
+      return;
     }
+    // encabezados de sección
+    const head = t.replace(/[:.\s]+$/,'');
+    let isHead = false;
+    if (/^(mamografia y ecografia|mamografia con eco|tomosintesis de mama eco|mamografia y eco)/.test(head)){ setMod('MXECO'); isHead = head.length < 45; }
+    else if (/^(rmn?|resonancia)\b/.test(head)){ setMod('RM'); isHead = head.length < 45; ctx = null; }
+    else if (/^(eco\b|ecografia|eco-)/.test(head)){ setMod('ECO'); isHead = head.length < 45; ctx = null; }
+    else if (/^(mamografia|tomosintesis|mx\b)/.test(head)){ setMod('MX'); isHead = head.length < 45; ctx = null; }
+    else if (/^(bag|bav|marcador|biopsia)\b/.test(head) && head.length < 30){ isHead = true; }
+    else if (/^(mama|axila)\s+(derecha|izquierda)$/.test(head)){ isHead = true; }
+    if (sideSel==='auto'){ const sd = detectSide(head); if (sd && isHead) curSide = sd; }
+    if (isHead) return;
+    const isList = /^[-•*]\s*/.test(t);
+    if (!isList) ctx = null;
+    t.replace(/^[-•*]\s*/,'').split(/(?<=[.;])\s+/).forEach(sent=>{
+      const pp = sent.search(PROC), lw = sent.search(LESION_W);
+      if (pp >= 0 && (lw < 0 || pp < lw) && !/marcador/.test(sent)) return;
+      if (/^(el\s+)?tamano\b/.test(sent)) return;
+      const sd = detectSide(sent); if (sd && sideSel==='auto') curSide = sd;
+      const firstLes = sent.search(LESION_W), negPos = sent.search(NEG);
+      if (negPos >= 0 && (firstLes < 0 || negPos < firstLes)) return;
+      const groups = locTokens(sent);
+      const hourOnly = parseHour(sent);
+      // segmentos: uno por localización si la frase enumera varias
+      let segs;
+      if (groups.length > 1){
+        segs = groups.map((g,k)=>({txt: sent.slice(g.i, k+1<groups.length ? groups[k+1].i : sent.length), qs:g.qs}));
+        segs[0].prefix = sent.slice(0, groups[0].i);
+      } else segs = [{txt: sent, qs: groups[0] ? groups[0].qs : [], prefix:''}];
+      let prevType = detectType(segs[0].prefix || '') ;
+      const sentMod = (()=>{
+        if (modSel!=='auto') return modSel;
+        if (/^(?:en\s+)?(?:la\s+)?(?:ecografia|eco)\b|^(?:en\s+)?(?:la\s+)?(?:rm|resonancia)\b|^(?:en\s+)?(?:la\s+)?(?:mamografia|tomosintesis)\b/.test(sent))
+          return /^(?:en\s+)?(?:la\s+)?(?:ecografia|eco)\b/.test(sent) ? 'ECO' : /(?:rm|resonancia)/.test(sent.slice(0,20)) ? 'RM' : 'MX';
+        if (/proyeccion\s+(?:oblicua|craneo)|visible\s+(?:solo\s+)?en\s+(?:la\s+)?(?:proyeccion\s+)?(?:oblicua|craneocaudal)/.test(sent)) return 'MX';
+        return null;
+      })();
+      let sentFound = false;
+      segs.forEach(sg=>{
+        const tx = sg.txt, type = detectType(tx) || prevType;
+        if (detectType(tx)) prevType = detectType(tx);
+        const hour = groups.length > 1 ? parseHour(tx) : hourOnly, dist = parseDist(tx), depth = parseDepth(tx), size = parseSize(tx);
+        const hasLoc = hour!=null || sg.qs.length > 0;
+        const hasInfo = hasLoc || dist!=null || depth;
+        let mod = sentMod || curMod || 'RM';
+        if (mod==='MXECO') mod = ECO_W.test(tx) ? 'ECO' : 'MX';
+        if (type && (hasInfo || size || (type==='ganglio' && /adenopat|sospech|patolog/.test(tx)))){
+          if (type==='ganglio' && /normal|morfologia\s+conservada|aspecto\s+(?:benigno|reactivo)|inespecific|cortical\s+fina|bedi\s*[12]\b/.test(tx)) return;
+          const F = {side: curSide, mod, type, br: parseBR(tx), hour, qs: sg.qs, dist, depth, size, block, src: sent.slice(0,240)};
+          if (!hasLoc){
+            if (ctx){ F.hour = ctx.hour; F.qs = ctx.qs; F.depth = F.depth || ctx.depth; F.inherited = 'la línea anterior'; }
+            else if (last && last.block===block && last.side===curSide && type!=='ganglio' && /confirma|correspond|en relacion|se identifica el|dicho/.test(tx)){
+              F.hour = last.hour; F.qs = last.qs; F.dist = F.dist ?? last.dist; F.depth = F.depth || last.depth; F.inherited = 'la frase anterior'; }
+          }
+          if (type==='ganglio') { F.hour = 'AX'; F.qs = []; }
+          found.push(F); last = F; sentFound = true;
+        } else if (!type && last && last.block===block && (size || (hasInfo && !hasLoc))){
+          if (!last.size && size) last.size = size;
+          if (!last.depth && depth) last.depth = depth;
+          if (last.dist==null && dist!=null) last.dist = dist;
+          last.src += ' … ' + sent.slice(0,100);
+        }
+        const b = parseBR(tx);
+        if (b && !sentFound) setBR(b, sd || null);
+      });
+      if (!sentFound && groups.length && /:\s*$/.test(sent)) ctx = {qs: groups[0].qs, hour: hourOnly, depth: parseDepth(sent)};
+    });
   });
-  // completar y convertir a hallazgos de la app
-  const nextNum = {v: Math.max(0, ...S.lesions.map(l=>l.num)) + 1}, used = new Set();
-  return out.map(F=>{
+
+  // ---- convertir a hallazgos de la app, fusionar duplicados y numerar ----
+  const nextNum = {v: Math.max(0, ...S.lesions.map(l=>l.num)) + 1}, result = [];
+  found.forEach(F=>{
     const flags = [];
-    const benign = F.type==='quiste' && /simple|complicad/.test(nrm(F.src));
-    const br = F.br || (benign ? '2' : null) || brSide[F.side] || gBR || (F.type==='quiste' ? '2' : '4A');
-    if (!F.br && !benign && !brSide[F.side] && !gBR) flags.push('BI-RADS no encontrado');
-    if (F.sideGuess) flags.push('lado no indicado');
-    let hour = F.hour;
-    if (hour==null && F.quad){ hour = ['RA','PA'].includes(F.quad) ? F.quad : QUAD_H[F.quad][F.side]; }
-    if (hour==null){ hour = 'RA'; flags.push('sin localización → revisar'); }
+    const side = F.side || (sideSel!=='auto' ? sideSel : 'D');
+    if (!F.side) flags.push('lado no indicado');
+    const bb = brBlock[F.block] || {};
+    const benign = F.type==='quiste' && /simple|complicad/.test(F.src);
+    const nonsp = /inespecific/.test(F.src);
+    let br = F.br || (benign ? '2' : null) || (nonsp ? '3' : null) || bb[side] || bb.any || (F.type==='quiste' ? '2' : null);
+    if (!br && F.type==='ganglio') br = /sospech|patolog|engrosa|bedi\s*[45]/.test(F.src) ? '4B' : '3';
+    if (!br){ br = '4A'; flags.push('BI-RADS no encontrado'); }
+    let hour = F.hour!=null ? F.hour : hourFromQuads(F.qs||[], side);
+    let noLoc = false;
+    if (hour==null){ hour = 'RA'; noLoc = true; flags.push('sin localización → revisar'); }
+    if (F.inherited) flags.push('localización tomada de ' + F.inherited);
     const depth = F.depth || {depthMode:'tercio', tercio:'med'};
-    if (!F.depth && F.type!=='ganglio') flags.push('profundidad supuesta: tercio medio');
-    if (F.dist==null && !['RA','AX'].includes(hour) && F.mod!=='MX') flags.push('distancia al pezón estimada');
-    const size = F.size || [F.type==='clip'?3:10];
+    if (!F.depth && !['ganglio','clip'].includes(F.type)) flags.push('profundidad supuesta');
+    if (F.dist==null && !['RA','AX','PA'].includes(hour) && F.mod!=='MX') flags.push('distancia al pezón estimada');
+    const size = F.size || [F.type==='clip' ? 3 : 10];
     if (!F.size && F.type!=='clip') flags.push('tamaño no encontrado');
     let loc;
     if (F.mod==='MX'){
-      let cc = F.mx.cc ?? '0', oml = F.mx.oml ?? '0';
-      if (F.quad && Q_TO_MX[F.quad]) [cc, oml] = Q_TO_MX[F.quad];
-      else if (typeof hour==='number'){ const g = geo(F.side), ph = phiOfHour(g,hour); cc = Math.abs(Math.sin(ph))<0.3?'0':(Math.sin(ph)>0?'1':'-1'); oml = Math.abs(Math.cos(ph))<0.3?'0':(Math.cos(ph)>0?'1':'-1'); }
-      const mxdepth = depth.depthMode==='tercio' ? depth.tercio : 'med';
-      loc = {cc, oml, mxdepth, mxdist: F.dist || 0};
-      if (hour==='AX' || hour==='PA'){ F.mod = 'RM'; }
-    }
-    if (F.mod!=='MX'){
-      const dflt = hour==='RA'||hour==='AX'||hour==='PA' ? 0 : Math.round(geo(F.side).r*0.55*10)/10;
+      let cc = '0', oml = '0';
+      const q1 = (F.qs||[]).length===1 ? F.qs[0] : null;
+      if (hour==='AX'){ cc = 'AX'; }
+      else if (hour==='PA'){ cc = 'PA'; }
+      else if (q1 && Q_TO_MX[q1]) [cc, oml] = Q_TO_MX[q1];
+      else if (typeof hour==='number'){ const g = geo(side), ph = phiOfHour(g,hour); cc = Math.abs(Math.sin(ph))<0.3?'0':(Math.sin(ph)>0?'1':'-1'); oml = Math.abs(Math.cos(ph))<0.3?'0':(Math.cos(ph)>0?'1':'-1'); }
+      loc = {cc, oml, mxdepth: depth.depthMode==='tercio' ? depth.tercio : 'med', mxdist: F.dist || 0};
+    } else {
+      const dflt = ['RA','AX','PA'].includes(hour) ? 0 : Math.round(geo(side).r*0.55*10)/10;
       loc = {hour:String(hour), dist: F.dist ?? dflt, depthMode: depth.depthMode, depthMm: depth.depthMm||15, tercio: depth.tercio||'med'};
     }
-    const mal = !['clip','quiste'].includes(F.type) && (/^(4|5|6)/.test(br) || /sospech|maligno|neoplasia|carcinoma/.test(nrm(F.src)));
-    const L = {side:F.side, mod:F.mod, type:F.type, br, loc, size, mal, note:'', src:F.src, flags, sel: !flags.includes('sin localización → revisar')};
-    // mismo nº si coincide con una lesión ya existente (±2,5 cm)
-    const p = lesionPos(L);
-    const match = S.lesions.find(o=>o.side===L.side && o.mod!==L.mod && o.type!=='clip' && !used.has(o.num) && dist3(lesionPos(o),p) < 2.5);
+    const mal = !['clip','quiste'].includes(F.type) && !nonsp && (/^(4|5|6)/.test(br) || /sospech|malign|neoplasia|carcinoma|espiculad/.test(F.src));
+    const L = {side, mod:F.mod, type:F.type, br, loc, size, mal, note:'', src:F.src, flags, sel: !noLoc};
+    const p = lesionPos(L), big = Math.max(...size);
+    // duplicado de la misma prueba → fusionar
+    L.qs = F.qs || [];
+    const similar = o => { const a = Math.max(...o.size), d = Math.abs(a-big); return o.flags.includes('tamaño no encontrado') || !F.size || d <= Math.max(2, Math.max(a,big)*0.25); };
+    const dup = result.find(o=>{
+      if (o.side!==side || o.mod!==L.mod || o.type!==L.type) return false;
+      if (o.type==='ganglio') return true;
+      const d = dist3(lesionPos(o),p), overlap = o.qs.some(q=>L.qs.includes(q));
+      return similar(o) && (d < 1.5 || (d < 3.5 && overlap));
+    });
+    if (dup){
+      if ((dup.flags.includes('tamaño no encontrado') && F.size) || (F.size && F.size.length > dup.size.length)){ dup.size = size; dup.flags = dup.flags.filter(f=>f!=='tamaño no encontrado'); }
+      if (!dup.sel && L.sel){ dup.loc = L.loc; dup.sel = true; dup.flags = dup.flags.filter(f=>!f.startsWith('sin localiz')); }
+      if (dup.flags.includes('BI-RADS no encontrado') && !L.flags.includes('BI-RADS no encontrado')){ dup.br = L.br; dup.flags = dup.flags.filter(f=>f!=='BI-RADS no encontrado'); }
+      else if (/^[56]/.test(L.br) && !/^[56]/.test(dup.br)) dup.br = L.br;
+      dup.mal = dup.mal || L.mal;
+      dup.src += ' ‖ ' + L.src.slice(0,120);
+      return;
+    }
+    const match = [...S.lesions, ...result].find(o=>o.side===side && o.mod!==L.mod && o.type!=='clip' && L.type!=='clip' && (o.type==='ganglio')===(L.type==='ganglio') && dist3(lesionPos(o),p) < 2.5 && !result.some(r=>r!==o && r.mod===L.mod && r.num===o.num));
     L.num = match ? match.num : nextNum.v++;
-    used.add(L.num);
-    return L;
+    result.push(L);
   });
+  return result;
 }
 function runParse(){
   const txt = $('imp_text').value.trim();
@@ -2022,12 +2125,12 @@ function renderPending(){
     const C = (cap, html) => `<div class="cell"><small>${cap}</small>${html}</div>`;
     const opt = (arr,v)=>arr.map(([k,t])=>`<option value="${k}" ${String(v)===String(k)?'selected':''}>${t}</option>`).join('');
     const locF = L.mod==='MX'
-      ? C('Proy. CC',`<select data-i="${i}" data-k="loc.cc">${opt([['1','CC ext'],['0','CC central'],['-1','CC int']],L.loc.cc)}</select>`) + 
+      ? C('Proy. CC',`<select data-i="${i}" data-k="loc.cc">${opt([['1','CC ext'],['0','CC central'],['-1','CC int'],['PA','Cola axilar'],['AX','Axila']],L.loc.cc)}</select>`) + 
          C('Proy. OML',`<select data-i="${i}" data-k="loc.oml">${opt([['1','OML sup'],['0','OML central'],['-1','OML inf']],L.loc.oml)}</select>`) + 
          C('Profundidad',`<select data-i="${i}" data-k="loc.mxdepth">${opt([['ant','Anterior'],['med','Media'],['post','Posterior']],L.loc.mxdepth)}</select>`)
       : C('Localización',`<select data-i="${i}" data-k="loc.hour">${hourOpts(L.loc.hour)}</select>`) + 
          C('cm al pezón',`<input data-i="${i}" data-k="loc.dist" type="number" step="0.1" value="${L.loc.dist}">`) + 
-         C('Profundidad',`<select data-i="${i}" data-k="loc.tercio">${opt([['ant','T. anterior'],['med','T. medio'],['post','T. posterior']], L.loc.depthMode==='mm'?'':L.loc.tercio)}${L.loc.depthMode==='mm'?`<option selected value="">${L.loc.depthMm} mm piel</option>`:''}</select>`);
+         C('Profundidad',`<select data-i="${i}" data-k="loc.tercio">${opt([['ant','T. anterior'],['med','T. medio'],['post','T. posterior']], L.loc.depthMode!=='tercio'?'':L.loc.tercio)}${L.loc.depthMode!=='tercio'?`<option selected value="">${L.loc.depthMm} mm ${L.loc.depthMode==='mm'?'piel':'pectoral'}</option>`:''}</select>`);
     return `<div class="pend ${L.flags.length?'warn':''}">
       <label class="chk" style="margin:0"><input type="checkbox" data-i="${i}" data-k="sel" ${L.sel?'checked':''}> <b>Añadir</b></label>
       <div class="grid">
@@ -2062,7 +2165,7 @@ function renderPending(){
 function addPending(){
   const sel = pending.filter(L=>L.sel);
   if (!sel.length){ toast('No hay hallazgos marcados'); return; }
-  sel.forEach(L=>{ const {src, flags, sel:_s, ...rest} = L; rest.id = S.seq++; rest.note = rest.note || ''; S.lesions.push(rest); });
+  sel.forEach(L=>{ const {src, flags, sel:_s, qs:_q, ...rest} = L; rest.id = S.seq++; rest.note = rest.note || ''; S.lesions.push(rest); });
   pending = []; renderPending(); $('imp_text').value = '';
   resetForm(); rebuild(); renderList(); autosave();
   toast(`${sel.length} hallazgo(s) añadidos`);
@@ -2081,6 +2184,7 @@ function exportPNG(){
     x.font = `bold ${12*k}px sans-serif`; x.textAlign='center'; x.textBaseline='middle';
     labelItems.forEach(it=>{
       if (it.el.style.display==='none') return;
+      if (it.px!==it.sx || it.py!==it.sy){ x.strokeStyle=BR_COL[it.L.br]; x.lineWidth=1.5*k; x.beginPath(); x.moveTo(it.px*k,it.py*k); x.lineTo(it.sx*k,(it.sy-16)*k); x.stroke(); }
       const t = it.el.textContent, w = x.measureText(t).width + 12*k, hh = 18*k, cx = it.sx*k, cy = it.sy*k - 16*k;
       x.fillStyle='#fff'; x.strokeStyle=BR_COL[it.L.br]; x.lineWidth=2*k;
       x.beginPath(); x.roundRect ? x.roundRect(cx-w/2,cy-hh/2,w,hh,8*k) : x.rect(cx-w/2,cy-hh/2,w,hh); x.fill(); x.stroke();
