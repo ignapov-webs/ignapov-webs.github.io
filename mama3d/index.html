@@ -103,11 +103,13 @@ input,select,textarea{font:inherit;width:100%;padding:7px 8px;border:1px solid v
     <div class="range" style="min-width:200px;flex:1">Transparencia piel <input type="range" id="opac" min="0.08" max="1" step="0.02" value="0.32"></div>
     <label class="chk" style="margin:0"><input type="checkbox" id="showQuad" checked> Cuadrantes</label>
     <label class="chk" style="margin:0"><input type="checkbox" id="showLbl" checked> Etiquetas</label>
+    <label class="chk" style="margin:0"><input type="checkbox" id="showAll"> Ver también benignas y repetidas</label>
     <button onclick="exportPNG()">📷 Guardar imagen</button>
   </div>
 
   <div class="legend card">
     <span style="--c:#9ca3af">BI-RADS 0</span><span style="--c:#34d399">BI-RADS 1–2</span><span style="--c:#fbbf24">BI-RADS 3</span><span style="--c:#fb923c">BI-RADS 4</span><span style="--c:#ef4444">BI-RADS 5</span><span style="--c:#9f1239">BI-RADS 6 (confirmado)</span>
+    <span style="--c:transparent;border:0;width:100%;color:var(--ink)">Se dibujan solo las lesiones <b>sospechosas/malignas</b>, una vez cada una: la de <b>RM</b> si existe; si no, la de eco; si no, la de MX.</span>
     <span style="--c:transparent;border:0">● sólido = masa · malla = realce no masa · puntos = microcalcificaciones · azul = quiste · ✚ gris = clip</span>
   </div>
 
@@ -141,7 +143,7 @@ input,select,textarea{font:inherit;width:100%;padding:7px 8px;border:1px solid v
 
   <div class="card" id="importCard">
     <h2>📄 Leer informe</h2>
-    <p style="margin:0 0 6px;font-size:12.5px;color:var(--muted)">Pega el texto del informe de RM, ecografía o mamografía. Se analiza <b>solo en este dispositivo</b> (no se envía a ningún sitio y no se guarda). Quita antes nombre y NHC si puedes.</p>
+    <p style="margin:0 0 6px;font-size:12.5px;color:var(--muted)">Pega el texto del informe de RM, ecografía o mamografía. Se analiza <b>solo en este dispositivo</b> (no se envía a ningún sitio). El texto original se guarda con el caso en este navegador para poder consultarlo; quita antes nombre y NHC.</p>
     <div class="row">
       <div><label>Prueba</label><select id="imp_mod"><option value="auto">Detectar automáticamente</option><option value="RM">Resonancia</option><option value="ECO">Ecografía</option><option value="MX">Mamografía</option></select></div>
       <div><label>Mama por defecto</label><select id="imp_side"><option value="auto">Detectar</option><option value="D">Derecha</option><option value="I">Izquierda</option></select></div>
@@ -149,6 +151,7 @@ input,select,textarea{font:inherit;width:100%;padding:7px 8px;border:1px solid v
     <textarea id="imp_text" rows="7" placeholder="Ej.: En mama derecha, en el radio de las 10 h, a 5 cm del pezón y en tercio medio, se identifica nódulo irregular de 22 x 18 x 20 mm... BI-RADS 5"></textarea>
     <div class="toolbar">
       <button class="primary" onclick="runParse()">🔍 Analizar informe</button>
+      <button onclick="saveReportOnly()">💾 Guardar solo el informe</button>
       <button onclick="imp_text.value='';pending=[];renderPending()">Limpiar</button>
     </div>
     <div id="pendingBox"></div>
@@ -218,6 +221,11 @@ input,select,textarea{font:inherit;width:100%;padding:7px 8px;border:1px solid v
     <div id="lesionList"></div>
     <div class="toolbar"><button onclick="copyReport()">📋 Copiar resumen</button></div>
     <div id="report" class="mono hide"></div>
+  </div>
+
+  <div class="card">
+    <h2>Informes originales</h2>
+    <div id="reportList"></div>
   </div>
 
   <details class="card">
@@ -1316,7 +1324,7 @@ const MOD_TXT = {RM:'RM',ECO:'Eco',MX:'MX'};
 const LS_KEY = 'mama3d_cases';
 
 function blankState(){
-  return {caseId:'', breasts:{D:{preset:'M',diam:15,proj:5.5,ptosis:1}, I:{preset:'M',diam:15,proj:5.5,ptosis:1}}, lesions:[], seq:1};
+  return {caseId:'', reports:[], breasts:{D:{preset:'M',diam:15,proj:5.5,ptosis:1}, I:{preset:'M',diam:15,proj:5.5,ptosis:1}}, lesions:[], seq:1};
 }
 let S = blankState();
 let mod = 'RM', editId = null, focus = 'both', highlight = null;
@@ -1501,7 +1509,7 @@ function buildBreast(side){
   ax.scale.set(2.2,2.2,1.2); ax.position.set(axp.x, axp.y, 0.5); grp.add(ax);
 
   // lesiones
-  S.lesions.filter(L=>L.side===side && !L.hidden).forEach(L=>{
+  S.lesions.filter(L=>L.side===side && (isShown(L) || ($('showAll').checked && !L.hidden))).forEach(L=>{
     const p0 = lesionPos(L), p = deform(g,p0), sz = lesionSize(L);
     const col = new THREE.Color(BR_COL[L.br]||'#999');
     const o = new THREE.Group(); o.position.copy(V(p));
@@ -1632,7 +1640,7 @@ function breastVolume(g){
   return v;
 }
 function analyseSide(side){
-  const g = geo(side), Ls = S.lesions.filter(L=>L.side===side && L.mal && L.type!=='clip' && L.type!=='ganglio' && !L.hidden);
+  const g = geo(side), Ls = S.lesions.filter(L=>L.side===side && isShown(L) && L.type!=='clip' && L.type!=='ganglio');
   if (!Ls.length) return null;
   const Vb = breastVolume(g);
   const pts = Ls.map(L=>({L, p:lesionPos(L), s:lesionSize(L)}));
@@ -1732,6 +1740,7 @@ document.querySelectorAll('#focusSeg button').forEach(b=>b.onclick=()=>{
 });
 document.querySelectorAll('#viewSeg button').forEach(b=>b.onclick=()=>setView(b.dataset.v));
 ['opac','showQuad'].forEach(id=>$(id).oninput = rebuild);
+$('showAll').onchange = rebuild;
 $('showLbl').onchange = ()=>renderLabels(false);
 
 function renderBreastForms(){
@@ -1785,7 +1794,29 @@ function editLesion(id){
   $('formTitle').scrollIntoView({behavior:'smooth',block:'start'});
 }
 function delLesion(id){ if(!confirm('¿Eliminar este hallazgo?')) return; S.lesions = S.lesions.filter(l=>l.id!==id); rebuild(); renderList(); autosave(); }
-function toggleLesion(id){ const L=S.lesions.find(l=>l.id===id); L.hidden=!L.hidden; rebuild(); renderList(); }
+function toggleLesion(id){ const L=S.lesions.find(l=>l.id===id); L.hidden=!L.hidden; rebuild(); renderList(); autosave(); }
+/* --- lesión de referencia: RM > Eco > MX; solo sospechosas/malignas --- */
+const PRIO = {RM:3, ECO:2, MX:1};
+function refOf(L){
+  const grp = S.lesions.filter(o=>o.side===L.side && o.num===L.num && o.mal && !o.hidden && o.type!=='clip');
+  if (!grp.length) return null;
+  return grp.find(o=>o.ref) || grp.slice().sort((a,b)=>(PRIO[b.mod]-PRIO[a.mod]) || (Math.max(...b.size)-Math.max(...a.size)))[0];
+}
+function lesionStatus(L){
+  if (L.hidden) return {shown:false, txt:'oculta a mano'};
+  if (L.type==='clip') return {shown:false, txt:'clip (no se dibuja)'};
+  if (!L.mal) return {shown:false, txt:'no sospechosa (no se dibuja)'};
+  const r = refOf(L);
+  if (r && r!==L) return {shown:false, txt:`repetida · referencia ${MOD_TXT[r.mod]}`};
+  return {shown:true, txt: S.lesions.some(o=>o!==L && o.side===L.side && o.num===L.num && o.mal) ? `en el modelo · referencia ${MOD_TXT[L.mod]}` : 'en el modelo'};
+}
+const isShown = L => lesionStatus(L).shown;
+function setRef(id){
+  const L = S.lesions.find(l=>l.id===id);
+  S.lesions.forEach(o=>{ if (o.side===L.side && o.num===L.num) o.ref = false; });
+  L.ref = true; L.mal = true; L.hidden = false;
+  rebuild(); renderList(); autosave();
+}
 function hl(id){ highlight = highlight===id ? null : id; }
 
 function describe(L){
@@ -1806,14 +1837,15 @@ function renderList(){
   const el = $('lesionList');
   if (!S.lesions.length){ el.innerHTML='<p style="color:var(--muted);margin:0">Sin hallazgos todavía.</p>'; return; }
   el.innerHTML = [...S.lesions].sort((a,b)=>a.side.localeCompare(b.side)||a.num-b.num).map(L=>{
-    const d = describe(L);
-    return `<div class="lesion ${L.hidden?'hidden':''}">
+    const d = describe(L), st = lesionStatus(L), r = refOf(L);
+    return `<div class="lesion ${st.shown?'':'hidden'}">
       <div class="dot" style="background:${BR_COL[L.br]}"></div>
       <div class="txt" onclick="hl(${L.id})" style="cursor:pointer"><b>${L.num}·${MOD_TXT[L.mod]} — Mama ${L.side==='D'?'dcha':'izda'}</b><br>
-        ${TYPE_TXT[L.type]} BI-RADS ${L.br}, ${d.sz} mm<br>${d.loc} <i>(${d.q})</i>${L.note?'<br>📝 '+escapeHtml(L.note):''}${L.mal?'':' · <i>no incluida en cálculo</i>'}</div>
+        ${TYPE_TXT[L.type]} BI-RADS ${L.br}, ${d.sz} mm<br>${d.loc} <i>(${d.q})</i>${L.note?'<br>📝 '+escapeHtml(L.note):''}<br><span style="font-size:11.5px;font-weight:600;color:${st.shown?'#047857':'#9ca3af'}">${st.shown?'● ':'○ '}${st.txt}</span>${L.rep!=null?` · <a href="#" onclick="openReport(${L.rep});return false" style="font-size:11.5px">ver informe</a>`:''}</div>
       <div style="display:flex;flex-direction:column;gap:4px">
         <button class="small" onclick="editLesion(${L.id})">✏️</button>
-        <button class="small" onclick="toggleLesion(${L.id})">${L.hidden?'👁‍🗨':'👁'}</button>
+        <button class="small" onclick="toggleLesion(${L.id})" title="Ocultar/mostrar">${L.hidden?'👁‍🗨':'👁'}</button>
+        ${L.mal && L.type!=='clip' && r && r!==L ? `<button class="small" onclick="setRef(${L.id})" title="Usar esta prueba como referencia">⭐</button>` : ''}
         <button class="small" onclick="delLesion(${L.id})">🗑</button>
       </div></div>`;
   }).join('');
@@ -1823,9 +1855,11 @@ function escapeHtml(s){ return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','
 function buildReport(){
   let t = `Representación 3D orientativa${S.caseId?' — caso '+S.caseId:''}\n`;
   ['D','I'].forEach(side=>{
-    const Ls = S.lesions.filter(l=>l.side===side); if(!Ls.length) return;
+    const Ls = S.lesions.filter(l=>l.side===side && isShown(l)); if(!Ls.length) return;
     t += `\nMAMA ${side==='D'?'DERECHA':'IZQUIERDA'}\n`;
-    Ls.sort((a,b)=>a.num-b.num).forEach(L=>{ const d=describe(L); t += `- Lesión ${L.num} (${MOD_TXT[L.mod]}): ${TYPE_TXT[L.type]} BI-RADS ${L.br}, ${d.sz} mm; ${d.loc} (${d.q}).${L.note?' '+L.note:''}\n`; });
+    Ls.sort((a,b)=>a.num-b.num).forEach(L=>{ const d=describe(L);
+      const also = [...new Set(S.lesions.filter(o=>o!==L && o.side===side && o.num===L.num && o.type!=='clip').map(o=>MOD_TXT[o.mod]))];
+      t += `- Lesión ${L.num} (referencia ${MOD_TXT[L.mod]}${also.length?'; también en '+also.join(', '):''}): ${TYPE_TXT[L.type]} BI-RADS ${L.br}, ${d.sz} mm; ${d.loc} (${d.q}).${L.note?' '+L.note:''}\n`; });
     const a = analyseSide(side);
     if (a) t += `  Estimación: extensión ${a.dx.toFixed(1)}×${a.dy.toFixed(1)}×${a.dz.toFixed(1)} cm; resección con margen ≈${Math.round(a.Vr)} ml / volumen mamario ≈${Math.round(a.Vb)} ml (${a.ratio.toFixed(0)} %). Focos: ${a.foci.length}${a.foci.length>1?`, separación máx. ${a.maxD.toFixed(1)} cm`:''}.\n`;
   });
@@ -2103,11 +2137,18 @@ function parseReport(raw, modSel, sideSel){
       dup.src += ' ‖ ' + L.src.slice(0,120);
       return;
     }
-    const match = [...S.lesions, ...result].find(o=>o.side===side && o.mod!==L.mod && o.type!=='clip' && L.type!=='clip' && (o.type==='ganglio')===(L.type==='ganglio') && dist3(lesionPos(o),p) < 2.5 && !result.some(r=>r!==o && r.mod===L.mod && r.num===o.num));
+    const match = [...S.lesions, ...result].find(o=>o.side===side && o.mod!==L.mod && o.type!=='clip' && L.type!=='clip' && (o.type==='ganglio')===(L.type==='ganglio') && (dist3(lesionPos(o),p) < 2.5 || (dist3(lesionPos(o),p) < 4.5 && sameArea(o, L))) && !result.some(r=>r!==o && r.mod===L.mod && r.num===o.num));
     L.num = match ? match.num : nextNum.v++;
     result.push(L);
   });
   return result;
+}
+function sameArea(a, b){         // mismo cuadrante (o cuadrantes vecinos por unión)
+  const qa = quadrantOf(a.side, lesionPos(a)), qb = quadrantOf(b.side, lesionPos(b));
+  if (qa===qb) return true;
+  const parts = q => ({CSE:['CS','E'],CSI:['CS','I'],CIE:['CI','E'],CII:['CI','I'],UCS:['CS'],UCI:['CI'],UCE:['E'],UCInt:['I']}[q] || [q]);
+  const A = parts(qa), B = parts(qb);
+  return (qa.startsWith('UC') || qb.startsWith('UC')) && A.some(x=>B.includes(x) || B.some(y=>y.includes(x)||x.includes(y)));
 }
 function runParse(){
   const txt = $('imp_text').value.trim();
@@ -2165,11 +2206,49 @@ function renderPending(){
 function addPending(){
   const sel = pending.filter(L=>L.sel);
   if (!sel.length){ toast('No hay hallazgos marcados'); return; }
-  sel.forEach(L=>{ const {src, flags, sel:_s, qs:_q, ...rest} = L; rest.id = S.seq++; rest.note = rest.note || ''; S.lesions.push(rest); });
+  const repId = storeReport();
+  sel.forEach(L=>{ const {src, flags, sel:_s, qs:_q, ...rest} = L; rest.id = S.seq++; rest.note = rest.note || ''; rest.rep = repId; S.lesions.push(rest); });
   pending = []; renderPending(); $('imp_text').value = '';
-  resetForm(); rebuild(); renderList(); autosave();
-  toast(`${sel.length} hallazgo(s) añadidos`);
+  resetForm(); rebuild(); renderList(); renderReports(); autosave();
+  toast(`${sel.length} hallazgo(s) añadidos · informe guardado`);
   $('viewer').scrollIntoView({behavior:'smooth'});
+}
+
+/* ---- informes originales (texto literal del radiólogo) ---- */
+function storeReport(){
+  const txt = $('imp_text').value.replace(/\s+$/,'');
+  if (!txt) return null;
+  S.reports ||= [];
+  const same = S.reports.find(r=>r.text===txt); if (same) return same.id;
+  const id = (S.reports.reduce((m,r)=>Math.max(m,r.id),0) || 0) + 1;
+  const first = txt.split('\n').map(x=>x.trim()).find(x=>x.length>3) || 'Informe';
+  const mod = {RM:'RM', ECO:'Eco', MX:'MX', MXECO:'MX + Eco'}[$('imp_mod').value] || (/resonancia|\bRMN?\b/i.test(txt) ? 'RM' : '') ;
+  S.reports.push({id, added: new Date().toISOString(), title: first.slice(0,70), mod, text: txt});
+  return id;
+}
+function saveReportOnly(){
+  if (!$('imp_text').value.trim()){ toast('No hay texto que guardar'); return; }
+  storeReport(); $('imp_text').value=''; pending=[]; renderPending(); renderReports(); autosave(); toast('Informe guardado en el caso');
+}
+function renderReports(){
+  const el = $('reportList'), R = S.reports || [];
+  if (!R.length){ el.innerHTML = '<p style="color:var(--muted);margin:0">Los informes que analices quedarán aquí, tal como los redactó el radiólogo.</p>'; return; }
+  el.innerHTML = R.map(r=>{
+    const n = S.lesions.filter(l=>l.rep===r.id).length;
+    return `<details class="pend" id="rep${r.id}">
+      <summary style="cursor:pointer"><b>Informe ${r.id}</b> · ${new Date(r.added).toLocaleDateString('es-ES')} · ${escapeHtml(r.title)} <span style="color:var(--muted);font-size:11.5px">(${n} hallazgo${n===1?'':'s'})</span></summary>
+      <div class="mono" style="max-height:360px;margin-top:6px">${escapeHtml(r.text)}</div>
+      <div class="toolbar"><button class="small" onclick="copyText(${r.id})">📋 Copiar</button><button class="small" onclick="reanalyse(${r.id})">🔍 Volver a analizar</button><button class="small" onclick="delReport(${r.id})">🗑 Borrar informe</button></div>
+    </details>`;
+  }).join('');
+}
+function openReport(id){ renderReports(); const d = $('rep'+id); if (d){ d.open = true; d.scrollIntoView({behavior:'smooth', block:'center'}); } }
+function copyText(id){ const r = S.reports.find(x=>x.id===id); navigator.clipboard?.writeText(r.text).then(()=>toast('Informe copiado'),()=>{}); }
+function reanalyse(id){ const r = S.reports.find(x=>x.id===id); $('imp_text').value = r.text; runParse(); $('importCard').scrollIntoView({behavior:'smooth'}); }
+function delReport(id){
+  if (!confirm('¿Borrar este informe? Los hallazgos dibujados se mantienen.')) return;
+  S.reports = S.reports.filter(r=>r.id!==id); S.lesions.forEach(l=>{ if (l.rep===id) delete l.rep; });
+  renderReports(); renderList(); autosave();
 }
 
 /* ================== IMAGEN ================== */
@@ -2225,7 +2304,7 @@ function newCase(silent){
   S = blankState(); applyState();
 }
 function applyState(){
-  $('caseId').value = S.caseId||''; renderBreastForms(); resetForm(); rebuild(); renderList(); refreshCaseList(); autosave();
+  $('caseId').value = S.caseId||''; renderBreastForms(); resetForm(); rebuild(); renderList(); renderReports(); refreshCaseList(); autosave();
 }
 function exportJSON(){
   S.caseId = $('caseId').value.trim();
