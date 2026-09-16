@@ -63,6 +63,13 @@ input,select,textarea{font:inherit;width:100%;padding:7px 8px;border:1px solid v
 .disc{font-size:11.5px;color:var(--muted);background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:8px}
 .legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted)}
 .legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--c);margin-right:4px;vertical-align:-1px}
+.pend{border:1px solid var(--line);border-radius:10px;padding:8px;margin:6px 0;background:#fff}
+.pend.warn{border-color:#fcd34d;background:#fffbeb}
+.pend .src{font-size:11.5px;color:var(--muted);font-style:italic;margin-top:4px}
+.pend .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:4px;margin-top:4px}
+.pend select,.pend input{padding:4px 5px;font-size:12.5px}
+.pend .cell small{display:block;font-size:10.5px;color:var(--muted);margin-bottom:1px}
+.pend .flags{font-size:11.5px;color:#b45309}
 .hide{display:none!important}
 .mono{white-space:pre-wrap;font-size:12px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px;max-height:220px;overflow:auto}
 </style>
@@ -93,7 +100,7 @@ input,select,textarea{font:inherit;width:100%;padding:7px 8px;border:1px solid v
   </div>
   <div class="toolbar">
     <div class="range" style="min-width:200px;flex:1">Transparencia piel <input type="range" id="opac" min="0.08" max="1" step="0.02" value="0.32"></div>
-    <label class="chk" style="margin:0"><input type="checkbox" id="showQuad" checked> Cuadrantes y reloj</label>
+    <label class="chk" style="margin:0"><input type="checkbox" id="showQuad" checked> Cuadrantes</label>
     <label class="chk" style="margin:0"><input type="checkbox" id="showLbl" checked> Etiquetas</label>
     <button onclick="exportPNG()">📷 Guardar imagen</button>
   </div>
@@ -131,8 +138,23 @@ input,select,textarea{font:inherit;width:100%;padding:7px 8px;border:1px solid v
     <div id="breastForms"></div>
   </div>
 
+  <div class="card" id="importCard">
+    <h2>📄 Leer informe</h2>
+    <p style="margin:0 0 6px;font-size:12.5px;color:var(--muted)">Pega el texto del informe de RM, ecografía o mamografía. Se analiza <b>solo en este dispositivo</b> (no se envía a ningún sitio y no se guarda). Quita antes nombre y NHC si puedes.</p>
+    <div class="row">
+      <div><label>Prueba</label><select id="imp_mod"><option value="auto">Detectar automáticamente</option><option value="RM">Resonancia</option><option value="ECO">Ecografía</option><option value="MX">Mamografía</option></select></div>
+      <div><label>Mama por defecto</label><select id="imp_side"><option value="auto">Detectar</option><option value="D">Derecha</option><option value="I">Izquierda</option></select></div>
+    </div>
+    <textarea id="imp_text" rows="7" placeholder="Ej.: En mama derecha, en el radio de las 10 h, a 5 cm del pezón y en tercio medio, se identifica nódulo irregular de 22 x 18 x 20 mm... BI-RADS 5"></textarea>
+    <div class="toolbar">
+      <button class="primary" onclick="runParse()">🔍 Analizar informe</button>
+      <button onclick="imp_text.value='';pending=[];renderPending()">Limpiar</button>
+    </div>
+    <div id="pendingBox"></div>
+  </div>
+
   <div class="card">
-    <h2 id="formTitle">Añadir hallazgo</h2>
+    <h2 id="formTitle">Añadir / editar a mano</h2>
     <div class="seg" id="modSeg" style="margin-bottom:6px">
       <button data-m="RM" class="on">Resonancia</button><button data-m="ECO">Ecografía</button><button data-m="MX">Mamografía</button>
     </div>
@@ -200,7 +222,8 @@ input,select,textarea{font:inherit;width:100%;padding:7px 8px;border:1px solid v
   <details class="card">
     <summary style="cursor:pointer;font-weight:600;color:var(--pink)">Cómo se calcula la posición</summary>
     <ul style="font-size:12.5px;padding-left:18px">
-      <li>La mama se modela como un semielipsoide (Ø de base y proyección) con caída anterior según la ptosis.</li>
+      <li>La mama se modela con forma de gota: cuerpo mamario (Ø de base y proyección, polo superior en pendiente y polo inferior redondeado) prolongado hacia la axila por la cola de Spence, con caída anterior según la ptosis.</li>
+      <li><b>Lector de informes:</b> reconoce lado, tipo de lesión, radio horario (“10 h”, “R10”, “a las 2:30”), cuadrante (CSE, UCS…, retroareolar, cola axilar), distancia al pezón (“a 4 cm del pezón”, “4 cm DP”), profundidad (tercio, mm desde piel), tamaño y BI-RADS. Lo que no encuentra lo supone y lo marca en amarillo para revisar. Hallazgos a ≤2,5 cm de uno ya dibujado desde otra prueba reciben el mismo nº.</li>
       <li><b>RM:</b> distancia al pezón en línea recta. <b>Eco:</b> distancia medida sobre la piel.</li>
       <li><b>Profundidad por tercios:</b> anterior, medio o posterior entre la piel y el pectoral.</li>
       <li><b>MX:</b> la proyección CC da externo/interno; la OML da superior/inferior; la profundidad se mide desde el pezón hacia el pectoral.</li>
@@ -216,6 +239,7 @@ input,select,textarea{font:inherit;width:100%;padding:7px 8px;border:1px solid v
       <li><b>CAP</b>: complejo areola-pezón</li>
       <li><b>CSE / CSI / CIE / CII</b>: cuadrante superoexterno / superointerno / inferoexterno / inferointerno</li>
       <li><b>BAV</b>: biopsia asistida por vacío · <b>CDI</b>: carcinoma ductal infiltrante</li>
+      <li><b>DP</b>: distancia al pezón · <b>NHC</b>: número de historia clínica · <b>R10</b>: radio de las 10 h</li>
       <li><b>Eco</b>: ecografía · <b>MX</b>: mamografía · <b>RM</b>: resonancia magnética</li>
       <li><b>OML</b>: proyección oblicua mediolateral</li>
     </ul>
@@ -1308,59 +1332,87 @@ function deform(g, p){           // ptosis: la parte anterior cae
   return {x:p.x, y:p.y - g.P*zn*zn, z:p.z};
 }
 const hourAngle = hr => (hr%12)*Math.PI/6;
-function surf(g, th, t){ const rho=g.r*Math.sin(t); return {x:rho*Math.sin(th), y:rho*Math.cos(th), z:g.h*Math.cos(t)}; }
-function scale(p,k){ return {x:p.x*k, y:p.y*k, z:p.z*k}; }
 function dist3(a,b){ return Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z); }
-function depthK(p, L){ // factor hacia el centro de la base
-  const {depthMode, depthMm, tercio} = p;
-  if (depthMode==='mm') return Math.max(0.06, 1 - (depthMm/10)/L);
-  return TER[tercio];
+const clamp01 = v => Math.max(0, Math.min(1, v));
+const smooth = (a,b,v) => { const t = clamp01((v-a)/(b-a)); return t*t*(3-2*t); };
+
+/* --- Modelo de mama en "gota" con cola axilar (Spence) ---
+   Ángulo φ en marco "lateral": 0 = superior, +90° = externo, 180° = inferior, −90° = interno.
+   Screen: x = lat·ρ·sin φ, y = ρ·cos φ. */
+const TAIL_PHI = 48*Math.PI/180;       // dirección de la cola hacia la axila
+const phiOfHour = (g, hr) => { const th = hourAngle(hr); return Math.atan2(Math.sin(th)*g.lat, Math.cos(th)); };
+const toXY = (g, rho, phi) => ({x: g.lat*rho*Math.sin(phi), y: rho*Math.cos(phi)});
+const phiOfXY = (g, x, y) => Math.atan2(x*g.lat, y);
+function bodyR(g, phi){                // contorno del cuerpo mamario (algo más amplio arriba y fuera)
+  return g.r*(1 + 0.10*Math.max(0,Math.cos(phi)) - 0.04*Math.max(0,-Math.cos(phi)) + 0.05*Math.sin(phi));
+}
+const TAIL_A = 0.95, TAIL_S = 0.46;    // longitud relativa y anchura angular de la cola
+function tailBump(phi){ let d = phi - TAIL_PHI; d = Math.atan2(Math.sin(d), Math.cos(d)); return Math.exp(-((d/TAIL_S)**2)); }
+function footR(g, phi){ return bodyR(g,phi) + g.r*TAIL_A*tailBump(phi); }   // contorno en gota
+function thick(g, rho, phi){           // grosor piel→pectoral (cm) en (ρ, φ)
+  const u = rho/bodyR(g,phi);
+  let zb = 0;
+  if (u < 1){
+    const lower = Math.sqrt(1-u*u);                       // polo inferior redondeado
+    const upper = Math.pow(1-Math.pow(u,1.5), 1.35);       // polo superior en pendiente
+    const w = smooth(-0.35, 0.65, Math.cos(phi));
+    zb = g.h*(lower*(1-w) + upper*w);
+  }
+  const B = footR(g,phi), bump = tailBump(phi);
+  const zt = rho < B ? g.h*0.62*bump*Math.pow(1 - rho/B, 0.9) : 0;
+  return Math.pow(zb**4 + zt**4, 0.25);
+}
+function thickXY(g, x, y){ return thick(g, Math.hypot(x,y), phiOfXY(g,x,y)); }
+function edgeR(g, phi){                // radio del borde en la dirección φ
+  return tailBump(phi) > 0.03 ? footR(g,phi) : bodyR(g,phi);
+}
+function tailAxisPoint(g, frac){ const rho = bodyR(g,TAIL_PHI) + g.r*TAIL_A*frac; return toXY(g, rho, TAIL_PHI); }
+
+function depthZ(g, T, lc){             // z (cm sobre el pectoral) según profundidad
+  if (lc.depthMode==='mm') return Math.max(T*0.1, T - lc.depthMm/10);
+  return T*TER[lc.tercio];
 }
 
 // posición sin deformar (cm, coordenadas locales de la mama)
 function lesionPos(L){
-  const g = geo(L.side), lc = L.loc;
+  const g = geo(L.side), lc = L.loc, N = {x:0,y:0,z:g.h};
   if (L.mod==='MX'){
     const v=+lc.oml, l=+lc.cc, central = v===0 && l===0;
-    const th = Math.atan2(l*g.lat, v);
+    const phi = Math.atan2(l, v);
     const z = g.h*(1-MXF[lc.mxdepth]);
-    const rz = g.r*Math.sqrt(Math.max(0,1-(z/g.h)**2));
-    let rho = central ? 0 : (lc.mxdist ? Math.sqrt(Math.max(0, lc.mxdist**2 - (g.h-z)**2)) : 0.55*rz);
-    rho = Math.min(rho, 0.9*rz);
-    return {x:rho*Math.sin(th), y:rho*Math.cos(th), z};
+    let rmax = 0; const E = edgeR(g,phi);
+    for (let i=0;i<=200;i++){ const r=E*i/200; if (thick(g,r,phi)>=z) rmax=r; }
+    let rho = central ? 0 : (lc.mxdist ? Math.sqrt(Math.max(0, lc.mxdist**2 - (g.h-z)**2)) : 0.55*rmax);
+    rho = Math.min(rho, 0.9*rmax);
+    return {...toXY(g,rho,phi), z};
   }
   const hr = lc.hour;
-  if (hr==='AX') return {x:g.lat*(g.r+3), y:g.r*0.8, z:0.5};
-  if (hr==='RA'){ const k=depthK(lc, g.h); return {x:0,y:0,z:g.h*k}; }
-  if (hr==='PA'){ const th=hourAngle(g.lat<0?10.5:1.5); return scale(surf(g,th,Math.PI/2*0.9), depthK(lc,g.r)); }
-  const th = hourAngle(+hr), N = {x:0,y:0,z:g.h}, d = +lc.dist || 0;
-  const tmax = Math.PI/2*0.96, n = 400;
-  let best = tmax;
-  if (L.mod==='ECO'){           // distancia medida sobre la piel (arco)
-    let s=0;
-    for(let i=1;i<=n;i++){ const t=tmax*i/n, dt=tmax/n; s += Math.hypot(g.r*Math.cos(t), g.h*Math.sin(t))*dt; if(s>=d){best=t;break;} }
-    const P = surf(g,th,best); return scale(P, depthK(lc, Math.hypot(P.x,P.y,P.z)));
+  if (hr==='AX'){ return {...toXY(g, footR(g,TAIL_PHI)+g.r*0.35, TAIL_PHI+0.05), z:0.6}; }
+  if (hr==='RA') return {x:0, y:0, z:depthZ(g, g.h, lc)};
+  if (hr==='PA'){ const q = tailAxisPoint(g, 0.45); return {...q, z:depthZ(g, thickXY(g,q.x,q.y), lc)}; }
+  const phi = phiOfHour(g, +hr), d = +lc.dist || 0, E = edgeR(g,phi)*0.95, n = 300;
+  let best = E;
+  if (L.mod==='ECO'){                  // distancia sobre la piel
+    let acc = 0, prevT = thick(g,0,phi);
+    for (let i=1;i<=n;i++){ const r=E*i/n, T=thick(g,r,phi); acc += Math.hypot(E/n, T-prevT); prevT=T; if (acc>=d){ best=r; break; } }
+  } else {                              // RM: línea recta desde el pezón
+    for (let i=0;i<=n;i++){ const r=E*i/n, T=thick(g,r,phi), q={...toXY(g,r,phi), z:depthZ(g,T,lc)}; if (dist3(q,N)>=d){ best=r; break; } }
   }
-  for(let i=0;i<=n;i++){        // RM: distancia en línea recta
-    const t=tmax*i/n, P=surf(g,th,t), Q=scale(P, depthK(lc, Math.hypot(P.x,P.y,P.z)));
-    if (dist3(Q,N)>=d){ best=t; break; }
-  }
-  const P = surf(g,th,best); return scale(P, depthK(lc, Math.hypot(P.x,P.y,P.z)));
+  return {...toXY(g,best,phi), z:depthZ(g, thick(g,best,phi), lc)};
 }
 function lesionSize(L){ const a=L.size[0], b=L.size[1]||a, c=L.size[2]||a; return {ap:a/10, tr:b/10, cc:c/10}; }
 
 function quadrantOf(side, p){
-  const g = geo(side), rho = Math.hypot(p.x,p.y);
-  if (Math.hypot(p.x,p.y) > g.r*1.05) return 'axila';
+  const g = geo(side), rho = Math.hypot(p.x,p.y), phi = phiOfXY(g,p.x,p.y);
+  if (rho > edgeR(g,phi)*0.98) return 'axila';
+  if (rho > bodyR(g,phi)*1.02) return 'cola';
   if (rho < Math.max(1.2, g.r*0.15)) return 'retroareolar';
-  const lateral = p.x*g.lat > 0, up = p.y > 0;
-  let ang = Math.atan2(p.x*g.lat, p.y)*180/Math.PI; // 0=sup, 90=ext
-  const near = a => Math.abs(ang - a) < 10;
+  const ang = phi*180/Math.PI, near = a => Math.abs(ang - a) < 10;
   if (near(0)) return 'UCS'; if (near(180)||near(-180)) return 'UCI';
   if (near(90)) return 'UCE'; if (near(-90)) return 'UCInt';
-  return (up?'CS':'CI') + (lateral?'E':'I');
+  return (Math.abs(ang)<90?'CS':'CI') + (ang>0?'E':'I');
 }
-const QTXT = {CSE:'CSE',CSI:'CSI',CIE:'CIE',CII:'CII',UCS:'unión c. superiores',UCI:'unión c. inferiores',UCE:'unión c. externos',UCInt:'unión c. internos',retroareolar:'retroareolar',axila:'axila'};
+const QTXT = {CSE:'CSE',CSI:'CSI',CIE:'CIE',CII:'CII',UCS:'unión c. superiores',UCI:'unión c. inferiores',UCE:'unión c. externos',UCInt:'unión c. internos',retroareolar:'retroareolar',axila:'axila',cola:'cola axilar'};
 
 /* ================== ESCENA 3D ================== */
 const viewer = document.getElementById('viewer');
@@ -1390,56 +1442,60 @@ const V = p => new THREE.Vector3(p.x,p.y,p.z);
 
 function buildBreast(side){
   const g = geo(side), grp = new THREE.Group(); grp.position.x = g.cx;
-  // piel
-  const sg = new THREE.SphereGeometry(1, 72, 48, 0, Math.PI, 0, Math.PI);
-  const pos = sg.attributes.position;
-  for (let i=0;i<pos.count;i++){
-    const p = deform(g, {x:pos.getX(i)*g.r, y:pos.getY(i)*g.r, z:Math.max(0,pos.getZ(i))*g.h});
-    pos.setXYZ(i,p.x,p.y,p.z);
+  // piel (malla polar sobre el contorno en gota)
+  const NA = 144, NR = 44, verts = [], idx = [];
+  const edges = []; for (let j=0;j<NA;j++) edges.push(edgeR(g, -Math.PI + 2*Math.PI*j/NA));
+  for (let j=0;j<NA;j++){
+    const phi = -Math.PI + 2*Math.PI*j/NA;
+    for (let i=0;i<=NR;i++){
+      const r = edges[j]*Math.pow(i/NR, 0.9), q = toXY(g,r,phi);
+      const p = deform(g, {x:q.x, y:q.y, z: i===NR ? 0 : thick(g,r,phi)});
+      verts.push(p.x,p.y,p.z);
+    }
   }
-  sg.computeVertexNormals();
+  for (let j=0;j<NA;j++){ const j2=(j+1)%NA;
+    for (let i=0;i<NR;i++){ const a0=j*(NR+1)+i, a1=a0+1, b0=j2*(NR+1)+i, b1=b0+1; idx.push(a0,b0,a1, a1,b0,b1); } }
+  const sg = new THREE.BufferGeometry();
+  sg.setAttribute('position', new THREE.Float32BufferAttribute(verts,3)); sg.setIndex(idx); sg.computeVertexNormals();
   const op = +document.getElementById('opac').value;
   const skin = new THREE.Mesh(sg, new THREE.MeshPhongMaterial({color:0xf5c9b3, transparent:true, opacity:op, side:THREE.DoubleSide, depthWrite:op>0.9, shininess:20}));
   skin.renderOrder = 10; grp.add(skin);
-  // prolongación axilar (visual)
-  const tail = new THREE.Mesh(new THREE.SphereGeometry(1,32,20), skin.material);
-  tail.scale.set(g.r*0.42, g.r*0.2, g.h*0.32);
-  tail.position.set(g.lat*g.r*0.82, g.r*0.62, 0.2); tail.rotation.z = g.lat*-0.75; tail.renderOrder = 10;
-  grp.add(tail);
   // areola + pezón
   const N = deform(g,{x:0,y:0,z:g.h});
   const are = new THREE.Mesh(new THREE.CircleGeometry(Math.min(2.2,g.r*0.25),40), new THREE.MeshPhongMaterial({color:0xc98a78, transparent:true, opacity:Math.min(1,op+0.35), side:THREE.DoubleSide}));
   are.position.set(N.x,N.y,N.z+0.02); are.renderOrder=11; grp.add(are);
   const nip = new THREE.Mesh(new THREE.SphereGeometry(0.55,20,14), new THREE.MeshPhongMaterial({color:0xa9665a}));
   nip.position.set(N.x,N.y,N.z+0.25); grp.add(nip);
-  // pectoral / pared torácica
-  const pec = new THREE.Mesh(new THREE.CircleGeometry(g.r*1.08, 48), new THREE.MeshPhongMaterial({color:0xe7b4b4, transparent:true, opacity:0.55, side:THREE.DoubleSide}));
+  // pectoral: huella de la mama sobre la pared torácica
+  const shp = new THREE.Shape();
+  edges.forEach((e,j)=>{ const q = toXY(g, e*1.04, -Math.PI + 2*Math.PI*j/NA); j? shp.lineTo(q.x,q.y) : shp.moveTo(q.x,q.y); });
+  const pec = new THREE.Mesh(new THREE.ShapeGeometry(shp), new THREE.MeshPhongMaterial({color:0xe7b4b4, transparent:true, opacity:0.55, side:THREE.DoubleSide}));
   pec.position.z = -0.05; grp.add(pec);
-  // cuadrantes y reloj
+  // cuadrantes (sin esfera horaria)
   if (document.getElementById('showQuad').checked){
-    const mat = new THREE.LineBasicMaterial({color:0xdb2777, transparent:true, opacity:0.7, depthTest:false});
-    [0,Math.PI/2,Math.PI,3*Math.PI/2].forEach(th=>{
-      const pts=[]; for(let i=0;i<=40;i++){ pts.push(V(deform(g, scale(surf(g,th,Math.PI/2*i/40),1.01)))); }
-      const ln = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat); ln.renderOrder=12; grp.add(ln);
+    const mat = new THREE.LineDashedMaterial({color:0xdb2777, dashSize:0.6, gapSize:0.35, transparent:true, opacity:0.85, depthTest:false});
+    const addLine = pts => { const ln = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat); ln.computeLineDistances(); ln.renderOrder=12; grp.add(ln); };
+    [0, Math.PI/2, Math.PI, -Math.PI/2].forEach(phi=>{
+      const E = Math.min(edgeR(g,phi), bodyR(g,phi)), pts=[];
+      for (let i=0;i<=40;i++){ const r=E*i/40, q=toXY(g,r,phi); pts.push(V(deform(g,{x:q.x,y:q.y,z:thick(g,r,phi)+0.05}))); }
+      addLine(pts);
     });
-    const ring=[]; for(let i=0;i<=64;i++){ const a=i/64*Math.PI*2; ring.push(new THREE.Vector3(Math.sin(a)*g.r*1.08, Math.cos(a)*g.r*1.08, 0)); }
-    grp.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(ring), new THREE.LineBasicMaterial({color:0xb4b9c4})));
-    [12,3,6,9].forEach(hh=>{
-      const a=hourAngle(hh), s=textSprite(String(hh),'#9d174d');
-      s.position.set(Math.sin(a)*(g.r+1.9), Math.cos(a)*(g.r+1.9), 0.2); s.renderOrder=20; grp.add(s);
-    });
-    const q = textSprite(side==='D'?'EXT':'EXT','#6b7280',44); q.position.set(g.lat*(g.r+1.9), -g.r*0.55, 0.2); grp.add(q);
-    const qi = textSprite('INT','#6b7280',44); qi.position.set(-g.lat*(g.r+1.9), -g.r*0.55, 0.2); grp.add(qi);
+    const out = edges.map((e,j)=>{ const q=toXY(g,e,-Math.PI + 2*Math.PI*j/NA); return new THREE.Vector3(q.x,q.y,0.05); });
+    out.push(out[0].clone()); addLine(out);
+    const lab = (t, phi, rr) => { const q = toXY(g, rr, phi), sp = textSprite(t,'#6b7280',40); sp.position.set(q.x,q.y,0.2); sp.renderOrder=20; grp.add(sp); };
+    lab('EXT', Math.PI*0.62, bodyR(g,Math.PI*0.62)+2.2);
+    lab('INT', -Math.PI*0.62, bodyR(g,-Math.PI*0.62)+2.2);
   }
   const tag = textSprite(side==='D'?'MAMA D':'MAMA I','#374151',46); tag.scale.set(5,2.5,1);
   tag.position.set(0, -g.r-3.2, 0); grp.add(tag);
   // axila (referencia)
+  const axp = toXY(g, footR(g,TAIL_PHI)+g.r*0.35, TAIL_PHI+0.05);
   const ax = new THREE.Mesh(new THREE.SphereGeometry(1,20,14), new THREE.MeshBasicMaterial({color:0x9ca3af, wireframe:true, transparent:true, opacity:0.25}));
-  ax.scale.set(2.2,2.2,1.2); ax.position.set(g.lat*(g.r+3), g.r*0.8, 0.5); grp.add(ax);
+  ax.scale.set(2.2,2.2,1.2); ax.position.set(axp.x, axp.y, 0.5); grp.add(ax);
 
   // lesiones
   S.lesions.filter(L=>L.side===side && !L.hidden).forEach(L=>{
-    const p0 = lesionPos(L), p = L.loc.hour==='AX' ? p0 : deform(g,p0), sz = lesionSize(L);
+    const p0 = lesionPos(L), p = deform(g,p0), sz = lesionSize(L);
     const col = new THREE.Color(BR_COL[L.br]||'#999');
     const o = new THREE.Group(); o.position.copy(V(p));
     let m;
@@ -1479,9 +1535,9 @@ function rebuild(){
   scene.remove(world);
   world.traverse(o=>{ if(o.geometry) o.geometry.dispose(); });
   world = new THREE.Group(); labelItems = [];
-  const torso = new THREE.Mesh(new THREE.CircleGeometry(geo('D').r+geo('I').r+9, 64), new THREE.MeshBasicMaterial({color:0xefdcd5, side:THREE.DoubleSide}));
-  torso.scale.y = 0.8; torso.position.set((geo('D').cx+geo('I').cx)/2, 1, -0.3); world.add(torso);
-  world.add(buildBreast('D')); world.add(buildBreast('I'));
+  const torso = new THREE.Mesh(new THREE.CircleGeometry(geo('D').r+geo('I').r+16, 64), new THREE.MeshBasicMaterial({color:0xefdcd5, side:THREE.DoubleSide}));
+  torso.scale.y = 0.72; torso.position.set((geo('D').cx+geo('I').cx)/2, 3, -0.3); world.add(torso);
+  ['D','I'].forEach(sd=>{ if (focus==='both' || focus===sd) world.add(buildBreast(sd)); });
   scene.add(world);
   renderLabels(true);
   renderAnalysis();
@@ -1554,10 +1610,16 @@ function renderLabels(rebuildDom){
 })();
 
 /* ================== ANÁLISIS ================== */
+function breastVolume(g){
+  let v = 0; const NA=72, NR=60;
+  for (let j=0;j<NA;j++){ const phi=-Math.PI+2*Math.PI*(j+0.5)/NA, E=edgeR(g,phi);
+    for (let i=0;i<NR;i++){ const r=E*(i+0.5)/NR; v += thick(g,r,phi)*r*(E/NR)*(2*Math.PI/NA); } }
+  return v;
+}
 function analyseSide(side){
   const g = geo(side), Ls = S.lesions.filter(L=>L.side===side && L.mal && L.type!=='clip' && L.type!=='ganglio' && !L.hidden);
   if (!Ls.length) return null;
-  const Vb = 2/3*Math.PI*g.r*g.r*g.h;
+  const Vb = breastVolume(g);
   const pts = Ls.map(L=>({L, p:lesionPos(L), s:lesionSize(L)}));
   let mn={x:1e9,y:1e9,z:1e9}, mx={x:-1e9,y:-1e9,z:-1e9};
   pts.forEach(({p,s})=>{
@@ -1585,8 +1647,7 @@ function analyseSide(side){
     const rad = Math.max(s.tr,s.cc,s.ap)/2;
     minNip = Math.min(minNip, dist3(p,N)-rad);
     // distancia aproximada a piel
-    const L0 = Math.hypot(p.x/g.r,p.y/g.r,p.z/g.h), Ls = Math.hypot(p.x,p.y,p.z);
-    const sk = L0>0 ? Ls*(1/L0 - 1) : g.h;
+    const sk = thickXY(g,p.x,p.y) - p.z;
     minSkin = Math.min(minSkin, sk - rad);
   });
   return {g, Vb, Vr, ratio, span, dx,dy,dz, foci, maxD, quads, minNip:Math.max(0,minNip), minSkin:Math.max(0,minSkin)};
@@ -1633,7 +1694,7 @@ const $ = id => document.getElementById(id);
     const t = Number.isInteger(v) ? `${v} h` : `${Math.floor(v)}:30 h`;
     h += `<option value="${v}">${t}</option>`;
   });
-  h += '<option value="RA">Retroareolar</option><option value="PA">Prolongación axilar</option><option value="AX">Axila</option>';
+  h += '<option value="RA">Retroareolar</option><option value="PA">Cola axilar (Spence)</option><option value="AX">Axila</option>';
   sel.innerHTML = h; sel.value = '10';
 })();
 const QUAD_H = {CSE:{D:10.5,I:1.5},CSI:{D:1.5,I:10.5},CIE:{D:7.5,I:4.5},CII:{D:4.5,I:7.5},UCS:{D:12,I:12},UCI:{D:6,I:6},UCE:{D:9,I:3},UCInt:{D:3,I:9}};
@@ -1651,7 +1712,7 @@ function setMod(m){
 }
 document.querySelectorAll('#modSeg button').forEach(b=>b.onclick=()=>setMod(b.dataset.m));
 document.querySelectorAll('#focusSeg button').forEach(b=>b.onclick=()=>{
-  focus=b.dataset.f; document.querySelectorAll('#focusSeg button').forEach(x=>x.classList.toggle('on',x===b)); setView(curView);
+  focus=b.dataset.f; document.querySelectorAll('#focusSeg button').forEach(x=>x.classList.toggle('on',x===b)); rebuild(); setView(curView);
 });
 document.querySelectorAll('#viewSeg button').forEach(b=>b.onclick=()=>setView(b.dataset.v));
 ['opac','showQuad'].forEach(id=>$(id).oninput = rebuild);
@@ -1694,7 +1755,7 @@ function submitLesion(){
   resetForm(); rebuild(); renderList(); autosave();
 }
 function resetForm(){
-  editId = null; $('formTitle').textContent='Añadir hallazgo'; $('addBtn').textContent='➕ Añadir'; $('cancelBtn').classList.add('hide');
+  editId = null; $('formTitle').textContent='Añadir / editar a mano'; $('addBtn').textContent='➕ Añadir'; $('cancelBtn').classList.add('hide');
   $('f_note').value=''; $('f_num').value = Math.max(0,...S.lesions.map(l=>l.num))+1;
 }
 function editLesion(id){
@@ -1719,7 +1780,7 @@ function describe(L){
     const cc={1:'externa',0:'central','-1':'interna'}[L.loc.cc], om={1:'superior',0:'central','-1':'inferior'}[L.loc.oml];
     loc = `CC ${cc}, OML ${om}, profundidad ${ {ant:'anterior',med:'media',post:'posterior'}[L.loc.mxdepth] }${L.loc.mxdist?`, a ${L.loc.mxdist} cm del pezón`:''}`;
   } else {
-    const hr = L.loc.hour, hs = {RA:'retroareolar',PA:'prolongación axilar',AX:'axila'}[hr] || `radio ${String(hr).replace('.5',':30')} h`;
+    const hr = L.loc.hour, hs = {RA:'retroareolar',PA:'cola axilar',AX:'axila'}[hr] || `radio ${String(hr).replace('.5',':30')} h`;
     const dep = L.loc.depthMode==='mm' ? `${L.loc.depthMm} mm de piel` : `tercio ${ {ant:'anterior',med:'medio',post:'posterior'}[L.loc.tercio] }`;
     loc = hr==='AX' ? 'axila' : `${hs}${hr==='RA'?'':`, a ${L.loc.dist} cm del pezón`}, ${dep}`;
   }
@@ -1759,6 +1820,254 @@ function copyReport(){
   navigator.clipboard?.writeText(t).then(()=>toast('Resumen copiado'), ()=>{});
 }
 function toast(msg){ const d=document.createElement('div'); d.textContent=msg; d.style.cssText='position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#374151;color:#fff;padding:8px 14px;border-radius:10px;z-index:99'; document.body.appendChild(d); setTimeout(()=>d.remove(),1800); }
+
+
+/* ================== LECTOR DE INFORMES ================== */
+let pending = [];
+const nrm = t => t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+const num = v => parseFloat(String(v).replace(',','.'));
+const Q_RULES = [
+  [/union\s+de\s+(?:los\s+)?cuadrantes\s+superiores|\bucs\b|\bucsup\b/, 'UCS'],
+  [/union\s+de\s+(?:los\s+)?cuadrantes\s+inferiores|\buci\b|\bucinf\b/, 'UCI'],
+  [/union\s+de\s+(?:los\s+)?cuadrantes\s+externos|\buce\b|\bucext\b/, 'UCE'],
+  [/union\s+de\s+(?:los\s+)?cuadrantes\s+internos|\bucint?\b/, 'UCInt'],
+  [/supero\s*-?\s*externo|superior\s+externo|superoexterno|\bcse\b|\bcsext\b/, 'CSE'],
+  [/supero\s*-?\s*interno|superior\s+interno|superointerno|\bcsi\b|\bcsint\b/, 'CSI'],
+  [/infero\s*-?\s*externo|inferior\s+externo|inferoexterno|\bcie\b|\bciext\b/, 'CIE'],
+  [/infero\s*-?\s*interno|inferior\s+interno|inferointerno|\bcii\b|\bciint\b/, 'CII'],
+  [/cola\s+(?:axilar|de\s+spence)|prolongacion\s+axilar/, 'PA'],
+  [/retroareolar|subareolar|retroaerolar|region\s+central|\bcentral\b/, 'RA'],
+];
+function detectMod(t){
+  if (/resonancia|\brm\b|\brmn\b|gadolinio|realce|captacion|t2|difusion/.test(t)) return 'RM';
+  if (/ecograf|hipoecoic|anecoic|ecogenic|doppler|sombra acustica|\beco\b/.test(t)) return 'ECO';
+  if (/mamograf|tomosintesis|microcalcificac|densidad|proyeccion|\bcc\b|\boml\b/.test(t)) return 'MX';
+  return null;
+}
+function explicitMod(t){
+  if (/resonancia|\brmn?\b/.test(t)) return 'RM';
+  if (/ecograf/.test(t)) return 'ECO';
+  if (/mamograf|tomosintesis/.test(t)) return 'MX';
+  return null;
+}
+function detectSide(t){
+  const d = /mama\s+derecha|\bmd\b|derech[oa]/.test(t), i = /mama\s+izquierda|\bmi\b|izquierd[oa]/.test(t);
+  return d && !i ? 'D' : i && !d ? 'I' : null;
+}
+const TYPE_RE = [
+  ['nme', /realce\s+(?:no\s+masa|no\s+nodular|de\s+tipo\s+no\s+masa)|captacion\s+no\s+nodular|\bnme\b/],
+  ['calc', /microcalcificac|calcificaciones/],
+  ['dist', /distorsion/],
+  ['quiste', /quiste|anecoic/],
+  ['ganglio', /adenopat|ganglio|linfaden/],
+  ['masa', /nodulo|masa|lesion|tumor|neoplasia|carcinoma|realce|captacion|foco|asimetria/],
+  ['clip', /\bclip\b|marcador|arpon|semilla/],
+];
+function detectType(t){        // el término que aparece primero manda ("masa ... con clip" = masa)
+  let best = null, pos = 1e9;
+  TYPE_RE.forEach(([k,re])=>{ const m = t.match(re); if (m && m.index < pos){ pos = m.index; best = k; } });
+  if (best==='masa'){ const n = t.match(TYPE_RE[0][1]); if (n) best = 'nme'; }
+  return best;
+}
+const NEG = /\b(no\s+se\s+(?:observa|observan|identifica|identifican|aprecia|aprecian|visualiza|visualizan|detecta|detectan|evidencia|evidencian)|sin\s+(?:evidencia|hallazgos|lesiones|signos|imagenes|adenopatias)|no\s+(?:hay|existen?|presenta)|ausencia\s+de|descartan?)\b/;
+function parseHour(t){
+  let m = t.match(/(?:radio|hora|horas|\ba\s+las|\ben\s+las|\bhacia\s+las|\br)\s*(?:de\s+)?(?:las\s+)?(\d{1,2})(?:\s*[:.,h]\s*(\d{2})|\s*y\s*media)?/)
+       || t.match(/\b(\d{1,2})(?:[:.](\d{2}))?\s*(?:h\b|hrs?\b|horas?\b)/)
+       || t.match(/\b(\d{1,2})(?:[:.](\d{2}))?\s*(?:del\s+reloj|segun\s+las\s+agujas)/);
+  if (!m) return null;
+  let h = +m[1]; if (h<1 || h>12) return null;
+  const half = (m[2] && +m[2]>=15 && +m[2]<45) || /y\s*media/.test(m[0]);
+  const v = (h%12) + (half?0.5:0);
+  return v===0 ? 12 : (v===0.5 ? 12.5 : v);
+}
+function parseDist(t){
+  const m = t.match(/(\d+(?:[.,]\d+)?)\s*(cm|mm)\s*(?:de\s+distancia\s+)?(?:del|al|de\s+la|hasta\s+el)\s*(?:pezon|cap\b|complejo\s+areola|areola)/)
+        || t.match(/(\d+(?:[.,]\d+)?)\s*(cm|mm)\s*(?:\bdp\b|\bdap\b|\bdpz\b)/)
+        || t.match(/(?:distancia\s+(?:al|del|desde\s+el)\s+pezon|\bdp\b|\bdap\b)\s*(?:de|:|=)?\s*(\d+(?:[.,]\d+)?)\s*(cm|mm)/);
+  if (!m) return null;
+  const v = num(m[1]); return m[2]==='mm' ? v/10 : v;
+}
+function parseDepth(t){
+  const m = t.match(/(\d+(?:[.,]\d+)?)\s*(mm|cm)\s*(?:de\s+profundidad\s+)?(?:de|desde|bajo)\s+(?:la\s+)?piel/)
+        || t.match(/profundidad\s*(?:de|:)?\s*(\d+(?:[.,]\d+)?)\s*(mm|cm)/);
+  if (m){ const v = num(m[1]); return {depthMode:'mm', depthMm: m[2]==='cm' ? v*10 : v}; }
+  if (/(tercio|plano)\s+(anterior|superficial)|subcutane|superficial/.test(t)) return {depthMode:'tercio', tercio:'ant'};
+  if (/(tercio|plano)\s+(posterior|profundo)|prepectoral|retroglandular|profund/.test(t)) return {depthMode:'tercio', tercio:'post'};
+  if (/(tercio|plano)\s+medio/.test(t)) return {depthMode:'tercio', tercio:'med'};
+  return null;
+}
+function parseSize(t){
+  const clean = t.replace(/(\d+(?:[.,]\d+)?)\s*(cm|mm)\s*(?:de\s+distancia\s+)?(?:del|al|de\s+la|desde\s+la|bajo\s+la|hasta\s+el)\s*(?:pezon|piel|cap\b|areola|complejo)/g, m=>' '.repeat(m.length))
+                 .replace(/(?:distancia\s+(?:al|del)\s+pezon|profundidad)\s*(?:de|:)?\s*\d+(?:[.,]\d+)?\s*(?:cm|mm)/g, m=>' '.repeat(m.length))
+                 .replace(/\d+(?:[.,]\d+)?\s*(?:cm|mm)\s+(?:posterior|anterior|superior|inferior|medial|lateral|craneal|caudal|por\s+(?:encima|debajo|delante|detras))/g, m=>' '.repeat(m.length));
+  const cands = [];
+  const re3 = /(\d+(?:[.,]\d+)?)\s*(?:mm|cm)?\s*(?:x|×|\*|por)\s*(\d+(?:[.,]\d+)?)\s*(?:mm|cm)?(?:\s*(?:x|×|\*|por)\s*(\d+(?:[.,]\d+)?))?\s*(mm|cm)/g;
+  let m;
+  while ((m = re3.exec(clean))){ const f = m[4]==='cm'?10:1; cands.push({i:m.index, v:[m[1],m[2],m[3]].filter(Boolean).map(x=>Math.round(num(x)*f*10)/10)}); }
+  const re1 = /(\d+(?:[.,]\d+)?)\s*(mm|cm)\b/g;
+  while ((m = re1.exec(clean))){ if (cands.some(c=>Math.abs(c.i-m.index)<25 && c.v.length>1)) continue; const f = m[2]==='cm'?10:1; cands.push({i:m.index, v:[Math.round(num(m[1])*f*10)/10]}); }
+  if (!cands.length) return null;
+  cands.sort((x,y)=>x.i-y.i);
+  const tpos = Math.min(...TYPE_RE.map(([k,r])=>{ const q=t.match(r); return q?q.index:1e9; }));
+  return (cands.find(c=>c.i > tpos) || cands[0]).v;
+}
+function parseBR(t){
+  const m = t.match(/bi\s*-?\s*rads\s*(?:categoria\s*)?[:\s]*([0-6])\s*([abc])?\b/);
+  return m ? m[1] + (m[1]==='4' ? (m[2]||'').toUpperCase() : '') : null;
+}
+function parseMXproj(t){
+  const r = {};
+  if (/cuadrantes?\s+extern|\bextern[oa]|lateral/.test(t)) r.cc = '1';
+  if (/cuadrantes?\s+intern|\bintern[oa]|medial/.test(t)) r.cc = '-1';
+  if (/superior|craneal/.test(t)) r.oml = '1';
+  if (/inferior|caudal/.test(t)) r.oml = '-1';
+  return r;
+}
+const Q_TO_MX = {CSE:['1','1'],CSI:['-1','1'],CIE:['1','-1'],CII:['-1','-1'],UCS:['0','1'],UCI:['0','-1'],UCE:['1','0'],UCInt:['-1','0'],RA:['0','0'],PA:['1','1']};
+
+function parseReport(raw, modSel, sideSel){
+  const full = nrm(raw);
+  const gMod = modSel!=='auto' ? modSel : detectMod(full) || 'RM';
+  // BI-RADS por lado en la conclusión
+  const brSide = {};
+  let gBR = null;
+  const sentences = raw.replace(/\r/g,'').split(/(?<=[.;])\s+|\n+/).map(x=>x.trim()).filter(Boolean);
+  let curSide = sideSel!=='auto' ? sideSel : null, curMod = gMod, last = null, inConcl = false;
+  const out = [];
+  sentences.forEach(orig=>{
+    const t = nrm(orig);
+    if (/^(conclusion|impresion|juicio|diagnostico|recomendacion)/.test(t)) { curSide = sideSel!=='auto' ? sideSel : curSide; }
+    const sd = detectSide(t); if (sd && sideSel==='auto') curSide = sd;
+    if (/^\s*(mamografia|tomosintesis)/.test(t)) curMod = 'MX';
+    else if (/^\s*(ecografia|ecografico)/.test(t)) curMod = 'ECO';
+    else if (/^\s*(resonancia|rm\b)/.test(t)) curMod = 'RM';
+    const type = detectType(t);
+    if (/^(conclusion|impresion|juicio|diagnostico|valoracion)/.test(t)) inConcl = true;
+    const isConclusion = inConcl || /^(categoria|bi-?rads)/.test(t);
+    const hour = parseHour(t), dist = parseDist(t), depth = parseDepth(t), size = parseSize(t);
+    let quad = null; for (const [re,q] of Q_RULES) if (re.test(t)){ quad = q; break; }
+    const hasInfo = hour!=null || dist!=null || depth || quad;
+    const neg = NEG.test(t) && (!type || t.search(NEG) < t.search(/nodulo|masa|lesion|quiste|realce|calcific|distorsion|adenopat|ganglio|captacion|foco/));
+    if (neg) return;
+    if (type && !isConclusion && (hasInfo || size)){
+      if (type==='ganglio' && /normal|morfologia\s+conservada|aspecto\s+(?:benigno|reactivo)|cortical\s+fina/.test(t)) return;
+      const mod = modSel!=='auto' ? modSel : (explicitMod(t) || curMod);
+      const F = {side: curSide || 'D', sideGuess: !curSide, mod, type, br: parseBR(t), hour, quad, dist, depth, size, src: orig.slice(0,220), mx: parseMXproj(t)};
+      if (type==='ganglio') F.hour = 'AX';
+      out.push(F); last = F;
+    } else if (last && !type && (hasInfo || size) && !isConclusion){
+      ['hour','dist','depth','quad'].forEach(k=>{ const v = {hour,dist,depth,quad}[k]; if (last[k]==null && v!=null) last[k]=v; });
+      if (!last.size && size) last.size = size;
+      last.src += ' … ' + orig.slice(0,120);
+    }
+    const b = parseBR(t);
+    if (b && !(out.length && out[out.length-1].src.startsWith(orig.slice(0,60)))){
+      if (last && !last.br && !isConclusion && (!sd || sd===last.side)) last.br = b;
+      else if (sd || curSide){ brSide[sd || curSide] = b; }
+      else gBR = b;
+    }
+  });
+  // completar y convertir a hallazgos de la app
+  const nextNum = {v: Math.max(0, ...S.lesions.map(l=>l.num)) + 1}, used = new Set();
+  return out.map(F=>{
+    const flags = [];
+    const benign = F.type==='quiste' && /simple|complicad/.test(nrm(F.src));
+    const br = F.br || (benign ? '2' : null) || brSide[F.side] || gBR || (F.type==='quiste' ? '2' : '4A');
+    if (!F.br && !benign && !brSide[F.side] && !gBR) flags.push('BI-RADS no encontrado');
+    if (F.sideGuess) flags.push('lado no indicado');
+    let hour = F.hour;
+    if (hour==null && F.quad){ hour = ['RA','PA'].includes(F.quad) ? F.quad : QUAD_H[F.quad][F.side]; }
+    if (hour==null){ hour = 'RA'; flags.push('sin localización → revisar'); }
+    const depth = F.depth || {depthMode:'tercio', tercio:'med'};
+    if (!F.depth && F.type!=='ganglio') flags.push('profundidad supuesta: tercio medio');
+    if (F.dist==null && !['RA','AX'].includes(hour) && F.mod!=='MX') flags.push('distancia al pezón estimada');
+    const size = F.size || [F.type==='clip'?3:10];
+    if (!F.size && F.type!=='clip') flags.push('tamaño no encontrado');
+    let loc;
+    if (F.mod==='MX'){
+      let cc = F.mx.cc ?? '0', oml = F.mx.oml ?? '0';
+      if (F.quad && Q_TO_MX[F.quad]) [cc, oml] = Q_TO_MX[F.quad];
+      else if (typeof hour==='number'){ const g = geo(F.side), ph = phiOfHour(g,hour); cc = Math.abs(Math.sin(ph))<0.3?'0':(Math.sin(ph)>0?'1':'-1'); oml = Math.abs(Math.cos(ph))<0.3?'0':(Math.cos(ph)>0?'1':'-1'); }
+      const mxdepth = depth.depthMode==='tercio' ? depth.tercio : 'med';
+      loc = {cc, oml, mxdepth, mxdist: F.dist || 0};
+      if (hour==='AX' || hour==='PA'){ F.mod = 'RM'; }
+    }
+    if (F.mod!=='MX'){
+      const dflt = hour==='RA'||hour==='AX'||hour==='PA' ? 0 : Math.round(geo(F.side).r*0.55*10)/10;
+      loc = {hour:String(hour), dist: F.dist ?? dflt, depthMode: depth.depthMode, depthMm: depth.depthMm||15, tercio: depth.tercio||'med'};
+    }
+    const mal = !['clip','quiste'].includes(F.type) && (/^(4|5|6)/.test(br) || /sospech|maligno|neoplasia|carcinoma/.test(nrm(F.src)));
+    const L = {side:F.side, mod:F.mod, type:F.type, br, loc, size, mal, note:'', src:F.src, flags, sel: !flags.includes('sin localización → revisar')};
+    // mismo nº si coincide con una lesión ya existente (±2,5 cm)
+    const p = lesionPos(L);
+    const match = S.lesions.find(o=>o.side===L.side && o.mod!==L.mod && o.type!=='clip' && !used.has(o.num) && dist3(lesionPos(o),p) < 2.5);
+    L.num = match ? match.num : nextNum.v++;
+    used.add(L.num);
+    return L;
+  });
+}
+function runParse(){
+  const txt = $('imp_text').value.trim();
+  if (!txt){ toast('Pega primero el texto del informe'); return; }
+  pending = parseReport(txt, $('imp_mod').value, $('imp_side').value);
+  renderPending();
+  if (!pending.length) toast('No he encontrado hallazgos con localización');
+}
+function hourOpts(v){ return $('f_hour').innerHTML.replace(`value="${v}"`, `value="${v}" selected`); }
+function renderPending(){
+  const box = $('pendingBox');
+  if (!pending.length){ box.innerHTML = ''; return; }
+  box.innerHTML = `<div style="font-size:12.5px;margin:6px 0"><b>${pending.length} hallazgo(s) detectado(s).</b> Revisa y corrige lo necesario:</div>` +
+  pending.map((L,i)=>{
+    const C = (cap, html) => `<div class="cell"><small>${cap}</small>${html}</div>`;
+    const opt = (arr,v)=>arr.map(([k,t])=>`<option value="${k}" ${String(v)===String(k)?'selected':''}>${t}</option>`).join('');
+    const locF = L.mod==='MX'
+      ? C('Proy. CC',`<select data-i="${i}" data-k="loc.cc">${opt([['1','CC ext'],['0','CC central'],['-1','CC int']],L.loc.cc)}</select>`) + 
+         C('Proy. OML',`<select data-i="${i}" data-k="loc.oml">${opt([['1','OML sup'],['0','OML central'],['-1','OML inf']],L.loc.oml)}</select>`) + 
+         C('Profundidad',`<select data-i="${i}" data-k="loc.mxdepth">${opt([['ant','Anterior'],['med','Media'],['post','Posterior']],L.loc.mxdepth)}</select>`)
+      : C('Localización',`<select data-i="${i}" data-k="loc.hour">${hourOpts(L.loc.hour)}</select>`) + 
+         C('cm al pezón',`<input data-i="${i}" data-k="loc.dist" type="number" step="0.1" value="${L.loc.dist}">`) + 
+         C('Profundidad',`<select data-i="${i}" data-k="loc.tercio">${opt([['ant','T. anterior'],['med','T. medio'],['post','T. posterior']], L.loc.depthMode==='mm'?'':L.loc.tercio)}${L.loc.depthMode==='mm'?`<option selected value="">${L.loc.depthMm} mm piel</option>`:''}</select>`);
+    return `<div class="pend ${L.flags.length?'warn':''}">
+      <label class="chk" style="margin:0"><input type="checkbox" data-i="${i}" data-k="sel" ${L.sel?'checked':''}> <b>Añadir</b></label>
+      <div class="grid">
+        ${C('Mama',`<select data-i="${i}" data-k="side">${opt([['D','Dcha'],['I','Izda']],L.side)}</select>`)}
+        ${C('Prueba',`<select data-i="${i}" data-k="mod">${opt([['RM','RM'],['ECO','Eco'],['MX','MX']],L.mod)}</select>`)}
+        ${C('Tipo',`<select data-i="${i}" data-k="type">${opt(Object.entries(TYPE_TXT),L.type)}</select>`)}
+        ${C('BI-RADS',`<select data-i="${i}" data-k="br">${opt(['0','1','2','3','4A','4B','4C','5','6'].map(b=>[b,b]),L.br)}</select>`)}
+        ${locF}
+        ${C('Tamaño (mm)',`<input data-i="${i}" data-k="size" value="${L.size.join('x')}">`)}
+        ${C('Lesión nº',`<input data-i="${i}" data-k="num" type="number" min="1" value="${L.num}">`)}
+      </div>
+      ${L.flags.length?`<div class="flags">⚠ ${L.flags.join(' · ')}</div>`:''}
+      <div class="src">“${escapeHtml(L.src)}”</div>
+    </div>`;
+  }).join('') + `<div class="toolbar"><button class="primary" onclick="addPending()">✔︎ Añadir marcados al dibujo</button></div>`;
+  box.querySelectorAll('[data-k]').forEach(el=>el.onchange=()=>{
+    const L = pending[+el.dataset.i], k = el.dataset.k, v = el.type==='checkbox' ? el.checked : el.value;
+    if (k==='mod' && v!==L.mod){
+      const g = geo(L.side);
+      if (v==='MX'){ const q = quadrantOf(L.side, lesionPos(L)); const cm = Q_TO_MX[q] || ['0','0']; L.loc = {cc:cm[0], oml:cm[1], mxdepth:L.loc.tercio||'med', mxdist:L.loc.dist||0}; }
+      else if (L.mod==='MX'){ const p = lesionPos(L), ph = phiOfXY(g,p.x,p.y); let h = Math.round(((Math.atan2(Math.sin(ph)*g.lat, Math.cos(ph))*6/Math.PI)+12)%12*2)/2; L.loc = {hour:String(h||12), dist:Math.round(Math.hypot(p.x,p.y)*10)/10, depthMode:'tercio', tercio:L.loc.mxdepth, depthMm:15}; }
+      L.mod = v; renderPending(); return;
+    }
+    if (k==='size') L.size = v.split(/[x×*\s]+/).map(Number).filter(Boolean);
+    else if (k==='loc.tercio'){ if (v){ L.loc.depthMode='tercio'; L.loc.tercio=v; } }
+    else if (k.startsWith('loc.')) L.loc[k.slice(4)] = k==='loc.dist' ? +v : v;
+    else if (k==='num') L.num = +v || 1;
+    else L[k] = v;
+    if (k==='br') L.mal = !['clip','quiste'].includes(L.type) && /^(4|5|6)/.test(v);
+  });
+}
+function addPending(){
+  const sel = pending.filter(L=>L.sel);
+  if (!sel.length){ toast('No hay hallazgos marcados'); return; }
+  sel.forEach(L=>{ const {src, flags, sel:_s, ...rest} = L; rest.id = S.seq++; rest.note = rest.note || ''; S.lesions.push(rest); });
+  pending = []; renderPending(); $('imp_text').value = '';
+  resetForm(); rebuild(); renderList(); autosave();
+  toast(`${sel.length} hallazgo(s) añadidos`);
+  $('viewer').scrollIntoView({behavior:'smooth'});
+}
 
 /* ================== IMAGEN ================== */
 function exportPNG(){
