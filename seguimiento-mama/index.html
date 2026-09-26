@@ -216,6 +216,11 @@
     <label for="fechaRevision">Fecha en la que se hace esta revisión</label>
     <input type="date" id="fechaRevision">
   </div>
+  <div class="field">
+    <label for="fechaUltimaMx">Fecha de la última mamografía <span style="font-weight:400;color:var(--muted);">(opcional)</span></label>
+    <input type="date" id="fechaUltimaMx">
+  </div>
+  <div class="hint" style="margin-bottom:0;">La mamografía mantiene su ciclo anual propio: si la introduces, la siguiente se calcula al año de esa fecha, sin arrastrar retrasos de consulta.</div>
 </div>
 
 <button class="primary" id="btnCalcular">Calcular siguiente revisión</button>
@@ -260,6 +265,7 @@ const PROTOCOLOS = [{"id": "bajo-0", "riesgo": "BAJO", "tumor": "Carcinoma in si
 const selProtocolo = document.getElementById('protocolo');
 const inCirugia = document.getElementById('fechaCirugia');
 const inRevision = document.getElementById('fechaRevision');
+const inUltimaMx = document.getElementById('fechaUltimaMx');
 const resultado = document.getElementById('resultado');
 const tablaWrap = document.getElementById('tablaWrap');
 
@@ -460,20 +466,40 @@ function calcular(){
     }
   }
 
-  // Mx (mamografía) — próxima fecha, también reprogramada desde la fecha real si hay retraso
+  // Mx (mamografía): ciclo anual propio, anclado a la última mamografía real (o, si no se conoce,
+  // al calendario teórico desde la cirugía). NO se reprograma por retrasos de consulta: interesa
+  // que se mantenga siempre en las mismas fechas del año.
   const mxFechas = generarMx(protocolo);
-  const mxPasada = mxFechas.filter(m => m <= mesesTranscurridos + 0.01).slice(-1)[0];
   const mxFutura = mxFechas.find(m => m > mesesTranscurridos + 0.01);
-  if (mxFutura !== undefined){
-    const mxFechaAjustada = proximaFechaAjustada(fechaCirugia, fechaRevision, mesesTranscurridos, mxPasada, mxFutura);
-    const mxFechaTeorica = addMeses(fechaCirugia, mxFutura);
-    const mxHayDesfase = Math.abs(mxFechaAjustada.getTime() - mxFechaTeorica.getTime()) > 1000*60*60*24*10;
-    html += `<div class="mx-box">
-      <div class="result-title">📷 Próxima mamografía (Mx anual)</div>
-      <div class="fecha-mx">${fmtFecha(mxFechaAjustada)}</div>
-      ${mxHayDesfase ? `<div style="color:var(--muted);font-size:0.8rem;">Fecha teórica del protocolo sin retrasos: ${fmtFecha(mxFechaTeorica)}</div>` : ''}
-      <div style="color:var(--muted);font-size:0.85rem;">Solicita y da resultados: <strong>${protocolo.mx.servicio}</strong></div>
-    </div>`;
+  let mxFecha = null;
+  let mxNota = '';
+
+  if (inUltimaMx.value){
+    const ultimaMx = parseDateInput(inUltimaMx.value);
+    mxFecha = addMeses(ultimaMx, protocolo.mx.cadencia);
+    mxNota = `Al año de la última mamografía (${fmtFecha(ultimaMx)}).`;
+  } else if (mxFutura !== undefined){
+    mxFecha = addMeses(fechaCirugia, mxFutura);
+    mxNota = 'Fecha anual teórica contada desde la cirugía. Si conoces la fecha de la última mamografía, introdúcela arriba para ajustarla al ciclo real.';
+  }
+
+  if (mxFecha){
+    const mesesDeLaMx = mesesEntre(fechaCirugia, mxFecha);
+    if (mesesDeLaMx > ultimoMesAlta + 0.5){
+      html += `<div class="mx-box">
+        <div class="result-title">📷 Mamografía (Mx anual)</div>
+        <div style="font-size:0.92rem;">Esa mamografía caería más allá del alta del protocolo (${fmtFecha(addMeses(fechaCirugia, ultimoMesAlta))}); el seguimiento radiológico continúa según indique Atención Primaria.</div>
+      </div>`;
+    } else {
+      const vencida = mxFecha.getTime() < fechaRevision.getTime();
+      html += `<div class="mx-box"${vencida ? ' style="background:#fcebe7;border-color:#f0c9bd;"' : ''}>
+        <div class="result-title">📷 ${vencida ? 'Mamografía vencida — pedirla ya' : 'Próxima mamografía (Mx anual)'}</div>
+        <div class="fecha-mx">${fmtFecha(mxFecha)}</div>
+        ${vencida ? '<div style="color:#a5442c;font-size:0.85rem;margin-bottom:4px;">Le tocaba en esa fecha y aún no consta hecha.</div>' : ''}
+        <div style="color:var(--muted);font-size:0.8rem;">${mxNota}</div>
+        <div style="color:var(--muted);font-size:0.85rem;">Solicita y da resultados: <strong>${protocolo.mx.servicio}</strong></div>
+      </div>`;
+    }
   }
 
   resultado.innerHTML = html;
