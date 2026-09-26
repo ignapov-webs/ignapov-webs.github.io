@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Ruta de Seguimiento — Cáncer de Mama</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Seguim. Mama">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#f4f7fb">
+<style>
+  :root{
+    --bg:#f4f7fb;
+    --card:#ffffff;
+    --border:#dde6f0;
+    --text:#2b3a4a;
+    --muted:#6b7c8d;
+    --accent:#5b8def;
+    --accent-bg:#eaf1fd;
+    --bajo:#4fae73; --bajo-bg:#e6f6ec;
+    --alto:#c85a3f; --alto-bg:#fbe9e4;
+    --amber:#d99a3a; --amber-bg:#fbf1dd;
+    --warn:#b4831f; --warn-bg:#fbf1dd;
+    --shadow: 0 2px 10px rgba(43,58,74,0.06);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    padding:16px;
+    padding-bottom:48px;
+    max-width:760px;
+    margin:0 auto;
+    -webkit-text-size-adjust:100%;
+  }
+  h1{font-size:1.3rem;margin:4px 0 2px;}
+  .subtitle{color:var(--muted);font-size:0.92rem;margin-bottom:18px;}
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:16px;
+    margin-bottom:14px;
+    box-shadow:var(--shadow);
+  }
+  label{
+    display:block;
+    font-weight:600;
+    font-size:0.9rem;
+    margin-bottom:6px;
+    color:var(--text);
+  }
+  select, input[type="date"]{
+    width:100%;
+    padding:12px 10px;
+    font-size:1rem;
+    border:1px solid var(--border);
+    border-radius:10px;
+    background:#fbfdff;
+    color:var(--text);
+    min-height:44px;
+    margin-bottom:14px;
+  }
+  select:last-child, input:last-child{margin-bottom:0;}
+  .field{margin-bottom:0;}
+  .hint{font-size:0.8rem;color:var(--muted);margin-top:-10px;margin-bottom:14px;}
+  button.primary{
+    width:100%;
+    padding:14px;
+    font-size:1.05rem;
+    font-weight:700;
+    color:#fff;
+    background:var(--accent);
+    border:none;
+    border-radius:12px;
+    min-height:48px;
+    cursor:pointer;
+    box-shadow:var(--shadow);
+  }
+  button.primary:active{opacity:0.85;}
+  .result-title{font-size:0.85rem;text-transform:uppercase;letter-spacing:0.04em;color:var(--muted);font-weight:700;margin-bottom:6px;}
+  .current-box{
+    background:var(--accent-bg);
+    border-radius:10px;
+    padding:12px;
+    margin-bottom:14px;
+    font-size:0.92rem;
+  }
+  .next-box{
+    background:var(--amber-bg);
+    border:1px solid #f0dcb0;
+    border-radius:12px;
+    padding:16px;
+    margin-bottom:14px;
+  }
+  .next-box .fecha{
+    font-size:1.4rem;
+    font-weight:800;
+    color:var(--text);
+    margin:2px 0 10px;
+  }
+  .alta-box{
+    background:var(--bajo-bg);
+    border:1px solid #cdeada;
+    border-radius:12px;
+    padding:16px;
+    text-align:center;
+    margin-bottom:14px;
+  }
+  .alta-box .icon{font-size:2rem;}
+  .warn-box{
+    background:var(--warn-bg);
+    border:1px solid #f0dcb0;
+    border-radius:10px;
+    padding:12px;
+    font-size:0.88rem;
+    color:#7a5a17;
+    margin-bottom:14px;
+  }
+  .mx-box{
+    background:#f2effc;
+    border:1px solid #dcd3f2;
+    border-radius:10px;
+    padding:12px;
+    font-size:0.92rem;
+    margin-bottom:14px;
+  }
+  .mx-box .fecha-mx{font-weight:800;font-size:1.05rem;}
+  ul.pruebas{list-style:none;padding:0;margin:0;}
+  ul.pruebas li{
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:10px 12px;
+    margin-bottom:8px;
+  }
+  ul.pruebas li .servicio{
+    font-weight:700;
+    font-size:0.85rem;
+    color:var(--accent);
+    display:block;
+    margin-bottom:3px;
+  }
+  ul.pruebas li .accion{white-space:pre-line;font-size:0.95rem;}
+  .notas-protocolo{
+    background:#fff8ec;
+    border:1px solid #f0dcb0;
+    border-radius:10px;
+    padding:10px 12px;
+    font-size:0.82rem;
+    color:#7a5a17;
+    margin-bottom:14px;
+  }
+  .notas-protocolo b{display:block;margin-bottom:4px;}
+  details{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    margin-bottom:14px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  summary{
+    padding:14px 16px;
+    font-weight:700;
+    cursor:pointer;
+    list-style:none;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    min-height:44px;
+  }
+  summary::-webkit-details-marker{display:none;}
+  summary:after{content:"›";transform:rotate(90deg);transition:transform .15s;color:var(--muted);font-size:1.2rem;}
+  details[open] summary:after{transform:rotate(270deg);}
+  .details-body{padding:0 16px 16px;}
+  table{width:100%;border-collapse:collapse;font-size:0.85rem;}
+  th,td{border:1px solid var(--border);padding:7px 7px;text-align:left;vertical-align:top;}
+  th{background:#f4f7fb;}
+  td.mes-col, th.mes-col{white-space:nowrap;font-weight:700;}
+  td{white-space:pre-line;}
+  .tabla-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  tr.row-current{background:var(--accent-bg);}
+  tr.row-next{background:var(--amber-bg);}
+  tr.row-alta td{font-weight:700;}
+  .fase-tratamiento{
+    background:#fdf6e8;
+    font-style:italic;
+    color:var(--muted);
+  }
+  .glosario dt{font-weight:700;margin-top:8px;}
+  .glosario dd{margin:0 0 4px;color:var(--muted);font-size:0.88rem;}
+  .footer-note{font-size:0.78rem;color:var(--muted);text-align:center;margin-top:24px;line-height:1.4;}
+  .empty-hint{color:var(--muted);font-size:0.9rem;text-align:center;padding:20px 0;}
+</style>
+</head>
+<body>
+
+<h1>🩺 Ruta de Seguimiento — Cáncer de Mama</h1>
+<div class="subtitle">HUN · Selecciona el perfil de la paciente para saber la próxima revisión y qué pruebas pedir</div>
+
+<div class="card">
+  <div class="field">
+    <label for="protocolo">Tipo de tumor y tratamiento recibido</label>
+    <select id="protocolo"></select>
+  </div>
+  <div class="field">
+    <label for="fechaCirugia">Fecha de la cirugía (Día 0 del protocolo)</label>
+    <input type="date" id="fechaCirugia">
+  </div>
+  <div class="hint">Es la fecha de referencia desde la que se cuentan todos los controles.</div>
+  <div class="field">
+    <label for="fechaRevision">Fecha en la que se hace esta revisión</label>
+    <input type="date" id="fechaRevision">
+  </div>
+</div>
+
+<button class="primary" id="btnCalcular">Calcular siguiente revisión</button>
+
+<div id="resultado" style="margin-top:16px;"></div>
+
+<details id="rutaCompleta">
+  <summary>📋 Ver ruta asistencial completa</summary>
+  <div class="details-body">
+    <div class="hint" style="margin-top:0;">Calendario teórico del protocolo (fechas ancladas al día de la cirugía, sin tener en cuenta retrasos de agenda). Para la fecha ajustada a retrasos reales, usa el cálculo de arriba.</div>
+    <div class="tabla-wrap" id="tablaWrap"></div>
+  </div>
+</details>
+
+<details>
+  <summary>📖 Glosario de siglas</summary>
+  <div class="details-body glosario">
+    <dl>
+      <dt>ONCO RTP</dt><dd>Oncología Radioterápica (radioterapia)</dd>
+      <dt>ONCO MÉDICA</dt><dd>Oncología Médica</dd>
+      <dt>CID</dt><dd>Carcinoma in situ</dd>
+      <dt>HT</dt><dd>Tratamiento hormonal</dd>
+      <dt>CICLINAS</dt><dd>Inhibidores de CDK4/6 (p. ej. abemaciclib), combinados con tratamiento hormonal</dd>
+      <dt>ANTI-HER2</dt><dd>Terapia dirigida anti-HER2 (p. ej. trastuzumab)</dd>
+      <dt>Mx</dt><dd>Mamografía de control</dd>
+      <dt>IQ</dt><dd>Intervención quirúrgica</dd>
+      <dt>Día 0</dt><dd>Día de la cirugía, fecha de referencia del protocolo</dd>
+    </dl>
+  </div>
+</details>
+
+<div class="footer-note">
+  Basado en el resumen de seguimiento de cáncer de mama del HUN (mayo 2026) y en la ruta asistencial "TO BE" del servicio.
+  Los tiempos son orientativos según el protocolo; ante cualquier duda clínica prevalece el criterio del equipo.
+  Algunos puntos del documento original eran ambiguos y se han interpretado de la forma más coherente con el resto del circuito — revisa el aviso de cada protocolo cuando aparezca.<br>
+  Todos los datos se calculan en este dispositivo, no se envían a ningún servidor.
+</div>
+
+<script>
+const PROTOCOLOS = [{"id": "bajo-0", "riesgo": "BAJO", "tumor": "Carcinoma in situ (mastectomía)", "tratamiento": "Cirugía sola", "fases": [{"tipo": "cadencia", "desde": 0, "hasta": 24, "cadencia": 6, "servicios": ["CIRUGÍA"]}, {"tipo": "cadencia", "desde": 24, "hasta": 60, "cadencia": 12, "servicios": ["CIRUGÍA"]}], "eventos": [], "mx": {"desde": 12, "cadencia": 12, "servicio": "CIRUGÍA"}, "alta": [{"mes": 60, "servicio": "CIRUGÍA"}], "notas": []}, {"id": "bajo-1", "riesgo": "BAJO", "tumor": "Carcinoma in situ (mastectomía) + tto. hormonal", "tratamiento": "Cirugía + Oncología Médica", "fases": [{"tipo": "cadencia", "desde": 0, "hasta": 36, "cadencia": 6, "servicios": ["CIRUGÍA", "ONCO MÉDICA"]}, {"tipo": "cadencia", "desde": 36, "hasta": 60, "cadencia": 12, "servicios": ["CIRUGÍA"]}], "eventos": [], "mx": {"desde": 12, "cadencia": 12, "servicio": "CIRUGÍA"}, "alta": [{"mes": 36, "servicio": "ONCO MÉDICA"}, {"mes": 60, "servicio": "CIRUGÍA"}], "notas": ["Al ser mastectomía, la paciente no precisa Oncología RTP (confirmado). El documento original indica \"ALTA al 5º año (Onco RTP)\", que era una errata: al no participar RTP en ningún momento del circuito, el alta al 5º año corresponde a Cirugía, y Oncología Médica da su propia alta al 3er año (fin del tratamiento hormonal)."]}, {"id": "bajo-2", "riesgo": "BAJO", "tumor": "Carcinoma in situ (cirugía conservadora)", "tratamiento": "Cirugía + Oncología RTP", "fases": [{"tipo": "cadencia", "desde": 0, "hasta": 60, "cadencia": 6, "servicios": ["CIRUGÍA", "ONCO RTP"]}], "eventos": [], "mx": {"desde": 12, "cadencia": 12, "servicio": "ONCO RTP"}, "alta": [{"mes": 60, "servicio": "ONCO RTP"}], "notas": []}, {"id": "bajo-3", "riesgo": "BAJO", "tumor": "Carcinoma in situ (cirugía conservadora) + tto. hormonal", "tratamiento": "Cirugía + Oncología RTP + Oncología Médica", "fases": [{"tipo": "cadencia", "desde": 0, "hasta": 30, "cadencia": 6, "servicios": ["CIRUGÍA", "ONCO RTP", "ONCO MÉDICA"]}, {"tipo": "cadencia", "desde": 30, "hasta": 60, "cadencia": 6, "servicios": ["CIRUGÍA", "ONCO RTP"]}], "eventos": [], "mx": {"desde": 12, "cadencia": 12, "servicio": "ONCO RTP"}, "alta": [{"mes": 30, "servicio": "ONCO MÉDICA"}, {"mes": 60, "servicio": "ONCO RTP"}], "notas": ["Oncología Médica participa en la rotación hasta el fin del tratamiento hormonal (~30 meses); a partir de ahí continúan solo Cirugía y Oncología RTP cada 6 meses hasta el alta al 5º año."]}, {"id": "bajo-4", "riesgo": "BAJO", "tumor": "Carcinoma infiltrante (cirugía conservadora)", "tratamiento": "Cirugía + Oncología RTP + Oncología Médica", "fases": [{"tipo": "cadencia", "desde": 0, "hasta": 60, "cadencia": 6, "servicios": ["CIRUGÍA", "ONCO RTP", "ONCO MÉDICA"]}], "eventos": [], "mx": {"desde": 12, "cadencia": 12, "servicio": "ONCO RTP"}, "alta": [{"mes": 60, "servicio": "CIRUGÍA"}], "notas": []}, {"id": "bajo-5", "riesgo": "BAJO", "tumor": "Carcinoma infiltrante (mastectomía)", "tratamiento": "Cirugía + Oncología Médica", "fases": [{"tipo": "cadencia", "desde": 0, "hasta": 60, "cadencia": 6, "servicios": ["CIRUGÍA", "ONCO MÉDICA"]}], "eventos": [], "mx": {"desde": 12, "cadencia": 12, "servicio": "CIRUGÍA"}, "alta": [{"mes": 60, "servicio": "ONCO MÉDICA"}], "notas": []}, {"id": "alto-6", "riesgo": "ALTO", "tumor": "Luminal sin ciclinas", "tratamiento": "Cirugía + Oncología RTP + Oncología Médica", "fases": [{"tipo": "cadencia", "desde": 0, "hasta": 36, "cadencia": 4, "servicios": ["CIRUGÍA", "ONCO RTP", "ONCO MÉDICA"]}, {"tipo": "cadencia", "desde": 36, "hasta": 60, "cadencia": 6, "servicios": ["CIRUGÍA", "ONCO RTP", "ONCO MÉDICA"]}, {"tipo": "cadencia", "desde": 60, "hasta": 120, "cadencia": 12, "servicios": ["ONCO RTP", "ONCO MÉDICA"]}], "eventos": [], "mx": {"desde": 12, "cadencia": 12, "servicio": "ONCO RTP"}, "alta": [{"mes": 60, "servicio": "CIRUGÍA"}, {"mes": 120, "servicio": "ONCO RTP"}], "notas": ["Cirugía General participa solo los primeros 5 años (a partir de fin de RTP entra en la rotación c/4 meses). Oncología Médica y Oncología RTP continúan hasta el alta a los 10 años."]}, {"id": "alto-7", "riesgo": "ALTO", "tumor": "Triple negativo", "tratamiento": "Cirugía + Oncología RTP + Oncología Médica", "fases": [{"tipo": "cadencia", "desde": 0, "hasta": 36, "cadencia": 4, "servicios": ["CIRUGÍA", "ONCO RTP", "ONCO MÉDICA"]}, {"tipo": "cadencia", "desde": 36, "hasta": 60, "cadencia": 6, "servicios": ["CIRUGÍA", "ONCO RTP", "ONCO MÉDICA"]}, {"tipo": "cadencia", "desde": 60, "hasta": 120, "cadencia": 12, "servicios": ["ONCO RTP", "ONCO MÉDICA"]}], "eventos": [], "mx": {"desde": 12, "cadencia": 12, "servicio": "ONCO RTP"}, "alta": [{"mes": 60, "servicio": "CIRUGÍA"}, {"mes": 120, "servicio": "ONCO RTP"}], "notas": []}, {"id": "alto-8", "riesgo": "ALTO", "tumor": "HER2+", "tratamiento": "Cirugía + Oncología RTP + Oncología Médica", "fases": [{"tipo": "cadencia", "desde": 0, "hasta": 36, "cadencia": 4, "servicios": ["CIRUGÍA", "ONCO RTP", "ONCO MÉDICA"]}, {"tipo": "cadencia", "desde": 36, "hasta": 60, "cadencia": 6, "servicios": ["CIRUGÍA", "ONCO RTP", "ONCO MÉDICA"]}, {"tipo": "cadencia", "desde": 60, "hasta": 120, "cadencia": 12, "servicios": ["ONCO RTP", "ONCO MÉDICA"]}], "eventos": [], "mx": {"desde": 12, "cadencia": 12, "servicio": "ONCO RTP"}, "alta": [{"mes": 60, "servicio": "CIRUGÍA"}, {"mes": 120, "servicio": "ONCO RTP"}], "notas": ["La rotación c/4 meses comienza al finalizar el tratamiento anti-HER2 (en vez de al finalizar RTP)."]}, {"id": "alto-9", "riesgo": "ALTO", "tumor": "Luminal con ciclinas (2 años)", "tratamiento": "Oncología Médica + Oncología RTP + Cirugía", "fases": [{"tipo": "tratamiento", "desde": 0, "hasta": 36, "servicio": "ONCO MÉDICA", "descripcion": "Tratamiento con ciclinas (2 años, finaliza a los 3 años de la cirugía)"}, {"tipo": "cadencia", "desde": 36, "hasta": 60, "cadencia": 6, "servicios": ["ONCO RTP", "ONCO MÉDICA"]}, {"tipo": "cadencia", "desde": 60, "hasta": 120, "cadencia": 12, "servicios": ["ONCO RTP", "ONCO MÉDICA"]}], "eventos": [{"mes": 48, "servicio": "CIRUGÍA", "descripcion": "Cirugía General: visita única y alta quirúrgica"}], "mx": {"desde": 12, "cadencia": 12, "servicio": "ONCO MÉDICA"}, "alta": [{"mes": 48, "servicio": "CIRUGÍA"}, {"mes": 120, "servicio": "ONCO MÉDICA"}], "notas": ["Durante el tratamiento con ciclinas (primeros 3 años) no hay una cadencia de revisión quirúrgica fija; lo marca Oncología Médica según el tratamiento. A partir del 3er año (fin de ciclinas), Oncología RTP se incorpora y el 4º y 5º año la revisión es cada 6 meses; a partir de la revisión de los 60 meses, las siguientes son anuales hasta el alta a los 10 años."]}, {"id": "alto-10", "riesgo": "ALTO", "tumor": "Luminal con ciclinas (3 años)", "tratamiento": "Oncología Médica + Oncología RTP + Cirugía", "fases": [{"tipo": "tratamiento", "desde": 0, "hasta": 36, "servicio": "ONCO MÉDICA", "descripcion": "Tratamiento con ciclinas (3 años; primeros 3 años sin cadencia fija de revisión)"}, {"tipo": "cadencia", "desde": 36, "hasta": 48, "cadencia": 6, "servicios": ["ONCO MÉDICA"]}, {"tipo": "cadencia", "desde": 48, "hasta": 60, "cadencia": 6, "servicios": ["ONCO RTP", "ONCO MÉDICA"]}, {"tipo": "cadencia", "desde": 60, "hasta": 120, "cadencia": 12, "servicios": ["ONCO RTP", "ONCO MÉDICA"]}], "eventos": [{"mes": 60, "servicio": "CIRUGÍA", "descripcion": "Cirugía General: visita única y alta quirúrgica"}], "mx": {"desde": 12, "cadencia": 12, "servicio": "ONCO MÉDICA"}, "alta": [{"mes": 60, "servicio": "CIRUGÍA"}, {"mes": 120, "servicio": "ONCO MÉDICA"}], "notas": ["El 4º año (con Oncología Médica, mientras terminan las ciclinas) y el 5º año (ya con Oncología RTP, incorporada al finalizar las ciclinas a los 4 años) tienen revisión cada 6 meses. A partir de la revisión de los 60 meses, las siguientes son anuales hasta el alta a los 10 años."]}, {"id": "alto-11", "riesgo": "ALTO", "tumor": "Luminal con ciclinas (2 años) + mastectomía", "tratamiento": "Oncología Médica + Cirugía (sin RTP)", "fases": [{"tipo": "tratamiento", "desde": 0, "hasta": 36, "servicio": "ONCO MÉDICA", "descripcion": "Tratamiento con ciclinas (2 años, finaliza a los 3 años de la cirugía)"}, {"tipo": "cadencia", "desde": 36, "hasta": 60, "cadencia": 6, "servicios": ["CIRUGÍA", "ONCO MÉDICA"]}, {"tipo": "cadencia", "desde": 60, "hasta": 120, "cadencia": 12, "servicios": ["ONCO MÉDICA"]}], "eventos": [], "mx": {"desde": 12, "cadencia": 12, "servicio": "ONCO MÉDICA"}, "alta": [{"mes": 60, "servicio": "CIRUGÍA"}, {"mes": 120, "servicio": "ONCO MÉDICA"}], "notas": []}, {"id": "alto-12", "riesgo": "ALTO", "tumor": "Luminal con ciclinas (3 años) + mastectomía", "tratamiento": "Oncología Médica + Cirugía (sin RTP)", "fases": [{"tipo": "tratamiento", "desde": 0, "hasta": 54, "servicio": "ONCO MÉDICA", "descripcion": "Tratamiento con ciclinas (3 años, finaliza a los 4,5 años de la cirugía)"}, {"tipo": "cadencia", "desde": 54, "hasta": 60, "cadencia": 6, "servicios": ["ONCO MÉDICA"]}, {"tipo": "cadencia", "desde": 60, "hasta": 120, "cadencia": 12, "servicios": ["ONCO MÉDICA"]}], "eventos": [{"mes": 60, "servicio": "CIRUGÍA", "descripcion": "Cirugía General: visita única y alta quirúrgica, coincidiendo con la revisión del 5º año"}], "mx": {"desde": 12, "cadencia": 12, "servicio": "ONCO MÉDICA"}, "alta": [{"mes": 60, "servicio": "CIRUGÍA"}, {"mes": 120, "servicio": "ONCO MÉDICA"}], "notas": []}];
+
+const selProtocolo = document.getElementById('protocolo');
+const inCirugia = document.getElementById('fechaCirugia');
+const inRevision = document.getElementById('fechaRevision');
+const resultado = document.getElementById('resultado');
+const tablaWrap = document.getElementById('tablaWrap');
+
+const TITULOS = {
+  'bajo-0': 'Carcinoma in situ (mastectomía)',
+  'bajo-1': 'Carcinoma in situ (mastectomía) + tto. hormonal',
+  'bajo-2': 'Carcinoma in situ (cirugía conservadora)',
+  'bajo-3': 'Carcinoma in situ (cirugía conservadora) + tto. hormonal',
+  'bajo-4': 'Carcinoma infiltrante (cirugía conservadora)',
+  'bajo-5': 'Carcinoma infiltrante (mastectomía)',
+  'alto-6': 'Luminal sin ciclinas',
+  'alto-7': 'Triple negativo',
+  'alto-8': 'HER2+',
+  'alto-9': 'Luminal con ciclinas (2 años)',
+  'alto-10': 'Luminal con ciclinas (3 años)',
+  'alto-11': 'Luminal con ciclinas (2 años) + mastectomía',
+  'alto-12': 'Luminal con ciclinas (3 años) + mastectomía'
+};
+
+function poblarSelect(){
+  const grupos = {BAJO: [], ALTO: []};
+  PROTOCOLOS.forEach((p, idx) => grupos[p.riesgo].push({p, idx}));
+  const labels = {BAJO: 'Riesgo bajo', ALTO: 'Riesgo alto'};
+  ['BAJO','ALTO'].forEach(r => {
+    const og = document.createElement('optgroup');
+    og.label = labels[r];
+    grupos[r].forEach(({p, idx}) => {
+      const opt = document.createElement('option');
+      opt.value = idx;
+      opt.textContent = `${TITULOS[p.id]} — ${p.tratamiento}`;
+      og.appendChild(opt);
+    });
+    selProtocolo.appendChild(og);
+  });
+}
+
+function parseDateInput(str){
+  const [y,m,d] = str.split('-').map(Number);
+  return new Date(y, m-1, d, 12, 0, 0);
+}
+
+function addMeses(baseDate, meses){
+  const d = new Date(baseDate.getTime());
+  const day = d.getDate();
+  const enteros = Math.trunc(meses);
+  const frac = meses - enteros;
+  d.setDate(1);
+  d.setMonth(d.getMonth()+enteros);
+  const dim = new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
+  d.setDate(Math.min(day, dim));
+  if (frac) d.setDate(d.getDate() + Math.round(frac*30.4368));
+  return d;
+}
+
+function mesesEntre(fechaCirugia, fecha){
+  return (fecha.getTime() - fechaCirugia.getTime()) / (1000*60*60*24*30.4368);
+}
+
+function fmtFecha(d){
+  return d.toLocaleDateString('es-ES', {day:'2-digit', month:'short', year:'numeric'});
+}
+
+function generarVisitas(protocolo){
+  // Se agrupa por mes: una cadencia y uno o varios eventos especiales pueden coincidir en la misma fecha.
+  const porMes = new Map();
+  function entrada(mes){
+    if (!porMes.has(mes)) porMes.set(mes, {mes, servicios:null, servicioSugerido:null, eventos:[]});
+    return porMes.get(mes);
+  }
+  protocolo.fases.forEach(fase => {
+    if (fase.tipo === 'tratamiento') return;
+    let mes = fase.desde + fase.cadencia;
+    let idx = 0;
+    while (mes <= fase.hasta + 0.01){
+      const mesR = Math.round(mes*100)/100;
+      const e = entrada(mesR);
+      e.servicios = fase.servicios;
+      e.servicioSugerido = fase.servicios[idx % fase.servicios.length];
+      idx++;
+      mes += fase.cadencia;
+    }
+  });
+  (protocolo.eventos||[]).forEach(ev => {
+    entrada(ev.mes).eventos.push({servicio: ev.servicio, descripcion: ev.descripcion});
+  });
+  return Array.from(porMes.values()).sort((a,b)=>a.mes-b.mes);
+}
+
+function descripcionVisita(v){
+  const partes = [];
+  v.eventos.forEach(ev => partes.push(ev.descripcion));
+  if (v.servicios){
+    partes.push(`Revisión clínica — servicio sugerido: <strong>${v.servicioSugerido}</strong>${v.servicios.length>1 ? ` (alternando con: ${v.servicios.filter(s=>s!==v.servicioSugerido).join(', ')})` : ''}`);
+  }
+  return partes.join('<br>');
+}
+
+function generarMx(protocolo){
+  const fechas = [];
+  const ultimoMes = protocolo.alta[protocolo.alta.length-1].mes;
+  let mes = protocolo.mx.desde;
+  while (mes <= ultimoMes + 0.01){
+    fechas.push(mes);
+    mes += protocolo.mx.cadencia;
+  }
+  return fechas;
+}
+
+function faseEnMes(protocolo, mes){
+  return protocolo.fases.find(f => mes >= f.desde && mes < f.hasta) || protocolo.fases[protocolo.fases.length-1];
+}
+
+function altaEnMes(protocolo, mes, tolerancia){
+  return protocolo.alta.find(a => Math.abs(a.mes - mes) <= tolerancia);
+}
+
+// Reprograma la siguiente fecha desde la fecha REAL de esta revisión, usando el intervalo
+// habitual del protocolo (p. ej. 6 meses) en vez de la fecha fija ancla al Día 0. Así, si esta
+// revisión se ha retrasado (lista de espera), el retraso se traslada a la siguiente cita en vez
+// de perderse o acumularse silenciosamente. Sin un punto previo de referencia (aún no ha habido
+// ninguna revisión/Mx de este tipo) no hay retraso que trasladar, así que se usa la fecha teórica.
+function proximaFechaAjustada(fechaCirugia, fechaRevision, mesesTranscurridos, mesPasado, mesSiguiente){
+  if (mesPasado === null || mesPasado === undefined){
+    return addMeses(fechaCirugia, mesSiguiente);
+  }
+  return addMeses(fechaRevision, mesSiguiente - mesPasado);
+}
+
+function calcular(){
+  const idx = selProtocolo.value;
+  const protocolo = PROTOCOLOS[idx];
+  if (!inCirugia.value || !inRevision.value){
+    resultado.innerHTML = '<div class="card empty-hint">Introduce la fecha de la cirugía y la fecha de la revisión para calcular.</div>';
+    return;
+  }
+  const fechaCirugia = parseDateInput(inCirugia.value);
+  const fechaRevision = parseDateInput(inRevision.value);
+  const mesesTranscurridos = mesesEntre(fechaCirugia, fechaRevision);
+  const ultimoMesAlta = protocolo.alta[protocolo.alta.length-1].mes;
+
+  let html = '';
+
+  if (protocolo.notas && protocolo.notas.length){
+    html += `<div class="notas-protocolo"><b>⚠️ Aviso sobre este protocolo</b>${protocolo.notas.map(n=>`<div>${n}</div>`).join('')}</div>`;
+  }
+
+  if (mesesTranscurridos >= ultimoMesAlta){
+    const altaFinal = protocolo.alta[protocolo.alta.length-1];
+    html += `<div class="alta-box">
+      <div class="icon">✅</div>
+      <strong>Paciente de alta según protocolo</strong><br>
+      <span style="color:var(--muted);font-size:0.9rem;">Alta definitiva: ${TITULOS[protocolo.id]} — ${fmtFecha(addMeses(fechaCirugia, altaFinal.mes))} (${altaFinal.servicio})</span>
+    </div>`;
+    resultado.innerHTML = html;
+    renderTablaCompleta(protocolo, fechaCirugia, mesesTranscurridos);
+    return;
+  }
+
+  const faseActual = faseEnMes(protocolo, mesesTranscurridos);
+
+  if (faseActual.tipo === 'tratamiento'){
+    html += `<div class="warn-box">
+      <strong>En fase de tratamiento (${faseActual.servicio.toLowerCase()})</strong><br>
+      ${faseActual.descripcion}.<br>
+      Este protocolo no define una cadencia fija de revisión quirúrgica en esta fase: el calendario de citas lo marca el equipo de Oncología Médica según el tratamiento.<br>
+      La siguiente fase de seguimiento estructurado comienza aproximadamente el <strong>${fmtFecha(addMeses(fechaCirugia, faseActual.hasta))}</strong>.
+    </div>`;
+  } else {
+    const visitas = generarVisitas(protocolo);
+    const pasadas = visitas.filter(v => v.mes <= mesesTranscurridos + 0.01);
+    const futuras = visitas.filter(v => v.mes > mesesTranscurridos + 0.01);
+    const actual = pasadas.length ? pasadas[pasadas.length-1] : null;
+    const siguiente = futuras[0];
+
+    if (actual){
+      const desviacion = Math.round(mesesTranscurridos - actual.mes);
+      html += `<div class="card">
+        <div class="result-title">Esta revisión corresponde aproximadamente a</div>
+        <div class="current-box">
+          <strong>Mes ${actual.mes}</strong> — fecha teórica: ${fmtFecha(addMeses(fechaCirugia, actual.mes))}
+          ${desviacion !== 0 ? `<br><span style="color:var(--muted);">(${desviacion > 0 ? '+' : ''}${desviacion} meses respecto a la fecha introducida)</span>` : ''}
+          <br>${descripcionVisita(actual)}
+        </div>
+      </div>`;
+    }
+
+    if (siguiente){
+      const mesPasado = actual ? actual.mes : null;
+      const fechaAjustada = proximaFechaAjustada(fechaCirugia, fechaRevision, mesesTranscurridos, mesPasado, siguiente.mes);
+      const fechaTeorica = addMeses(fechaCirugia, siguiente.mes);
+      const hayDesfase = Math.abs(fechaAjustada.getTime() - fechaTeorica.getTime()) > 1000*60*60*24*10;
+      html += `<div class="next-box">
+        <div class="result-title">Próxima revisión — mes ${siguiente.mes}</div>
+        <div class="fecha">${fmtFecha(fechaAjustada)}</div>
+        ${hayDesfase ? `<div style="color:var(--muted);font-size:0.82rem;margin:-4px 0 8px;">Calculada desde la fecha real de hoy + intervalo habitual del protocolo (fecha teórica del protocolo sin retrasos: ${fmtFecha(fechaTeorica)})</div>` : ''}
+        <div>${descripcionVisita(siguiente)}</div>
+      </div>`;
+    }
+  }
+
+  // Mx (mamografía) — próxima fecha, también reprogramada desde la fecha real si hay retraso
+  const mxFechas = generarMx(protocolo);
+  const mxPasada = mxFechas.filter(m => m <= mesesTranscurridos + 0.01).slice(-1)[0];
+  const mxFutura = mxFechas.find(m => m > mesesTranscurridos + 0.01);
+  if (mxFutura !== undefined){
+    const mxFechaAjustada = proximaFechaAjustada(fechaCirugia, fechaRevision, mesesTranscurridos, mxPasada, mxFutura);
+    const mxFechaTeorica = addMeses(fechaCirugia, mxFutura);
+    const mxHayDesfase = Math.abs(mxFechaAjustada.getTime() - mxFechaTeorica.getTime()) > 1000*60*60*24*10;
+    html += `<div class="mx-box">
+      <div class="result-title">📷 Próxima mamografía (Mx anual)</div>
+      <div class="fecha-mx">${fmtFecha(mxFechaAjustada)}</div>
+      ${mxHayDesfase ? `<div style="color:var(--muted);font-size:0.8rem;">Fecha teórica del protocolo sin retrasos: ${fmtFecha(mxFechaTeorica)}</div>` : ''}
+      <div style="color:var(--muted);font-size:0.85rem;">Solicita y da resultados: <strong>${protocolo.mx.servicio}</strong></div>
+    </div>`;
+  }
+
+  resultado.innerHTML = html;
+  renderTablaCompleta(protocolo, fechaCirugia, mesesTranscurridos);
+}
+
+function renderTablaCompleta(protocolo, fechaCirugia, mesesTranscurridos){
+  const visitas = generarVisitas(protocolo);
+  const mxFechas = new Set(generarMx(protocolo));
+  let rows = '';
+
+  protocolo.fases.forEach(fase => {
+    if (fase.tipo === 'tratamiento'){
+      const mxEnFase = [...mxFechas].filter(m => m >= fase.desde && m <= fase.hasta).sort((a,b)=>a-b);
+      const mxTxt = mxEnFase.length ? `<br><span style="color:var(--muted);">Mx anual durante este periodo: mes ${mxEnFase.join(', ')} (solicita: ${protocolo.mx.servicio})</span>` : '';
+      rows += `<tr class="fase-tratamiento"><td class="mes-col">${fase.desde}–${fase.hasta}</td><td class="mes-col">${fmtFecha(addMeses(fechaCirugia,fase.desde))} – ${fmtFecha(addMeses(fechaCirugia,fase.hasta))}</td><td colspan="2">${fase.descripcion} (${fase.servicio})${mxTxt}</td></tr>`;
+    }
+  });
+
+  const pasadas = visitas.filter(x=>x.mes<=mesesTranscurridos+0.01);
+  const futuras = visitas.filter(x=>x.mes>mesesTranscurridos+0.01);
+  const actualRef = pasadas.length ? pasadas[pasadas.length-1] : null;
+  const siguienteRef = futuras.length ? futuras[0] : null;
+
+  visitas.forEach(v => {
+    const cls = (v === actualRef) ? 'row-current' : ((v === siguienteRef) ? 'row-next' : '');
+    const altaAqui = altaEnMes(protocolo, v.mes, 0.5);
+    const mxAqui = mxFechas.has(v.mes);
+    const desc = v.eventos.map(ev=>ev.descripcion).concat(
+      v.servicios ? [`${v.servicioSugerido}${v.servicios.length>1 ? ' (alternando: '+v.servicios.join('/')+')' : ''}`] : []
+    ).join(' · ');
+    rows += `<tr class="${cls}${altaAqui?' row-alta':''}"><td class="mes-col">${v.mes}</td><td class="mes-col">${fmtFecha(addMeses(fechaCirugia, v.mes))}</td><td>${desc}${altaAqui?' · <strong>ALTA '+altaAqui.servicio+'</strong>':''}</td><td>${mxAqui?'Mx':''}</td></tr>`;
+  });
+
+  tablaWrap.innerHTML = `<table><thead><tr><th class="mes-col">Mes</th><th class="mes-col">Fecha</th><th>Revisión / evento</th><th>Mx</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+document.getElementById('btnCalcular').addEventListener('click', calcular);
+
+poblarSelect();
+inRevision.value = new Date().toISOString().slice(0,10);
+</script>
+</body>
+</html>
